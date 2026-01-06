@@ -45,7 +45,7 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to={user?.role === 'coach' ? '/coach/dashboard' : user?.role === 'athlete' ? '/athlete/dashboard' : '/'} className="navbar-logo">
-          <span className="logo-text">TeamBuilder</span>
+          <span className="logo-text">Bar Bend</span>
         </Link>
 
         <div className="navbar-links">

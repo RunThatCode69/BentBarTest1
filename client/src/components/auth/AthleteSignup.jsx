@@ -123,7 +123,7 @@ const AthleteSignup = () => {
   return (
     <div className="auth-page">
       <nav className="auth-nav">
-        <Link to="/" className="nav-logo">TeamBuilder</Link>
+        <Link to="/" className="nav-logo">Bar Bend</Link>
         <Link to="/signup" className="nav-back">← Back</Link>
       </nav>
 

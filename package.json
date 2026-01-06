@@ -1,5 +1,5 @@
 {
-  "name": "teambuilder-app",
+  "name": "barbend-app",
   "version": "1.0.0",
   "description": "Full-stack workout management app for coaches, athletes, and trainers",
   "main": "server/server.js",

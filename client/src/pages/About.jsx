@@ -39,7 +39,7 @@ const About = () => {
   return (
     <div className="about-page">
       <nav className="about-nav">
-        <Link to="/" className="nav-logo">TeamBuilder</Link>
+        <Link to="/" className="nav-logo">Bar Bend</Link>
         <div className="nav-links">
           <Link to="/" className="nav-link">Home</Link>
           <Link to="/about" className="nav-link active">About</Link>
@@ -50,7 +50,7 @@ const About = () => {
       <section className="about-hero">
         <div className="container">
           <h1>Transform Your Team's Training</h1>
-          <p>TeamBuilder is the modern solution for coaches and athletes to manage workouts, track progress, and achieve their goals together.</p>
+          <p>Bar Bend is the modern solution for coaches and athletes to manage workouts, track progress, and achieve their goals together.</p>
         </div>
       </section>
 
@@ -86,7 +86,7 @@ const About = () => {
 
       <footer className="about-footer">
         <div className="container">
-          <p>&copy; 2024 TeamBuilder. All rights reserved.</p>
+          <p>&copy; 2024 Bar Bend. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -8,7 +8,7 @@ const SignupSelect = () => {
   return (
     <div className="signup-select-page">
       <nav className="signup-nav">
-        <Link to="/" className="nav-logo">TeamBuilder</Link>
+        <Link to="/" className="nav-logo">Bar Bend</Link>
       </nav>
 
       <div className="signup-select-content">

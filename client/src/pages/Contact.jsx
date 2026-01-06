@@ -33,7 +33,7 @@ const Contact = () => {
   return (
     <div className="contact-page">
       <nav className="contact-nav">
-        <Link to="/" className="nav-logo">TeamBuilder</Link>
+        <Link to="/" className="nav-logo">Bar Bend</Link>
         <div className="nav-links">
           <Link to="/" className="nav-link">Home</Link>
           <Link to="/about" className="nav-link">About</Link>
@@ -44,14 +44,14 @@ const Contact = () => {
       <div className="contact-content">
         <div className="contact-info">
           <h1>Get in Touch</h1>
-          <p>Have questions about TeamBuilder? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+          <p>Have questions about Bar Bend? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
 
           <div className="contact-details">
             <div className="contact-detail">
               <div className="detail-icon">📧</div>
               <div>
                 <h3>Email</h3>
-                <p>support@teambuilder.com</p>
+                <p>support@barbend.com</p>
               </div>
             </div>
 
@@ -142,7 +142,7 @@ const Contact = () => {
       </div>
 
       <footer className="contact-footer">
-        <p>&copy; 2024 TeamBuilder. All rights reserved.</p>
+        <p>&copy; 2024 Bar Bend. All rights reserved.</p>
       </footer>
     </div>
   );

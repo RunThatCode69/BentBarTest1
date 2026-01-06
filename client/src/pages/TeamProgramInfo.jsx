@@ -20,7 +20,7 @@ const TeamProgramInfo = () => {
   return (
     <div className="team-info-page">
       <nav className="team-info-nav">
-        <Link to="/" className="nav-logo">TeamBuilder</Link>
+        <Link to="/" className="nav-logo">Bar Bend</Link>
         <Link to="/signup" className="nav-back">← Back to Programs</Link>
       </nav>
 

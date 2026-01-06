@@ -1,7 +1,7 @@
 {
-  "name": "teambuilder-server",
+  "name": "barbend-server",
   "version": "1.0.0",
-  "description": "TeamBuilder API Server",
+  "description": "Bar Bend API Server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
