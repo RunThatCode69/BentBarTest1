@@ -1,0 +1,96 @@
+.create-panel-container {
+  padding: var(--spacing-4);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.create-content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-6);
+}
+
+.create-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-6);
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--color-gray-300);
+}
+
+.create-icon {
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-4);
+}
+
+.create-main h4 {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-2);
+}
+
+.create-main p {
+  color: var(--color-gray-600);
+  margin-bottom: var(--spacing-6);
+  max-width: 400px;
+}
+
+.create-sidebar {
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+}
+
+.create-sidebar h5 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-4);
+  color: var(--color-gray-700);
+}
+
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.team-item {
+  background-color: var(--color-white);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.team-item .team-name {
+  font-weight: var(--font-weight-medium);
+}
+
+.team-item .team-sport {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+  text-transform: capitalize;
+}
+
+.no-teams {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+  text-align: center;
+  padding: var(--spacing-4);
+}
+
+@media (max-width: 768px) {
+  .create-content {
+    grid-template-columns: 1fr;
+  }
+
+  .create-sidebar {
+    order: -1;
+  }
+}

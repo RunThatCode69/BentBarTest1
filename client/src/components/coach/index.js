@@ -1,0 +1,9 @@
+export { default as CoachDashboard } from './CoachDashboard';
+export { default as CoachStats } from './CoachStats';
+export { default as CoachWorkouts } from './CoachWorkouts';
+export { default as CreateWorkout } from './CreateWorkout';
+export { default as EditWorkout } from './EditWorkout';
+export { default as AthleteStatsPanel } from './AthleteStatsPanel';
+export { default as WorkoutsPanel } from './WorkoutsPanel';
+export { default as CreateWorkoutPanel } from './CreateWorkoutPanel';
+export { default as WorkoutEditor } from './WorkoutEditor';

@@ -1,0 +1,109 @@
+.signup-select-page {
+  min-height: 100vh;
+  background-color: var(--color-gray-100);
+}
+
+.signup-nav {
+  padding: var(--spacing-4) var(--spacing-8);
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.signup-select-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--spacing-12) var(--spacing-4);
+  text-align: center;
+}
+
+.signup-select-content h1 {
+  font-size: var(--font-size-4xl);
+  margin-bottom: var(--spacing-2);
+}
+
+.subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--color-gray-600);
+  margin-bottom: var(--spacing-10);
+}
+
+.program-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-6);
+  margin-bottom: var(--spacing-10);
+}
+
+.program-card {
+  background-color: var(--color-white);
+  padding: var(--spacing-8);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 2px solid transparent;
+}
+
+.program-card:hover {
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-4px);
+  border-color: var(--color-primary);
+}
+
+.card-icon {
+  font-size: 48px;
+  margin-bottom: var(--spacing-4);
+}
+
+.program-card h2 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--spacing-2);
+}
+
+.card-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-4);
+}
+
+.card-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--spacing-4);
+}
+
+.card-link {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+.athlete-signup {
+  background-color: var(--color-white);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.athlete-signup p {
+  margin-bottom: var(--spacing-2);
+  color: var(--color-gray-600);
+}
+
+.athlete-link {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+  .program-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .signup-select-content h1 {
+    font-size: var(--font-size-3xl);
+  }
+}

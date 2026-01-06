@@ -1,0 +1,132 @@
+.coach-dashboard {
+  padding: var(--spacing-6);
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+}
+
+.dashboard-loading,
+.dashboard-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.dashboard-loading p {
+  margin-top: var(--spacing-4);
+  color: var(--color-gray-500);
+}
+
+.dashboard-error h2 {
+  margin-bottom: var(--spacing-2);
+}
+
+.dashboard-error p {
+  color: var(--color-error);
+  margin-bottom: var(--spacing-4);
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-8);
+}
+
+.dashboard-header h1 {
+  font-size: var(--font-size-3xl);
+  margin-bottom: var(--spacing-1);
+}
+
+.dashboard-header .subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--color-gray-500);
+}
+
+.team-info {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.team-badge {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-3) var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.team-name {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+}
+
+.athlete-count {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}
+
+.access-code {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  font-family: monospace;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: var(--spacing-6);
+  min-height: 600px;
+}
+
+.dashboard-panel {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-panel {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.workouts-panel {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.create-panel {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+@media (max-width: 992px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .stats-panel,
+  .workouts-panel,
+  .create-panel {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    gap: var(--spacing-4);
+  }
+
+  .team-info {
+    flex-wrap: wrap;
+  }
+}

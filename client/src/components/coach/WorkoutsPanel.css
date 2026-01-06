@@ -1,0 +1,105 @@
+.workouts-panel-container {
+  padding: var(--spacing-4);
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow var(--transition-fast);
+}
+
+.workouts-panel-container:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.workouts-preview {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-3);
+}
+
+.day-column {
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.day-header {
+  padding: var(--spacing-3);
+  background-color: var(--color-gray-200);
+  text-align: center;
+}
+
+.day-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+}
+
+.day-label.today {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.day-exercises {
+  padding: var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.rest-day {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+  text-align: center;
+  padding: var(--spacing-4);
+}
+
+.exercise-preview {
+  background-color: var(--color-white);
+  padding: var(--spacing-2);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-primary);
+}
+
+.exercise-preview .exercise-name {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-1);
+}
+
+.exercise-preview .exercise-details {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+}
+
+.more-exercises {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  text-align: center;
+  padding: var(--spacing-2);
+}
+
+@media (max-width: 600px) {
+  .workouts-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .day-column {
+    display: flex;
+    align-items: center;
+  }
+
+  .day-header {
+    min-width: 100px;
+  }
+
+  .day-exercises {
+    flex: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}

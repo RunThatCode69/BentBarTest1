@@ -1,0 +1,191 @@
+.calendar {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.calendar-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.calendar-nav {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--color-gray-600);
+  transition: background-color var(--transition-fast);
+}
+
+.calendar-nav:hover {
+  background-color: var(--color-gray-100);
+}
+
+.calendar-views {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-2);
+  gap: var(--spacing-2);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.calendar-view-btn {
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-600);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.calendar-view-btn:hover {
+  background-color: var(--color-gray-100);
+}
+
+.calendar-view-btn.active {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background-color: var(--color-gray-100);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.calendar-weekday {
+  padding: var(--spacing-2);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-500);
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-days.weekly {
+  grid-template-rows: minmax(200px, 1fr);
+}
+
+.calendar-day {
+  min-height: 80px;
+  padding: var(--spacing-2);
+  border-right: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.calendar-day:nth-child(7n) {
+  border-right: none;
+}
+
+.calendar-day:hover {
+  background-color: var(--color-gray-100);
+}
+
+.calendar-day.other-month {
+  background-color: var(--color-gray-100);
+}
+
+.calendar-day.other-month .calendar-day-number {
+  color: var(--color-gray-400);
+}
+
+.calendar-day.today .calendar-day-number {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-radius: var(--radius-full);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-day.selected {
+  background-color: var(--color-primary-light);
+}
+
+.calendar-day.has-workout {
+  background-color: var(--color-primary-light);
+}
+
+.calendar-day-number {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+}
+
+.calendar-workout-preview {
+  margin-top: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-2);
+  background-color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.calendar-workout-title {
+  font-size: var(--font-size-xs);
+  color: var(--color-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+/* Weekly view adjustments */
+.calendar-days.weekly .calendar-day {
+  min-height: 200px;
+}
+
+.calendar-days.weekly .calendar-workout-preview {
+  padding: var(--spacing-2);
+  margin-top: var(--spacing-2);
+}
+
+.calendar-days.weekly .calendar-workout-title {
+  font-size: var(--font-size-sm);
+  white-space: normal;
+}
+
+@media (max-width: 768px) {
+  .calendar-day {
+    min-height: 60px;
+    padding: var(--spacing-1);
+  }
+
+  .calendar-day-number {
+    font-size: var(--font-size-xs);
+  }
+
+  .calendar-workout-preview {
+    display: none;
+  }
+
+  .calendar-day.has-workout::after {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-primary);
+    border-radius: 50%;
+    margin-top: var(--spacing-1);
+  }
+}

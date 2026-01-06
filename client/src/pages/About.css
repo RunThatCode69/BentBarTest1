@@ -1,0 +1,204 @@
+.about-page {
+  min-height: 100vh;
+}
+
+/* Navigation */
+.about-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4) var(--spacing-8);
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.nav-logo {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: var(--spacing-6);
+}
+
+.nav-link {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-600);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--color-primary);
+}
+
+/* Hero Section */
+.about-hero {
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-white) 100%);
+  padding: var(--spacing-24) var(--spacing-8);
+  text-align: center;
+}
+
+.about-hero h1 {
+  font-size: var(--font-size-5xl);
+  margin-bottom: var(--spacing-4);
+  color: var(--color-gray-900);
+}
+
+.about-hero p {
+  font-size: var(--font-size-xl);
+  color: var(--color-gray-600);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Mission Section */
+.about-mission {
+  padding: var(--spacing-16) var(--spacing-8);
+  background-color: var(--color-white);
+  text-align: center;
+}
+
+.about-mission h2 {
+  font-size: var(--font-size-3xl);
+  margin-bottom: var(--spacing-6);
+}
+
+.about-mission p {
+  font-size: var(--font-size-lg);
+  color: var(--color-gray-600);
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: var(--line-height-relaxed);
+}
+
+/* Features Section */
+.about-features {
+  padding: var(--spacing-16) var(--spacing-8);
+  background-color: var(--color-gray-100);
+}
+
+.about-features h2 {
+  font-size: var(--font-size-3xl);
+  text-align: center;
+  margin-bottom: var(--spacing-12);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-6);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background-color: var(--color-white);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.feature-icon {
+  font-size: 48px;
+  margin-bottom: var(--spacing-4);
+}
+
+.feature-card h3 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-2);
+}
+
+.feature-card p {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  margin-bottom: 0;
+}
+
+/* CTA Section */
+.about-cta {
+  padding: var(--spacing-16) var(--spacing-8);
+  background-color: var(--color-primary);
+  text-align: center;
+}
+
+.about-cta h2 {
+  font-size: var(--font-size-3xl);
+  color: var(--color-white);
+  margin-bottom: var(--spacing-4);
+}
+
+.about-cta p {
+  font-size: var(--font-size-lg);
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: var(--spacing-8);
+}
+
+.cta-button {
+  display: inline-block;
+  padding: var(--spacing-4) var(--spacing-8);
+  background-color: var(--color-white);
+  color: var(--color-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-primary);
+}
+
+/* Footer */
+.about-footer {
+  padding: var(--spacing-6) var(--spacing-8);
+  background-color: var(--color-gray-900);
+  text-align: center;
+}
+
+.about-footer p {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .about-hero h1 {
+    font-size: var(--font-size-3xl);
+  }
+
+  .about-hero p {
+    font-size: var(--font-size-lg);
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-nav {
+    flex-direction: column;
+    gap: var(--spacing-4);
+  }
+}

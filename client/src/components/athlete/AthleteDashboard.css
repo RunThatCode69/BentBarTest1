@@ -1,0 +1,362 @@
+.athlete-dashboard {
+  min-height: 100vh;
+  background-color: var(--color-gray-50);
+}
+
+.athlete-dashboard .dashboard-content {
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+  padding: calc(var(--navbar-height) + var(--spacing-6)) var(--spacing-4) var(--spacing-6);
+}
+
+.athlete-dashboard .dashboard-header {
+  margin-bottom: var(--spacing-6);
+}
+
+.athlete-dashboard .dashboard-header h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-1);
+}
+
+.athlete-dashboard .subtitle {
+  color: var(--color-gray-600);
+  font-size: var(--font-size-base);
+}
+
+.error-banner {
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-4);
+}
+
+.dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-4);
+}
+
+.section-header h2 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+}
+
+/* Stats Section */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-gray-200);
+}
+
+.stat-card.primary {
+  background-color: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.stat-icon {
+  font-size: 24px;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+}
+
+.stat-card.primary .stat-value {
+  color: var(--color-primary);
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+}
+
+/* One Rep Max Section */
+.one-rm-section {
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.one-rm-section h3 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-700);
+  margin-bottom: var(--spacing-3);
+}
+
+.one-rm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-2);
+}
+
+.one-rm-item {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--color-gray-50);
+  border-radius: var(--radius-sm);
+}
+
+.one-rm-item .exercise-name {
+  color: var(--color-gray-700);
+  font-size: var(--font-size-sm);
+}
+
+.one-rm-item .exercise-value {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+}
+
+/* Workout Section */
+.no-workout {
+  text-align: center;
+  padding: var(--spacing-8);
+}
+
+.no-workout-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: var(--spacing-3);
+}
+
+.no-workout h3 {
+  font-size: var(--font-size-lg);
+  color: var(--color-gray-700);
+  margin-bottom: var(--spacing-2);
+}
+
+.no-workout p {
+  color: var(--color-gray-500);
+}
+
+.workout-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-800);
+  margin-bottom: var(--spacing-4);
+}
+
+.exercises-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.exercise-item {
+  padding: var(--spacing-4);
+  background-color: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.exercise-item.completed {
+  background-color: var(--color-success-light);
+  border-color: var(--color-success);
+}
+
+.exercise-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.exercise-number {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.exercise-item.completed .exercise-number {
+  background-color: var(--color-success);
+}
+
+.exercise-info {
+  flex: 1;
+}
+
+.exercise-info .exercise-name {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+}
+
+.exercise-prescription {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+}
+
+.video-link {
+  padding: var(--spacing-1) var(--spacing-2);
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: background-color var(--transition-fast);
+}
+
+.video-link:hover {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.exercise-notes {
+  margin-top: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--color-white);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  font-style: italic;
+}
+
+.exercise-log {
+  margin-top: var(--spacing-3);
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-gray-200);
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-3);
+}
+
+.log-inputs {
+  display: flex;
+  gap: var(--spacing-2);
+  flex: 1;
+}
+
+.log-field {
+  flex: 1;
+}
+
+.log-field label {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+  margin-bottom: var(--spacing-1);
+}
+
+.log-field input {
+  width: 100%;
+  padding: var(--spacing-2);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.log-field input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.completed-badge {
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--color-success);
+  color: var(--color-white);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.workout-complete {
+  text-align: center;
+  padding: var(--spacing-6);
+  margin-top: var(--spacing-4);
+  background-color: var(--color-success-light);
+  border-radius: var(--radius-md);
+}
+
+.complete-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: var(--spacing-2);
+}
+
+.workout-complete h3 {
+  font-size: var(--font-size-lg);
+  color: var(--color-success);
+  margin-bottom: var(--spacing-1);
+}
+
+.workout-complete p {
+  color: var(--color-gray-600);
+}
+
+.loading {
+  text-align: center;
+  padding: var(--spacing-8);
+  color: var(--color-gray-600);
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .exercise-log {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .log-inputs {
+    flex-wrap: wrap;
+  }
+
+  .log-field {
+    flex: 1 1 calc(50% - var(--spacing-1));
+    min-width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+  }
+}
