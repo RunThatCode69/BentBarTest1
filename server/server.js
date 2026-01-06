@@ -54,14 +54,22 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
+// Root route - API info
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Bar Bend Pro API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      coach: '/api/coach',
+      athlete: '/api/athlete',
+      workouts: '/api/workouts',
+      exercises: '/api/exercises'
+    }
   });
-}
+});
 
 // 404 handler
 app.use((req, res, next) => {
