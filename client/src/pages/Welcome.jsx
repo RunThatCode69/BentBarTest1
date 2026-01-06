@@ -45,6 +45,9 @@ const Welcome = () => {
     <div className="welcome-page">
       <div className="welcome-hero">
         <div className="hero-content">
+          <div className="hero-image">
+            <img src="/team-photo.jpg" alt="Athletes training together" />
+          </div>
           <h1 className="hero-title">No more excel sheets and word docs.</h1>
           <p className="hero-subtitle">All your workouts in one place.</p>
           <div className="hero-decoration">
