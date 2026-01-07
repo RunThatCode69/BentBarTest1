@@ -40,13 +40,20 @@ const CreateWorkout = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        // Fetch teams and exercises separately to handle errors independently
         const [teamsRes, exercisesRes] = await Promise.all([
-          api.get('/coach/teams'),
-          api.get('/exercises')
+          api.get('/coach/teams').catch(err => {
+            console.error('Failed to fetch teams:', err);
+            return { data: { teams: [] } };
+          }),
+          api.get('/exercises').catch(err => {
+            console.error('Failed to fetch exercises:', err);
+            return { data: { exercises: [] } };
+          })
         ]);
 
-        setTeams(teamsRes.data.teams);
-        setExercises(exercisesRes.data.exercises);
+        setTeams(teamsRes.data?.teams || []);
+        setExercises(exercisesRes.data?.exercises || []);
       } catch (err) {
         console.error('Failed to fetch data:', err);
       } finally {
