@@ -74,3 +74,49 @@
     flex-direction: column;
   }
 }
+
+@media (max-width: 768px) {
+  .create-workout-page {
+    padding: var(--spacing-4);
+  }
+
+  .page-header h1 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .program-settings {
+    padding: var(--spacing-4);
+  }
+
+  .date-range {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .calendar-container {
+    min-height: 400px;
+  }
+
+  .calendar-container .calendar {
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .create-workout-page {
+    padding: var(--spacing-3);
+  }
+
+  .page-header h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .header-actions {
+    gap: var(--spacing-2);
+  }
+
+  .header-actions .btn {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+}

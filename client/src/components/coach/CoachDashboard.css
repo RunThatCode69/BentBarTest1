@@ -130,3 +130,50 @@
     flex-wrap: wrap;
   }
 }
+
+@media (max-width: 768px) {
+  .coach-dashboard {
+    padding: var(--spacing-4);
+  }
+
+  .dashboard-header h1 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .dashboard-header .subtitle {
+    font-size: var(--font-size-base);
+  }
+
+  .team-badge {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+  }
+
+  .dashboard-grid {
+    gap: var(--spacing-4);
+    min-height: auto;
+  }
+
+  .dashboard-panel {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .coach-dashboard {
+    padding: var(--spacing-3);
+  }
+
+  .dashboard-header h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .team-info {
+    width: 100%;
+  }
+
+  .team-badge {
+    flex: 1;
+    min-width: 140px;
+  }
+}
