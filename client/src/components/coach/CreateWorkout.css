@@ -32,18 +32,13 @@
   margin-bottom: var(--spacing-6);
   box-shadow: var(--shadow-sm);
   display: grid;
-  grid-template-columns: 2fr 2fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr;
   gap: var(--spacing-4);
   align-items: end;
 }
 
 .program-settings .form-group {
   margin-bottom: 0;
-}
-
-.date-range {
-  display: flex;
-  gap: var(--spacing-3);
 }
 
 .calendar-container {
@@ -86,11 +81,6 @@
 
   .program-settings {
     padding: var(--spacing-4);
-  }
-
-  .date-range {
-    flex-direction: column;
-    gap: var(--spacing-3);
   }
 
   .calendar-container {

@@ -16,7 +16,6 @@ const CoachWorkouts = () => {
   const [selectedTeam, setSelectedTeam] = useState('');
   const [selectedProgram, setSelectedProgram] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedWorkout, setSelectedWorkout] = useState(null);
 
   // Assign team modal state
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -55,47 +54,10 @@ const CoachWorkouts = () => {
     fetchData();
   }, []);
 
+  // When clicking a date, switch to day view
   const handleDateSelect = (date) => {
     setSelectedDate(date);
-    findAndSetWorkout(date);
-  };
-
-  const findAndSetWorkout = (date) => {
-    // Find workout for this date
-    const workout = workouts.find(w => {
-      return w.workouts?.some(day => {
-        const dayDate = new Date(day.date);
-        dayDate.setHours(0, 0, 0, 0);
-        const targetDate = new Date(date);
-        targetDate.setHours(0, 0, 0, 0);
-        return dayDate.getTime() === targetDate.getTime();
-      });
-    });
-
-    if (workout) {
-      const dayWorkout = workout.workouts.find(day => {
-        const dayDate = new Date(day.date);
-        dayDate.setHours(0, 0, 0, 0);
-        const targetDate = new Date(date);
-        targetDate.setHours(0, 0, 0, 0);
-        return dayDate.getTime() === targetDate.getTime();
-      });
-
-      setSelectedWorkout({
-        ...dayWorkout,
-        programName: workout.programName,
-        programId: workout._id
-      });
-    } else {
-      setSelectedWorkout(null);
-    }
-  };
-
-  // Handle day expansion - switch to day view when clicking a day
-  const handleDayExpand = (date) => {
-    setSelectedDate(date);
     setView('daily');
-    findAndSetWorkout(date);
   };
 
   // Get programs filtered by selected team
@@ -103,7 +65,6 @@ const CoachWorkouts = () => {
     ? workouts.filter(w => !w.assignedTeams || w.assignedTeams.length === 0)
     : selectedTeam
       ? workouts.filter(w => w.assignedTeams?.some(t => {
-          // Handle both populated objects and plain IDs
           const teamId = t._id || t;
           return teamId === selectedTeam || teamId?.toString() === selectedTeam;
         }))
@@ -157,7 +118,6 @@ const CoachWorkouts = () => {
 
     setMoving(true);
     try {
-      // Find the earliest workout date in the program
       const workoutDates = activeProgram.workouts
         ?.map(w => new Date(w.date))
         .sort((a, b) => a - b);
@@ -183,20 +143,10 @@ const CoachWorkouts = () => {
         };
       });
 
-      // Update start/end dates
-      const newStartDateObj = new Date(newStartDate);
-      const programDuration = activeProgram.endDate && activeProgram.startDate
-        ? new Date(activeProgram.endDate).getTime() - new Date(activeProgram.startDate).getTime()
-        : 0;
-      const newEndDate = programDuration
-        ? new Date(newStartDateObj.getTime() + programDuration).toISOString()
-        : null;
-
       const updatedProgram = {
         ...activeProgram,
         workouts: updatedWorkouts,
-        startDate: newStartDateObj.toISOString(),
-        ...(newEndDate && { endDate: newEndDate })
+        startDate: new Date(newStartDate).toISOString()
       };
 
       await api.put(`/workouts/${activeProgram._id}`, updatedProgram);
@@ -208,7 +158,6 @@ const CoachWorkouts = () => {
 
       setShowMoveModal(false);
       setNewStartDate('');
-      setSelectedWorkout(null);
     } catch (err) {
       console.error('Failed to move program:', err);
       alert('Failed to move program. Please try again.');
@@ -219,7 +168,6 @@ const CoachWorkouts = () => {
 
   const openMoveModal = () => {
     if (activeProgram?.workouts?.length > 0) {
-      // Pre-fill with current earliest date
       const earliestDate = activeProgram.workouts
         .map(w => new Date(w.date))
         .sort((a, b) => a - b)[0];
@@ -232,15 +180,24 @@ const CoachWorkouts = () => {
   const getCalendarWorkouts = () => {
     if (!activeProgram) return [];
 
-    const programWorkouts = [];
-    activeProgram.workouts?.forEach(day => {
-      programWorkouts.push({
-        date: day.date,
-        title: day.title || activeProgram.programName,
-        exercises: day.exercises
-      });
+    return activeProgram.workouts?.map(day => ({
+      date: day.date,
+      title: day.title || activeProgram.programName,
+      exercises: day.exercises
+    })) || [];
+  };
+
+  // Get workout for selected date (for day view)
+  const getSelectedDayWorkout = () => {
+    if (!activeProgram || !selectedDate) return null;
+
+    return activeProgram.workouts?.find(day => {
+      const dayDate = new Date(day.date);
+      dayDate.setHours(0, 0, 0, 0);
+      const targetDate = new Date(selectedDate);
+      targetDate.setHours(0, 0, 0, 0);
+      return dayDate.getTime() === targetDate.getTime();
     });
-    return programWorkouts;
   };
 
   const teamOptions = [
@@ -256,17 +213,16 @@ const CoachWorkouts = () => {
     label: w.programName
   }));
 
-  // Reset program selection when team changes
   const handleTeamChange = (e) => {
     setSelectedTeam(e.target.value);
-    setSelectedProgram(''); // Reset program when team changes
-    setSelectedWorkout(null);
+    setSelectedProgram('');
   };
 
   const handleProgramChange = (e) => {
     setSelectedProgram(e.target.value);
-    setSelectedWorkout(null);
   };
+
+  const selectedDayWorkout = getSelectedDayWorkout();
 
   return (
     <div className="coach-workouts-page">
@@ -281,7 +237,7 @@ const CoachWorkouts = () => {
       </div>
 
       <div className="workouts-toolbar">
-        <div className="program-selectors">
+        <div className="toolbar-left">
           <Dropdown
             name="team"
             value={selectedTeam}
@@ -306,33 +262,44 @@ const CoachWorkouts = () => {
               Assign to Team
             </Button>
           )}
+          {selectedProgram && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openMoveModal}
+            >
+              Move Program
+            </Button>
+          )}
         </div>
 
-        <div className="view-toggle">
-          <button
-            className={`toggle-btn ${view === 'daily' ? 'active' : ''}`}
-            onClick={() => setView('daily')}
-          >
-            Day
-          </button>
-          <button
-            className={`toggle-btn ${view === 'weekly' ? 'active' : ''}`}
-            onClick={() => setView('weekly')}
-          >
-            Week
-          </button>
-          <button
-            className={`toggle-btn ${view === 'threeWeeks' ? 'active' : ''}`}
-            onClick={() => setView('threeWeeks')}
-          >
-            3 Weeks
-          </button>
-          <button
-            className={`toggle-btn ${view === 'monthly' ? 'active' : ''}`}
-            onClick={() => setView('monthly')}
-          >
-            Month
-          </button>
+        <div className="toolbar-right">
+          <div className="view-toggle">
+            <button
+              className={`toggle-btn ${view === 'daily' ? 'active' : ''}`}
+              onClick={() => setView('daily')}
+            >
+              Day
+            </button>
+            <button
+              className={`toggle-btn ${view === 'weekly' ? 'active' : ''}`}
+              onClick={() => setView('weekly')}
+            >
+              Week
+            </button>
+            <button
+              className={`toggle-btn ${view === 'threeWeeks' ? 'active' : ''}`}
+              onClick={() => setView('threeWeeks')}
+            >
+              3 Weeks
+            </button>
+            <button
+              className={`toggle-btn ${view === 'monthly' ? 'active' : ''}`}
+              onClick={() => setView('monthly')}
+            >
+              Month
+            </button>
+          </div>
         </div>
       </div>
 
@@ -341,90 +308,102 @@ const CoachWorkouts = () => {
           <div className="spinner"></div>
           <p>Loading workouts...</p>
         </div>
-      ) : (
-        <div className="workouts-content">
-          <div className="calendar-section">
-            <Calendar
-              selectedDate={selectedDate}
-              onDateSelect={handleDateSelect}
-              workouts={getCalendarWorkouts()}
-              view={view}
-              onViewChange={setView}
-              onDayExpand={handleDayExpand}
-            />
+      ) : view === 'daily' && selectedDate ? (
+        // Day View - Full workout details
+        <div className="day-view-container">
+          <div className="day-view-header">
+            <div className="day-view-title">
+              <h2>
+                {selectedDate.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </h2>
+              {activeProgram && <span className="program-name">{activeProgram.programName}</span>}
+            </div>
+            <div className="day-view-actions">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setView('threeWeeks')}
+              >
+                Back to Calendar
+              </Button>
+              {activeProgram && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => navigate(`/coach/workouts/${activeProgram._id}`)}
+                >
+                  Edit Program
+                </Button>
+              )}
+            </div>
           </div>
 
-          <div className="workout-detail">
-            {selectedWorkout ? (
-              <>
-                <div className="detail-header">
-                  <h3>{selectedWorkout.title || 'Workout'}</h3>
-                  <span className="detail-date">
-                    {new Date(selectedWorkout.date).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </span>
-                  <div className="detail-actions">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/coach/workouts/${selectedWorkout.programId}`)}
-                    >
-                      Edit Program
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={openMoveModal}
-                    >
-                      Move Program
-                    </Button>
-                    {selectedTeam === 'unassigned' && (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => openAssignModal(workouts.find(w => w._id === selectedWorkout.programId))}
-                      >
-                        Assign to Team
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="exercises-list">
-                  {selectedWorkout.exercises?.map((exercise, index) => (
-                    <div key={index} className="exercise-item">
-                      <div className="exercise-order">{index + 1}</div>
-                      <div className="exercise-info">
-                        <span className="exercise-name">{exercise.exerciseName}</span>
-                        <span className="exercise-details">
-                          {exercise.sets} x {exercise.reps}
-                          {exercise.percentage && ` @ ${exercise.percentage}%`}
-                          {exercise.weight && ` @ ${exercise.weight} lbs`}
+          {selectedDayWorkout ? (
+            <div className="day-workout-content">
+              {selectedDayWorkout.title && (
+                <h3 className="workout-title">{selectedDayWorkout.title}</h3>
+              )}
+              <div className="exercises-full-list">
+                {selectedDayWorkout.exercises?.map((exercise, index) => (
+                  <div key={index} className="exercise-full-item">
+                    <div className="exercise-number">{index + 1}</div>
+                    <div className="exercise-details-full">
+                      <span className="exercise-name-full">{exercise.exerciseName}</span>
+                      <div className="exercise-params">
+                        <span className="param">
+                          <strong>{exercise.sets}</strong> sets
                         </span>
-                        {exercise.notes && (
-                          <span className="exercise-notes">{exercise.notes}</span>
+                        <span className="param">
+                          <strong>{exercise.reps}</strong> reps
+                        </span>
+                        {exercise.percentage && (
+                          <span className="param">
+                            <strong>{exercise.percentage}%</strong> intensity
+                          </span>
+                        )}
+                        {exercise.weight && (
+                          <span className="param">
+                            <strong>{exercise.weight}</strong> lbs
+                          </span>
                         )}
                       </div>
+                      {exercise.notes && (
+                        <p className="exercise-notes-full">{exercise.notes}</p>
+                      )}
                     </div>
-                  ))}
-                </div>
-              </>
-            ) : selectedDate ? (
-              <div className="no-workout">
-                <p>No workout scheduled</p>
-                <Button variant="outline" onClick={() => navigate('/coach/workouts/create')}>
-                  Add Workout
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="no-workout-day">
+              <p>No workout scheduled for this day</p>
+              {activeProgram && (
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/coach/workouts/${activeProgram._id}`)}
+                >
+                  Add Workout to This Day
                 </Button>
-              </div>
-            ) : (
-              <div className="no-workout">
-                <p>Select a date to view workout details</p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        // Calendar View (Week/3 Weeks/Month)
+        <div className="calendar-container">
+          <Calendar
+            selectedDate={selectedDate}
+            onDateSelect={handleDateSelect}
+            workouts={getCalendarWorkouts()}
+            view={view}
+            onViewChange={setView}
+          />
         </div>
       )}
 

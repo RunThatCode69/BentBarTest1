@@ -21,7 +21,6 @@ const CreateWorkout = () => {
   const [program, setProgram] = useState({
     programName: '',
     startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     assignedTeams: [],
     workouts: []
   });
@@ -303,20 +302,12 @@ const CreateWorkout = () => {
           placeholder="e.g., Fall Strength Program"
         />
 
-        <div className="date-range">
-          <Input
-            label="Start Date"
-            type="date"
-            value={program.startDate}
-            onChange={(e) => setProgram(prev => ({ ...prev, startDate: e.target.value }))}
-          />
-          <Input
-            label="End Date"
-            type="date"
-            value={program.endDate}
-            onChange={(e) => setProgram(prev => ({ ...prev, endDate: e.target.value }))}
-          />
-        </div>
+        <Input
+          label="Start Date"
+          type="date"
+          value={program.startDate}
+          onChange={(e) => setProgram(prev => ({ ...prev, startDate: e.target.value }))}
+        />
 
         <Dropdown
           label="Assign to Team"

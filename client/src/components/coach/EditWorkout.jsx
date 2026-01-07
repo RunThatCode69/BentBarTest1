@@ -190,20 +190,12 @@ const EditWorkout = () => {
           placeholder="e.g., Summer Strength Program"
         />
 
-        <div className="date-range">
-          <Input
-            label="Start Date"
-            type="date"
-            value={program?.startDate?.split('T')[0] || ''}
-            onChange={(e) => handleProgramChange('startDate', e.target.value)}
-          />
-          <Input
-            label="End Date"
-            type="date"
-            value={program?.endDate?.split('T')[0] || ''}
-            onChange={(e) => handleProgramChange('endDate', e.target.value)}
-          />
-        </div>
+        <Input
+          label="Start Date"
+          type="date"
+          value={program?.startDate?.split('T')[0] || ''}
+          onChange={(e) => handleProgramChange('startDate', e.target.value)}
+        />
 
         <Dropdown
           label="Assigned Team"
