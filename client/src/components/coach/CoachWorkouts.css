@@ -264,3 +264,37 @@
     font-size: var(--font-size-xs);
   }
 }
+
+@media (max-width: 480px) {
+  .coach-workouts-page {
+    padding: var(--spacing-3);
+  }
+
+  .page-header h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .page-header p {
+    font-size: var(--font-size-xs);
+  }
+
+  .workouts-toolbar {
+    padding: var(--spacing-2);
+  }
+
+  .calendar-section {
+    min-height: 350px;
+  }
+
+  .workout-detail {
+    padding: var(--spacing-3);
+  }
+
+  .detail-header h3 {
+    font-size: var(--font-size-base);
+  }
+
+  .exercise-item {
+    padding: var(--spacing-2);
+  }
+}
