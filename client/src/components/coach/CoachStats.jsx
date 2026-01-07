@@ -20,7 +20,13 @@ const CoachStats = () => {
     const fetchTeams = async () => {
       try {
         const response = await api.get('/coach/teams');
-        setTeams(response.data.teams);
+        const fetchedTeams = response.data.teams;
+        setTeams(fetchedTeams);
+
+        // Auto-select team if coach only has one
+        if (fetchedTeams.length === 1) {
+          setFilters(prev => ({ ...prev, teamId: fetchedTeams[0]._id }));
+        }
       } catch (err) {
         console.error('Failed to fetch teams:', err);
       }
