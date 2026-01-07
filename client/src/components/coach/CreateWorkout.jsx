@@ -190,7 +190,7 @@ const CreateWorkout = () => {
 
     setCreatingTeam(true);
     try {
-      const response = await api.post('/teams', {
+      const response = await api.post('/coach/teams', {
         teamName: newTeamName,
         sport: newTeamSport || 'general'
       });
