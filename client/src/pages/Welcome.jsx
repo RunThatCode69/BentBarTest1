@@ -48,7 +48,7 @@ const Welcome = () => {
           <div className="hero-image">
             <img src="/team-photo.jpg" alt="Athletes training together" />
           </div>
-          <h1 className="hero-title">No more excel sheets and word docs.</h1>
+          <h1 className="hero-title">The platform coaches trust.</h1>
           <p className="hero-subtitle">All your workouts in one place.</p>
           <div className="hero-decoration">
             <div className="decoration-circle circle-1"></div>
