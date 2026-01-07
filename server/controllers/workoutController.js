@@ -83,7 +83,7 @@ const getWorkouts = async (req, res) => {
  */
 const createWorkout = async (req, res) => {
   try {
-    const { programName, startDate, endDate, workouts, assignedTeams } = req.body;
+    const { programName, startDate, endDate, workouts, assignedTeams, isPublished } = req.body;
 
     if (!programName || !startDate || !endDate) {
       return res.status(400).json({ message: 'Program name, start date, and end date are required' });
@@ -116,8 +116,8 @@ const createWorkout = async (req, res) => {
       endDate: new Date(endDate),
       workouts: workouts || [],
       assignedTeams: assignedTeams || [],
-      isPublished: false,
-      isDraft: true
+      isPublished: isPublished || false,
+      isDraft: !isPublished
     });
 
     res.status(201).json({
