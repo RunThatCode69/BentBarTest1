@@ -85,6 +85,7 @@ const CoachDashboard = () => {
         <div className="dashboard-panel create-panel">
           <CreateWorkoutPanel
             workoutPrograms={dashboardData.workoutPrograms || []}
+            teams={dashboardData.teams || []}
             onCreateNew={() => navigate('/coach/workouts/create')}
           />
         </div>

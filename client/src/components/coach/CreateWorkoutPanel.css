@@ -45,9 +45,20 @@
   border-color: var(--color-primary);
 }
 
+.program-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .program-name {
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-800);
+}
+
+.program-team {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
 }
 
 .program-arrow {

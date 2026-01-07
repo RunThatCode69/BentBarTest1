@@ -3,11 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../common/Button';
 import './CreateWorkoutPanel.css';
 
-const CreateWorkoutPanel = ({ workoutPrograms = [], onCreateNew }) => {
+const CreateWorkoutPanel = ({ workoutPrograms = [], teams = [], onCreateNew }) => {
   const navigate = useNavigate();
 
   const handleProgramClick = (programId) => {
     navigate(`/coach/workouts/${programId}`);
+  };
+
+  // Get team name from team ID
+  const getTeamName = (teamIds) => {
+    if (!teamIds || teamIds.length === 0) return 'Unassigned';
+    const teamId = teamIds[0]; // Get first assigned team
+    const team = teams.find(t => t.id === teamId || t.id === teamId?.toString());
+    return team ? team.teamName : 'Unassigned';
   };
 
   return (
@@ -27,7 +35,10 @@ const CreateWorkoutPanel = ({ workoutPrograms = [], onCreateNew }) => {
               className="program-item"
               onClick={() => handleProgramClick(program.id)}
             >
-              <span className="program-name">{program.programName}</span>
+              <div className="program-info">
+                <span className="program-name">{program.programName}</span>
+                <span className="program-team">{getTeamName(program.assignedTeams)}</span>
+              </div>
               <svg
                 className="program-arrow"
                 width="16"
