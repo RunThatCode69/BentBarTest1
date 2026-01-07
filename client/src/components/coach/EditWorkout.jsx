@@ -10,7 +10,7 @@ import api from '../../services/api';
 import './EditWorkout.css';
 
 const EditWorkout = () => {
-  const { programId } = useParams();
+  const { id: programId } = useParams();
   const navigate = useNavigate();
 
   const [program, setProgram] = useState(null);
