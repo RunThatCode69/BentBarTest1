@@ -3,9 +3,10 @@ import Modal from '../common/Modal';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Dropdown from '../common/Dropdown';
+import api from '../../services/api';
 import './WorkoutEditor.css';
 
-const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave }) => {
+const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onExerciseCreated }) => {
   const [dayWorkout, setDayWorkout] = useState({
     date: '',
     dayOfWeek: '',
@@ -16,12 +17,20 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave }) => 
   const [newExercise, setNewExercise] = useState({
     exerciseId: '',
     exerciseName: '',
-    sets: '',
-    reps: '',
-    percentage: '',
-    weight: '',
     notes: '',
-    youtubeUrl: ''
+    youtubeUrl: '',
+    // Complex set programming - array of set configurations
+    setConfigs: [{ sets: '', reps: '', percentage: '', weight: '' }]
+  });
+
+  // Create Exercise Modal state
+  const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
+  const [creatingExercise, setCreatingExercise] = useState(false);
+  const [newExerciseForm, setNewExerciseForm] = useState({
+    name: '',
+    category: '',
+    youtubeUrl: '',
+    description: ''
   });
 
   useEffect(() => {
@@ -44,17 +53,74 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave }) => 
     }
   };
 
+  // Handle set configuration changes
+  const handleSetConfigChange = (index, field, value) => {
+    setNewExercise(prev => {
+      const newConfigs = [...prev.setConfigs];
+      newConfigs[index] = { ...newConfigs[index], [field]: value };
+      return { ...prev, setConfigs: newConfigs };
+    });
+  };
+
+  // Add another set configuration row
+  const addSetConfig = () => {
+    setNewExercise(prev => ({
+      ...prev,
+      setConfigs: [...prev.setConfigs, { sets: '', reps: '', percentage: '', weight: '' }]
+    }));
+  };
+
+  // Remove a set configuration row
+  const removeSetConfig = (index) => {
+    if (newExercise.setConfigs.length <= 1) return;
+    setNewExercise(prev => ({
+      ...prev,
+      setConfigs: prev.setConfigs.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Format set configurations for display
+  const formatSetConfigs = (setConfigs) => {
+    if (!setConfigs || setConfigs.length === 0) return '';
+    return setConfigs.map(config => {
+      let str = `${config.sets}x${config.reps}`;
+      if (config.percentage) str += ` @${config.percentage}%`;
+      if (config.weight) str += ` @${config.weight}lbs`;
+      return str;
+    }).join(', ');
+  };
+
   const handleAddExercise = () => {
-    if (!newExercise.exerciseName || !newExercise.sets || !newExercise.reps) {
+    // Validate at least first set config has sets and reps
+    const firstConfig = newExercise.setConfigs[0];
+    if (!newExercise.exerciseName || !firstConfig.sets || !firstConfig.reps) {
       return;
     }
 
+    // Filter out empty set configs and process them
+    const validConfigs = newExercise.setConfigs.filter(c => c.sets && c.reps).map(c => ({
+      sets: parseInt(c.sets),
+      reps: c.reps,
+      percentage: c.percentage ? parseFloat(c.percentage) : null,
+      weight: c.weight ? parseFloat(c.weight) : null
+    }));
+
+    // Calculate total sets for backwards compatibility
+    const totalSets = validConfigs.reduce((sum, c) => sum + c.sets, 0);
+
     const exercise = {
-      ...newExercise,
+      exerciseId: newExercise.exerciseId,
+      exerciseName: newExercise.exerciseName,
+      notes: newExercise.notes,
+      youtubeUrl: newExercise.youtubeUrl,
       order: dayWorkout.exercises.length + 1,
-      sets: parseInt(newExercise.sets),
-      percentage: newExercise.percentage ? parseFloat(newExercise.percentage) : null,
-      weight: newExercise.weight ? parseFloat(newExercise.weight) : null
+      // Store complex set configs
+      setConfigs: validConfigs,
+      // Backwards compatibility fields (uses first config's values)
+      sets: totalSets,
+      reps: validConfigs[0].reps,
+      percentage: validConfigs[0].percentage,
+      weight: validConfigs[0].weight
     };
 
     setDayWorkout(prev => ({
@@ -66,12 +132,9 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave }) => 
     setNewExercise({
       exerciseId: '',
       exerciseName: '',
-      sets: '',
-      reps: '',
-      percentage: '',
-      weight: '',
       notes: '',
-      youtubeUrl: ''
+      youtubeUrl: '',
+      setConfigs: [{ sets: '', reps: '', percentage: '', weight: '' }]
     });
   };
 
@@ -102,10 +165,56 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave }) => 
     onSave(dayWorkout);
   };
 
+  // Handle creating a new exercise
+  const handleCreateExercise = async () => {
+    if (!newExerciseForm.name.trim()) return;
+
+    setCreatingExercise(true);
+    try {
+      const response = await api.post('/exercises', {
+        name: newExerciseForm.name,
+        category: newExerciseForm.category || 'accessory',
+        youtubeUrl: newExerciseForm.youtubeUrl || null,
+        description: newExerciseForm.description || null
+      });
+
+      if (response.data.success || response.data.exercise) {
+        const createdExercise = response.data.exercise;
+        // Notify parent to refresh exercises list
+        if (onExerciseCreated) {
+          onExerciseCreated(createdExercise);
+        }
+        // Pre-select the newly created exercise
+        setNewExercise(prev => ({
+          ...prev,
+          exerciseId: createdExercise._id,
+          exerciseName: createdExercise.name,
+          youtubeUrl: createdExercise.youtubeUrl || ''
+        }));
+        setShowCreateExerciseModal(false);
+        setNewExerciseForm({ name: '', category: '', youtubeUrl: '', description: '' });
+      }
+    } catch (err) {
+      console.error('Failed to create exercise:', err);
+      alert('Failed to create exercise. Please try again.');
+    } finally {
+      setCreatingExercise(false);
+    }
+  };
+
   const exerciseOptions = exercises.map(ex => ({
     value: ex._id,
     label: ex.name
   }));
+
+  const categoryOptions = [
+    { value: 'upper_body', label: 'Upper Body' },
+    { value: 'lower_body', label: 'Lower Body' },
+    { value: 'olympic', label: 'Olympic Lifts' },
+    { value: 'core', label: 'Core' },
+    { value: 'cardio', label: 'Cardio/Conditioning' },
+    { value: 'accessory', label: 'Accessory' }
+  ];
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -148,9 +257,10 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave }) => 
                   <div className="exercise-details">
                     <span className="name">{ex.exerciseName}</span>
                     <span className="prescription">
-                      {ex.sets} x {ex.reps}
-                      {ex.percentage && ` @ ${ex.percentage}%`}
-                      {ex.weight && ` @ ${ex.weight} lbs`}
+                      {ex.setConfigs && ex.setConfigs.length > 0
+                        ? formatSetConfigs(ex.setConfigs)
+                        : `${ex.sets} x ${ex.reps}${ex.percentage ? ` @ ${ex.percentage}%` : ''}${ex.weight ? ` @ ${ex.weight} lbs` : ''}`
+                      }
                     </span>
                     {ex.notes && <span className="notes">{ex.notes}</span>}
                   </div>
@@ -190,40 +300,71 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave }) => 
               onChange={handleExerciseSelect}
               options={exerciseOptions}
               placeholder="Select an exercise"
+              showCreateNew={true}
+              createNewLabel="+ Create New Exercise"
+              onCreateNew={() => setShowCreateExerciseModal(true)}
             />
 
-            <div className="exercise-inputs">
-              <Input
-                label="Sets"
-                type="number"
-                value={newExercise.sets}
-                onChange={(e) => setNewExercise(prev => ({ ...prev, sets: e.target.value }))}
-                placeholder="5"
-                min="1"
-              />
-              <Input
-                label="Reps"
-                value={newExercise.reps}
-                onChange={(e) => setNewExercise(prev => ({ ...prev, reps: e.target.value }))}
-                placeholder="5 or 8-10"
-              />
-              <Input
-                label="% of 1RM"
-                type="number"
-                value={newExercise.percentage}
-                onChange={(e) => setNewExercise(prev => ({ ...prev, percentage: e.target.value }))}
-                placeholder="75"
-                min="0"
-                max="120"
-              />
-              <Input
-                label="Fixed Weight"
-                type="number"
-                value={newExercise.weight}
-                onChange={(e) => setNewExercise(prev => ({ ...prev, weight: e.target.value }))}
-                placeholder="135"
-                hint="Optional"
-              />
+            <div className="set-configs-section">
+              <div className="set-configs-header">
+                <span className="set-configs-label">Set Programming</span>
+                <button
+                  type="button"
+                  className="add-set-config-btn"
+                  onClick={addSetConfig}
+                >
+                  + Add Set
+                </button>
+              </div>
+
+              {newExercise.setConfigs.map((config, index) => (
+                <div key={index} className="set-config-row">
+                  <div className="exercise-inputs">
+                    <Input
+                      label={index === 0 ? "Sets" : ""}
+                      type="number"
+                      value={config.sets}
+                      onChange={(e) => handleSetConfigChange(index, 'sets', e.target.value)}
+                      placeholder="3"
+                      min="1"
+                    />
+                    <Input
+                      label={index === 0 ? "Reps" : ""}
+                      value={config.reps}
+                      onChange={(e) => handleSetConfigChange(index, 'reps', e.target.value)}
+                      placeholder="5 or 8-10"
+                    />
+                    <Input
+                      label={index === 0 ? "% of 1RM" : ""}
+                      type="number"
+                      value={config.percentage}
+                      onChange={(e) => handleSetConfigChange(index, 'percentage', e.target.value)}
+                      placeholder="75"
+                      min="0"
+                      max="120"
+                    />
+                    <Input
+                      label={index === 0 ? "Weight (lbs)" : ""}
+                      type="number"
+                      value={config.weight}
+                      onChange={(e) => handleSetConfigChange(index, 'weight', e.target.value)}
+                      placeholder="135"
+                    />
+                  </div>
+                  {newExercise.setConfigs.length > 1 && (
+                    <button
+                      type="button"
+                      className="remove-set-config-btn"
+                      onClick={() => removeSetConfig(index)}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))}
+              <p className="set-config-hint">
+                Add multiple rows for complex programming (e.g., 3@50%, 3@60%, 3@70%)
+              </p>
             </div>
 
             <Input
@@ -234,7 +375,7 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave }) => 
             />
 
             <Input
-              label="YouTube URL"
+              label="Video Example"
               value={newExercise.youtubeUrl}
               onChange={(e) => setNewExercise(prev => ({ ...prev, youtubeUrl: e.target.value }))}
               placeholder="https://youtube.com/watch?v=..."
@@ -243,13 +384,55 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave }) => 
             <Button
               variant="outline"
               onClick={handleAddExercise}
-              disabled={!newExercise.exerciseName || !newExercise.sets || !newExercise.reps}
+              disabled={!newExercise.exerciseName || !newExercise.setConfigs[0].sets || !newExercise.setConfigs[0].reps}
             >
               Add Exercise
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Create Exercise Modal */}
+      <Modal
+        isOpen={showCreateExerciseModal}
+        onClose={() => setShowCreateExerciseModal(false)}
+        title="Create New Exercise"
+        size="md"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowCreateExerciseModal(false)}>Cancel</Button>
+            <Button variant="primary" onClick={handleCreateExercise} loading={creatingExercise}>Create Exercise</Button>
+          </>
+        }
+      >
+        <Input
+          label="Exercise Name"
+          value={newExerciseForm.name}
+          onChange={(e) => setNewExerciseForm(prev => ({ ...prev, name: e.target.value }))}
+          placeholder="e.g., Barbell Row"
+          autoFocus
+          required
+        />
+        <Dropdown
+          label="Category"
+          value={newExerciseForm.category}
+          onChange={(e) => setNewExerciseForm(prev => ({ ...prev, category: e.target.value }))}
+          options={categoryOptions}
+          placeholder="Select a category"
+        />
+        <Input
+          label="Video Example URL"
+          value={newExerciseForm.youtubeUrl}
+          onChange={(e) => setNewExerciseForm(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+          placeholder="https://youtube.com/watch?v=..."
+        />
+        <Input
+          label="Description"
+          value={newExerciseForm.description}
+          onChange={(e) => setNewExerciseForm(prev => ({ ...prev, description: e.target.value }))}
+          placeholder="Brief description of the exercise"
+        />
+      </Modal>
     </Modal>
   );
 };

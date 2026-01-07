@@ -125,8 +125,11 @@ const Calendar = ({
     if (onDateSelect) {
       onDateSelect(date);
     }
-    // If onDayExpand is provided, switch to day view when clicking a day
-    if (onDayExpand) {
+  };
+
+  const handleDayDoubleClick = (date) => {
+    // Double-click expands to day view
+    if (onDayExpand && view !== 'daily') {
       onDayExpand(date);
     }
   };
@@ -246,6 +249,7 @@ const Calendar = ({
               key={index}
               className={dayClasses}
               onClick={() => handleDayClick(day.date)}
+              onDoubleClick={() => handleDayDoubleClick(day.date)}
             >
               <div className="calendar-day-header">
                 <span className="calendar-day-number">{day.date.getDate()}</span>

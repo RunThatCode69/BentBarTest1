@@ -38,7 +38,10 @@ const CoachWorkouts = () => {
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
+    findAndSetWorkout(date);
+  };
 
+  const findAndSetWorkout = (date) => {
     // Find workout for this date
     const workout = workouts.find(w => {
       return w.workouts?.some(day => {
@@ -67,6 +70,13 @@ const CoachWorkouts = () => {
     } else {
       setSelectedWorkout(null);
     }
+  };
+
+  // Handle day expansion - switch to day view when clicking a day
+  const handleDayExpand = (date) => {
+    setSelectedDate(date);
+    setView('daily');
+    findAndSetWorkout(date);
   };
 
   // Get workouts for calendar display
@@ -154,6 +164,7 @@ const CoachWorkouts = () => {
               workouts={calendarWorkouts}
               view={view}
               onViewChange={setView}
+              onDayExpand={handleDayExpand}
             />
           </div>
 

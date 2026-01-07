@@ -13,9 +13,21 @@ const Dropdown = ({
   disabled = false,
   required = false,
   className = '',
+  showCreateNew = false,
+  createNewLabel = '+ Create New',
+  onCreateNew,
   ...props
 }) => {
   const selectClass = `form-input form-select ${error ? 'is-error' : ''} ${className}`;
+
+  const handleChange = (e) => {
+    if (e.target.value === '__create_new__' && onCreateNew) {
+      e.target.value = value; // Reset to previous value
+      onCreateNew();
+      return;
+    }
+    onChange(e);
+  };
 
   return (
     <div className="form-group">
@@ -29,13 +41,18 @@ const Dropdown = ({
         id={name}
         name={name}
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
         disabled={disabled}
         required={required}
         className={selectClass}
         {...props}
       >
         <option value="">{placeholder}</option>
+        {showCreateNew && (
+          <option value="__create_new__" className="create-new-option">
+            {createNewLabel}
+          </option>
+        )}
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}

@@ -29,6 +29,12 @@ const CreateWorkout = () => {
   const [showEditor, setShowEditor] = useState(false);
   const [currentDayWorkout, setCurrentDayWorkout] = useState(null);
 
+  // Create Team Modal state
+  const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [newTeamSport, setNewTeamSport] = useState('');
+  const [creatingTeam, setCreatingTeam] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -166,10 +172,52 @@ const CreateWorkout = () => {
     }
   };
 
+  // Handle creating a new team
+  const handleCreateTeam = async () => {
+    if (!newTeamName.trim()) return;
+
+    setCreatingTeam(true);
+    try {
+      const response = await api.post('/teams', {
+        teamName: newTeamName,
+        sport: newTeamSport || 'general'
+      });
+
+      if (response.data.success || response.data.team) {
+        const newTeam = response.data.team;
+        setTeams(prev => [...prev, newTeam]);
+        setProgram(prev => ({
+          ...prev,
+          assignedTeams: [newTeam._id]
+        }));
+        setShowCreateTeamModal(false);
+        setNewTeamName('');
+        setNewTeamSport('');
+      }
+    } catch (err) {
+      console.error('Failed to create team:', err);
+      alert('Failed to create team. Please try again.');
+    } finally {
+      setCreatingTeam(false);
+    }
+  };
+
   const teamOptions = teams.map(t => ({
     value: t._id,
     label: t.teamName
   }));
+
+  const sportOptions = [
+    { value: 'football', label: 'Football' },
+    { value: 'basketball', label: 'Basketball' },
+    { value: 'baseball', label: 'Baseball' },
+    { value: 'soccer', label: 'Soccer' },
+    { value: 'volleyball', label: 'Volleyball' },
+    { value: 'track', label: 'Track & Field' },
+    { value: 'wrestling', label: 'Wrestling' },
+    { value: 'swimming', label: 'Swimming' },
+    { value: 'general', label: 'General/Other' }
+  ];
 
   // Get workouts for calendar display
   const calendarWorkouts = program.workouts.map(w => ({
@@ -241,6 +289,9 @@ const CreateWorkout = () => {
           }))}
           options={teamOptions}
           placeholder="Select a team"
+          showCreateNew={true}
+          createNewLabel="+ Create New Team"
+          onCreateNew={() => setShowCreateTeamModal(true)}
         />
       </div>
 
@@ -281,6 +332,38 @@ const CreateWorkout = () => {
           }))}
           options={teamOptions}
           placeholder="Select a team"
+          showCreateNew={true}
+          createNewLabel="+ Create New Team"
+          onCreateNew={() => setShowCreateTeamModal(true)}
+        />
+      </Modal>
+
+      {/* Create Team Modal */}
+      <Modal
+        isOpen={showCreateTeamModal}
+        onClose={() => setShowCreateTeamModal(false)}
+        title="Create New Team"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowCreateTeamModal(false)}>Cancel</Button>
+            <Button variant="primary" onClick={handleCreateTeam} loading={creatingTeam}>Create Team</Button>
+          </>
+        }
+      >
+        <Input
+          label="Team Name"
+          value={newTeamName}
+          onChange={(e) => setNewTeamName(e.target.value)}
+          placeholder="e.g., Varsity Football"
+          autoFocus
+          required
+        />
+        <Dropdown
+          label="Sport"
+          value={newTeamSport}
+          onChange={(e) => setNewTeamSport(e.target.value)}
+          options={sportOptions}
+          placeholder="Select a sport"
         />
       </Modal>
 
@@ -295,6 +378,9 @@ const CreateWorkout = () => {
           workout={currentDayWorkout}
           exercises={exercises}
           onSave={handleSaveDayWorkout}
+          onExerciseCreated={(newExercise) => {
+            setExercises(prev => [...prev, newExercise]);
+          }}
         />
       )}
     </div>

@@ -137,6 +137,82 @@
   }
 }
 
+/* Set Configurations Section */
+.set-configs-section {
+  margin-top: var(--spacing-3);
+  margin-bottom: var(--spacing-3);
+}
+
+.set-configs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2);
+}
+
+.set-configs-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+}
+
+.add-set-config-btn {
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  background-color: transparent;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.add-set-config-btn:hover {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.set-config-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+.set-config-row .exercise-inputs {
+  flex: 1;
+  margin: 0;
+}
+
+.remove-set-config-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+  margin-bottom: var(--spacing-1);
+}
+
+.remove-set-config-btn:hover {
+  background-color: var(--color-error);
+  color: var(--color-white);
+}
+
+.set-config-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+  font-style: italic;
+  margin-top: var(--spacing-1);
+}
+
 @media (max-width: 480px) {
   .exercise-row {
     flex-wrap: wrap;
@@ -154,5 +230,17 @@
 
   .exercise-inputs {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .set-config-row {
+    flex-wrap: wrap;
+  }
+
+  .set-config-row .exercise-inputs {
+    flex-basis: 100%;
+  }
+
+  .remove-set-config-btn {
+    margin-left: auto;
   }
 }
