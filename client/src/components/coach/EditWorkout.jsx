@@ -33,8 +33,8 @@ const EditWorkout = () => {
         api.get(`/workouts/${programId}`),
         api.get('/exercises')
       ]);
-      setProgram(programRes.data);
-      setExercises(exercisesRes.data);
+      setProgram(programRes.data.workout || programRes.data);
+      setExercises(exercisesRes.data.exercises || exercisesRes.data);
     } catch (err) {
       setError('Failed to load program');
       console.error(err);
@@ -51,7 +51,7 @@ const EditWorkout = () => {
     setSelectedDate(date);
 
     // Find existing workout for this date
-    const existingWorkout = program.dailyWorkouts?.find(
+    const existingWorkout = program.workouts?.find(
       dw => new Date(dw.date).toDateString() === date.toDateString()
     );
 
@@ -73,19 +73,19 @@ const EditWorkout = () => {
 
   const handleSaveWorkout = (workout) => {
     setProgram(prev => {
-      const existingIndex = prev.dailyWorkouts?.findIndex(
+      const existingIndex = prev.workouts?.findIndex(
         dw => new Date(dw.date).toDateString() === new Date(workout.date).toDateString()
       );
 
-      let newDailyWorkouts;
+      let newWorkouts;
       if (existingIndex >= 0) {
-        newDailyWorkouts = [...prev.dailyWorkouts];
-        newDailyWorkouts[existingIndex] = workout;
+        newWorkouts = [...prev.workouts];
+        newWorkouts[existingIndex] = workout;
       } else {
-        newDailyWorkouts = [...(prev.dailyWorkouts || []), workout];
+        newWorkouts = [...(prev.workouts || []), workout];
       }
 
-      return { ...prev, dailyWorkouts: newDailyWorkouts };
+      return { ...prev, workouts: newWorkouts };
     });
 
     setEditorOpen(false);
@@ -106,8 +106,8 @@ const EditWorkout = () => {
   };
 
   const getWorkoutDates = () => {
-    if (!program?.dailyWorkouts) return [];
-    return program.dailyWorkouts
+    if (!program?.workouts) return [];
+    return program.workouts
       .filter(dw => dw.exercises && dw.exercises.length > 0)
       .map(dw => new Date(dw.date));
   };
@@ -169,8 +169,8 @@ const EditWorkout = () => {
               <div className="form-grid">
                 <Input
                   label="Program Name"
-                  value={program?.name || ''}
-                  onChange={(e) => handleProgramChange('name', e.target.value)}
+                  value={program?.programName || ''}
+                  onChange={(e) => handleProgramChange('programName', e.target.value)}
                   placeholder="e.g., Summer Strength Program"
                 />
                 <Input
@@ -199,13 +199,13 @@ const EditWorkout = () => {
               <div className="stats-grid">
                 <div className="stat-item">
                   <span className="stat-value">
-                    {program?.dailyWorkouts?.filter(dw => dw.exercises?.length > 0).length || 0}
+                    {program?.workouts?.filter(dw => dw.exercises?.length > 0).length || 0}
                   </span>
                   <span className="stat-label">Workout Days</span>
                 </div>
                 <div className="stat-item">
                   <span className="stat-value">
-                    {program?.dailyWorkouts?.reduce((acc, dw) => acc + (dw.exercises?.length || 0), 0) || 0}
+                    {program?.workouts?.reduce((acc, dw) => acc + (dw.exercises?.length || 0), 0) || 0}
                   </span>
                   <span className="stat-label">Total Exercises</span>
                 </div>
