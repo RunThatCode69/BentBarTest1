@@ -80,22 +80,14 @@ const CoachWorkouts = () => {
     findAndSetWorkout(date);
   };
 
-  // Get workouts for calendar display
-  const calendarWorkouts = [];
-  workouts.forEach(program => {
-    program.workouts?.forEach(day => {
-      calendarWorkouts.push({
-        date: day.date,
-        title: day.title || program.programName,
-        exercises: day.exercises
-      });
-    });
-  });
-
   // Get programs filtered by selected team
   const programsForSelectedTeam = selectedTeam
-    ? workouts.filter(w => w.assignedTeams?.some(t => t._id === selectedTeam || t === selectedTeam))
-    : workouts;
+    ? workouts.filter(w => w.assignedTeams?.some(t => {
+        // Handle both populated objects and plain IDs
+        const teamId = t._id || t;
+        return teamId === selectedTeam || teamId?.toString() === selectedTeam;
+      }))
+    : [];
 
   // Get the active program to display in calendar
   const activeProgram = selectedProgram
@@ -209,7 +201,7 @@ const CoachWorkouts = () => {
             <Calendar
               selectedDate={selectedDate}
               onDateSelect={handleDateSelect}
-              workouts={selectedProgram ? getCalendarWorkouts() : calendarWorkouts}
+              workouts={getCalendarWorkouts()}
               view={view}
               onViewChange={setView}
               onDayExpand={handleDayExpand}

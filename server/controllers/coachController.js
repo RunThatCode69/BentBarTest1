@@ -46,7 +46,8 @@ const getDashboard = async (req, res) => {
 
     // Get all workout programs for this coach (for Team Workouts panel)
     const allWorkoutPrograms = await WorkoutProgram.find({
-      coachId: coach._id
+      createdBy: coach._id,
+      createdByModel: 'Coach'
     }).select('programName _id assignedTeams createdAt').sort({ programName: 1 });
 
     // Collect athlete stats for the rolling display
