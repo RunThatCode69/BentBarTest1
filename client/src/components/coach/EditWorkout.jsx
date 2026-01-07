@@ -127,10 +127,13 @@ const EditWorkout = () => {
     exercises: w.exercises
   })) || [];
 
-  const teamOptions = teams.map(t => ({
-    value: t._id,
-    label: t.teamName
-  }));
+  const teamOptions = [
+    { value: '', label: 'Unassigned (No Team)' },
+    ...teams.map(t => ({
+      value: t._id,
+      label: t.teamName
+    }))
+  ];
 
   if (loading) {
     return (
