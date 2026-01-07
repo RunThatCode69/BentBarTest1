@@ -33,7 +33,13 @@ const CoachWorkouts = () => {
         ]);
 
         setWorkouts(workoutsRes.data.workouts);
-        setTeams(teamsRes.data.teams);
+        const fetchedTeams = teamsRes.data.teams;
+        setTeams(fetchedTeams);
+
+        // Auto-select team if coach only has one team
+        if (fetchedTeams.length === 1) {
+          setSelectedTeam(fetchedTeams[0]._id);
+        }
       } catch (err) {
         console.error('Failed to fetch data:', err);
       } finally {
