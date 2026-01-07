@@ -116,6 +116,37 @@
   border-radius: var(--radius-md);
 }
 
+.add-exercise-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-3);
+}
+
+.add-exercise-header h5 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+  margin: 0;
+}
+
+.create-exercise-link {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.create-exercise-link:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  text-decoration: underline;
+}
+
 .add-exercise-form h5 {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);

@@ -292,7 +292,16 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onExe
           )}
 
           <div className="add-exercise-form">
-            <h5>Add Exercise</h5>
+            <div className="add-exercise-header">
+              <h5>Add Exercise</h5>
+              <button
+                type="button"
+                className="create-exercise-link"
+                onClick={() => setShowCreateExerciseModal(true)}
+              >
+                + Create New Exercise
+              </button>
+            </div>
 
             <Dropdown
               label="Exercise"
@@ -300,9 +309,6 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onExe
               onChange={handleExerciseSelect}
               options={exerciseOptions}
               placeholder="Select an exercise"
-              showCreateNew={true}
-              createNewLabel="+ Create New Exercise"
-              onCreateNew={() => setShowCreateExerciseModal(true)}
             />
 
             <div className="set-configs-section">
