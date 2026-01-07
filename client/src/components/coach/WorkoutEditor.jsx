@@ -10,7 +10,6 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onExe
   const [dayWorkout, setDayWorkout] = useState({
     date: '',
     dayOfWeek: '',
-    title: '',
     exercises: []
   });
 
@@ -239,13 +238,6 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onExe
       }
     >
       <div className="workout-editor">
-        <Input
-          label="Workout Title (optional)"
-          value={dayWorkout.title}
-          onChange={(e) => setDayWorkout(prev => ({ ...prev, title: e.target.value }))}
-          placeholder="e.g., Lower Body Strength"
-        />
-
         <div className="exercises-section">
           <h4>Exercises</h4>
 
