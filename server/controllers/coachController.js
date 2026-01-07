@@ -452,6 +452,58 @@ const getAllStats = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Database diagnostic - shows what data exists for this coach
+ * @route   GET /api/coach/debug
+ * @access  Private (Coach only)
+ */
+const getDebugInfo = async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+
+    // Get coach profile
+    const coach = await Coach.findOne({ userId: req.user._id });
+
+    if (!coach) {
+      return res.status(404).json({ message: 'Coach profile not found' });
+    }
+
+    // Get all workout programs - try different query approaches
+    const allWorkoutsInDb = await WorkoutProgram.find({}).select('programName createdBy createdByModel');
+    const workoutsByCreatedBy = await WorkoutProgram.find({ createdBy: coach._id });
+    const workoutsByCreatedByWithModel = await WorkoutProgram.find({
+      createdBy: coach._id,
+      createdByModel: 'Coach'
+    });
+
+    res.json({
+      success: true,
+      debug: {
+        dbConnection: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        dbName: mongoose.connection.name,
+        userId: req.user._id,
+        coachId: coach._id,
+        coachIdString: coach._id.toString(),
+        totalWorkoutsInDb: allWorkoutsInDb.length,
+        allWorkouts: allWorkoutsInDb.map(w => ({
+          id: w._id,
+          name: w.programName,
+          createdBy: w.createdBy,
+          createdByString: w.createdBy?.toString(),
+          createdByModel: w.createdByModel,
+          matchesCoachId: w.createdBy?.toString() === coach._id.toString()
+        })),
+        workoutsByCreatedBy: workoutsByCreatedBy.length,
+        workoutsByCreatedByWithModel: workoutsByCreatedByWithModel.length
+      }
+    });
+
+  } catch (error) {
+    console.error('Debug error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 module.exports = {
   getDashboard,
   getTeams,
@@ -461,5 +513,6 @@ module.exports = {
   getTeamAthletes,
   getAccessCode,
   regenerateAccessCode,
-  getAllStats
+  getAllStats,
+  getDebugInfo
 };

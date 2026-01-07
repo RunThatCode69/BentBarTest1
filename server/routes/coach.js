@@ -11,7 +11,8 @@ const {
   getTeamAthletes,
   getAccessCode,
   regenerateAccessCode,
-  getAllStats
+  getAllStats,
+  getDebugInfo
 } = require('../controllers/coachController');
 
 // All routes require coach authentication
@@ -20,6 +21,9 @@ router.use(isCoach);
 
 // Dashboard
 router.get('/dashboard', getDashboard);
+
+// Debug endpoint
+router.get('/debug', getDebugInfo);
 
 // Stats
 router.get('/stats', getAllStats);
