@@ -66,7 +66,6 @@ app.use('/api/workouts', require('./routes/workouts'));
 app.use('/api/exercises', require('./routes/exercises'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/teams', require('./routes/teams'));
-app.use('/api/admin', require('./routes/admin'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
