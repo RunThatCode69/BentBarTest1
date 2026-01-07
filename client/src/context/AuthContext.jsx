@@ -33,6 +33,11 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setError(null);
+      // Clear any existing session before logging in
+      localStorage.removeItem('token');
+      setUser(null);
+      setProfile(null);
+
       const response = await api.post('/auth/login', { email, password });
       const { token, user: userData } = response.data;
       localStorage.setItem('token', token);
