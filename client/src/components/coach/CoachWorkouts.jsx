@@ -297,6 +297,15 @@ const CoachWorkouts = () => {
             placeholder={selectedTeam ? "Select Program" : "Select team first"}
             disabled={!selectedTeam}
           />
+          {selectedTeam === 'unassigned' && selectedProgram && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => openAssignModal(activeProgram)}
+            >
+              Assign to Team
+            </Button>
+          )}
         </div>
 
         <div className="view-toggle">
