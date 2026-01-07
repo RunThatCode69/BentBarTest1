@@ -135,6 +135,11 @@ const CreateWorkout = () => {
       return;
     }
 
+    if (program.assignedTeams.length === 0) {
+      alert('Please assign this program to a team before publishing. Use "Save to My Programs" if you want to save it without assigning to a team.');
+      return;
+    }
+
     setSaving(true);
     try {
       const response = await api.post('/workouts', {
@@ -153,21 +158,27 @@ const CreateWorkout = () => {
     }
   };
 
-  const handleSaveDraft = async () => {
-    if (!program.programName) {
-      setShowNameModal(true);
+  const handleSaveToMyPrograms = async () => {
+    if (!program.programName || program.workouts.length === 0) {
+      alert('Please add a program name and at least one workout day');
       return;
     }
 
     setSaving(true);
     try {
-      await api.post('/workouts', {
+      const response = await api.post('/workouts', {
         ...program,
-        isPublished: false
+        assignedTeams: [], // Save without team assignment
+        isPublished: false,
+        isSavedProgram: true
       });
-      alert('Draft saved successfully');
+
+      if (response.data.success) {
+        navigate('/coach/workouts');
+      }
     } catch (err) {
-      console.error('Failed to save draft:', err);
+      console.error('Failed to save program:', err);
+      alert('Failed to save program. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -249,11 +260,11 @@ const CreateWorkout = () => {
           <Button variant="ghost" onClick={() => navigate('/coach/workouts')}>
             Cancel
           </Button>
-          <Button variant="outline" onClick={handleSaveDraft} loading={saving}>
-            Save Draft
+          <Button variant="outline" onClick={handleSaveToMyPrograms} loading={saving}>
+            Save to My Programs
           </Button>
           <Button variant="primary" onClick={handlePublish} loading={saving}>
-            Publish Program
+            Publish to Team
           </Button>
         </div>
       </div>

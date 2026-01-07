@@ -14,6 +14,12 @@
   min-height: 600px;
 }
 
+/* Monthly view needs more height for 4-6 weeks */
+.calendar-monthly {
+  height: calc(100vh - 200px);
+  min-height: 700px;
+}
+
 .calendar-daily {
   height: auto;
   min-height: 400px;
@@ -95,7 +101,8 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* 3 Weeks View - Large cells filling the screen */
@@ -136,6 +143,10 @@
 }
 
 /* Monthly View */
+.calendar-days-monthly {
+  grid-template-rows: repeat(auto-fill, minmax(100px, 1fr));
+}
+
 .calendar-days-monthly .calendar-day {
   min-height: 100px;
   padding: var(--spacing-2);
@@ -343,17 +354,24 @@
     height: calc(100vh - 180px);
     min-height: 500px;
   }
+
+  .calendar-monthly {
+    height: calc(100vh - 180px);
+    min-height: 600px;
+  }
 }
 
 @media (max-width: 992px) {
   .calendar-threeWeeks,
-  .calendar-weekly {
+  .calendar-weekly,
+  .calendar-monthly {
     height: auto;
     min-height: auto;
   }
 
   .calendar-days-threeWeeks .calendar-day,
-  .calendar-days-weekly .calendar-day {
+  .calendar-days-weekly .calendar-day,
+  .calendar-days-monthly .calendar-day {
     min-height: 120px;
     height: auto;
   }

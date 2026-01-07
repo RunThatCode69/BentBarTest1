@@ -13,6 +13,7 @@ const CoachWorkouts = () => {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('threeWeeks');
   const [selectedTeam, setSelectedTeam] = useState('');
+  const [selectedProgram, setSelectedProgram] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
 
@@ -91,15 +92,52 @@ const CoachWorkouts = () => {
     });
   });
 
-  // Filter by team if selected
-  const filteredWorkouts = selectedTeam
+  // Get programs filtered by selected team
+  const programsForSelectedTeam = selectedTeam
     ? workouts.filter(w => w.assignedTeams?.some(t => t._id === selectedTeam || t === selectedTeam))
     : workouts;
+
+  // Get the active program to display in calendar
+  const activeProgram = selectedProgram
+    ? workouts.find(w => w._id === selectedProgram)
+    : null;
+
+  // Build calendar workouts from the active program only
+  const getCalendarWorkouts = () => {
+    if (!activeProgram) return [];
+
+    const programWorkouts = [];
+    activeProgram.workouts?.forEach(day => {
+      programWorkouts.push({
+        date: day.date,
+        title: day.title || activeProgram.programName,
+        exercises: day.exercises
+      });
+    });
+    return programWorkouts;
+  };
 
   const teamOptions = teams.map(t => ({
     value: t._id,
     label: t.teamName
   }));
+
+  const programOptions = programsForSelectedTeam.map(w => ({
+    value: w._id,
+    label: w.programName
+  }));
+
+  // Reset program selection when team changes
+  const handleTeamChange = (e) => {
+    setSelectedTeam(e.target.value);
+    setSelectedProgram(''); // Reset program when team changes
+    setSelectedWorkout(null);
+  };
+
+  const handleProgramChange = (e) => {
+    setSelectedProgram(e.target.value);
+    setSelectedWorkout(null);
+  };
 
   return (
     <div className="coach-workouts-page">
@@ -114,13 +152,23 @@ const CoachWorkouts = () => {
       </div>
 
       <div className="workouts-toolbar">
-        <Dropdown
-          name="team"
-          value={selectedTeam}
-          onChange={(e) => setSelectedTeam(e.target.value)}
-          options={teamOptions}
-          placeholder="All Teams"
-        />
+        <div className="program-selectors">
+          <Dropdown
+            name="team"
+            value={selectedTeam}
+            onChange={handleTeamChange}
+            options={teamOptions}
+            placeholder="Select Team"
+          />
+          <Dropdown
+            name="program"
+            value={selectedProgram}
+            onChange={handleProgramChange}
+            options={programOptions}
+            placeholder={selectedTeam ? "Select Program" : "Select team first"}
+            disabled={!selectedTeam}
+          />
+        </div>
 
         <div className="view-toggle">
           <button
@@ -161,7 +209,7 @@ const CoachWorkouts = () => {
             <Calendar
               selectedDate={selectedDate}
               onDateSelect={handleDateSelect}
-              workouts={calendarWorkouts}
+              workouts={selectedProgram ? getCalendarWorkouts() : calendarWorkouts}
               view={view}
               onViewChange={setView}
               onDayExpand={handleDayExpand}

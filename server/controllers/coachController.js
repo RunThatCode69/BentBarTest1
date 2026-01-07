@@ -44,6 +44,11 @@ const getDashboard = async (req, res) => {
       'workouts.date': { $gte: today, $lte: nextWeek }
     }).sort({ 'workouts.date': 1 });
 
+    // Get all workout programs for this coach (for Team Workouts panel)
+    const allWorkoutPrograms = await WorkoutProgram.find({
+      coachId: coach._id
+    }).select('programName _id assignedTeams createdAt').sort({ programName: 1 });
+
     // Collect athlete stats for the rolling display
     const athleteStats = [];
     teams.forEach(team => {
@@ -83,7 +88,13 @@ const getDashboard = async (req, res) => {
         accessCode: team.accessCode
       })),
       athleteStats: athleteStats.slice(0, 20), // Limit to 20 for display
-      upcomingWorkouts: upcomingWorkouts.slice(0, 3) // Next 3 days
+      upcomingWorkouts: upcomingWorkouts.slice(0, 3), // Next 3 days
+      workoutPrograms: allWorkoutPrograms.map(program => ({
+        id: program._id,
+        programName: program.programName,
+        assignedTeams: program.assignedTeams,
+        createdAt: program.createdAt
+      }))
     });
 
   } catch (error) {

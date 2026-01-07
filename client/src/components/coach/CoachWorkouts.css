@@ -42,6 +42,16 @@
   min-width: 200px;
 }
 
+.program-selectors {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+.program-selectors .form-group {
+  min-width: 180px;
+}
+
 .view-toggle {
   display: flex;
   background-color: var(--color-gray-100);
@@ -87,7 +97,7 @@
   gap: var(--spacing-4);
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .calendar-section {
@@ -95,7 +105,7 @@
   background-color: var(--color-white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -231,6 +241,15 @@
   .workouts-toolbar {
     flex-direction: column;
     gap: var(--spacing-3);
+  }
+
+  .program-selectors {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .program-selectors .form-group {
+    width: 100%;
   }
 }
 
