@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import AthleteStatsPanel from './AthleteStatsPanel';
-import WorkoutsPanel from './WorkoutsPanel';
 import CreateWorkoutPanel from './CreateWorkoutPanel';
+import AthleteCenterPanel from './AthleteCenterPanel';
 import './CoachDashboard.css';
 
 const CoachDashboard = () => {
@@ -67,6 +67,16 @@ const CoachDashboard = () => {
       </div>
 
       <div className="dashboard-grid">
+        {/* Team Workouts - First position */}
+        <div className="dashboard-panel workouts-panel">
+          <CreateWorkoutPanel
+            workoutPrograms={dashboardData.workoutPrograms || []}
+            teams={dashboardData.teams || []}
+            onCreateNew={() => navigate('/coach/workouts/create')}
+          />
+        </div>
+
+        {/* Stats - Second position */}
         <div className="dashboard-panel stats-panel">
           <AthleteStatsPanel
             stats={dashboardData.athleteStats}
@@ -74,19 +84,11 @@ const CoachDashboard = () => {
           />
         </div>
 
-        <div className="dashboard-panel workouts-panel">
-          <WorkoutsPanel
-            workouts={dashboardData.upcomingWorkouts}
-            teams={dashboardData.teams}
-            onViewAll={() => navigate('/coach/workouts')}
-          />
-        </div>
-
-        <div className="dashboard-panel create-panel">
-          <CreateWorkoutPanel
-            workoutPrograms={dashboardData.workoutPrograms || []}
-            teams={dashboardData.teams || []}
-            onCreateNew={() => navigate('/coach/workouts/create')}
+        {/* Athlete Center - Third position */}
+        <div className="dashboard-panel athlete-center-panel">
+          <AthleteCenterPanel
+            athletes={dashboardData.athletes || []}
+            workouts={dashboardData.upcomingWorkouts || []}
           />
         </div>
       </div>

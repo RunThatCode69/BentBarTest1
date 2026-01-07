@@ -73,6 +73,27 @@ const getDashboard = async (req, res) => {
     // Shuffle stats for random display
     athleteStats.sort(() => Math.random() - 0.5);
 
+    // Get all athletes with their user data for Athlete Center
+    const User = require('../models/User');
+    const allAthletes = [];
+    for (const team of teams) {
+      const athletesWithUsers = await Athlete.find({ teamId: team._id })
+        .select('firstName lastName userId teamId')
+        .lean();
+
+      for (const athlete of athletesWithUsers) {
+        const user = await User.findById(athlete.userId).select('lastLogin').lean();
+        allAthletes.push({
+          _id: athlete._id,
+          firstName: athlete.firstName,
+          lastName: athlete.lastName,
+          teamId: athlete.teamId,
+          teamName: team.teamName,
+          lastLogin: user?.lastLogin || null
+        });
+      }
+    }
+
     res.json({
       success: true,
       coach: {
@@ -95,7 +116,8 @@ const getDashboard = async (req, res) => {
         programName: program.programName,
         assignedTeams: program.assignedTeams,
         createdAt: program.createdAt
-      }))
+      })),
+      athletes: allAthletes // For Athlete Center panel
     });
 
   } catch (error) {

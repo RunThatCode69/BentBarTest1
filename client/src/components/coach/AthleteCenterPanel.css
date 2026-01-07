@@ -1,0 +1,152 @@
+.athlete-center-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.athlete-center-container .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-4) var(--spacing-5);
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.athlete-center-container .panel-header h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.notification-count {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+  background-color: var(--color-gray-100);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-full);
+}
+
+.notifications-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-2);
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.notification-item:hover {
+  background-color: var(--color-gray-50);
+}
+
+.notification-item.priority-high {
+  border-left-color: var(--color-error);
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.notification-item.priority-high:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.notification-item.priority-medium {
+  border-left-color: var(--color-warning);
+  background-color: rgba(245, 158, 11, 0.05);
+}
+
+.notification-item.priority-medium:hover {
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+.notification-item.priority-low {
+  border-left-color: var(--color-gray-300);
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background-color: var(--color-gray-100);
+}
+
+.priority-high .notification-icon {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+.priority-medium .notification-icon {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+}
+
+.notification-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.athlete-name {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+  font-size: var(--font-size-sm);
+}
+
+.notification-message {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+}
+
+.no-notifications {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--spacing-8);
+  text-align: center;
+  color: var(--color-gray-400);
+}
+
+.no-notifications svg {
+  margin-bottom: var(--spacing-3);
+  color: var(--color-success);
+}
+
+.no-notifications p {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-600);
+  margin-bottom: var(--spacing-1);
+}
+
+.no-notifications .hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-400);
+}
+
+@media (max-width: 768px) {
+  .athlete-center-container .panel-header {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .notification-item {
+    padding: var(--spacing-2);
+  }
+
+  .notification-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
