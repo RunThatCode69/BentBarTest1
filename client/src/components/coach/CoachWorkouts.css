@@ -145,6 +145,12 @@
   margin-bottom: var(--spacing-3);
 }
 
+.detail-actions {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
 .exercises-list {
   display: flex;
   flex-direction: column;

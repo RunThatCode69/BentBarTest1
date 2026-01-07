@@ -150,6 +150,19 @@ const createTeam = async (req, res) => {
       return res.status(404).json({ message: 'Coach profile not found' });
     }
 
+    // Check if coach has paid for enough teams
+    const currentTeamCount = coach.teams?.length || 0;
+    const paidTeamSlots = coach.paidTeams || 0;
+
+    if (currentTeamCount >= paidTeamSlots) {
+      return res.status(403).json({
+        message: 'Team limit reached. Please purchase additional team slots to add more teams.',
+        code: 'TEAM_LIMIT_REACHED',
+        currentTeams: currentTeamCount,
+        paidTeams: paidTeamSlots
+      });
+    }
+
     const accessCode = await generateAccessCode();
 
     const team = await Team.create({

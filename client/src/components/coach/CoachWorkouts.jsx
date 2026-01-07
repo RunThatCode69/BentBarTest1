@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import Button from '../common/Button';
 import Dropdown from '../common/Dropdown';
+import Modal from '../common/Modal';
 import Calendar from '../common/Calendar';
 import './CoachWorkouts.css';
 
@@ -16,6 +17,12 @@ const CoachWorkouts = () => {
   const [selectedProgram, setSelectedProgram] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
+
+  // Assign team modal state
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [programToAssign, setProgramToAssign] = useState(null);
+  const [assignTeamId, setAssignTeamId] = useState('');
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,13 +88,52 @@ const CoachWorkouts = () => {
   };
 
   // Get programs filtered by selected team
-  const programsForSelectedTeam = selectedTeam
-    ? workouts.filter(w => w.assignedTeams?.some(t => {
-        // Handle both populated objects and plain IDs
-        const teamId = t._id || t;
-        return teamId === selectedTeam || teamId?.toString() === selectedTeam;
-      }))
-    : [];
+  const programsForSelectedTeam = selectedTeam === 'unassigned'
+    ? workouts.filter(w => !w.assignedTeams || w.assignedTeams.length === 0)
+    : selectedTeam
+      ? workouts.filter(w => w.assignedTeams?.some(t => {
+          // Handle both populated objects and plain IDs
+          const teamId = t._id || t;
+          return teamId === selectedTeam || teamId?.toString() === selectedTeam;
+        }))
+      : [];
+
+  // Assign program to team
+  const handleAssignTeam = async () => {
+    if (!programToAssign || !assignTeamId) return;
+
+    setAssigning(true);
+    try {
+      await api.put(`/workouts/${programToAssign._id}`, {
+        ...programToAssign,
+        assignedTeams: [assignTeamId]
+      });
+
+      // Update local state
+      setWorkouts(prev => prev.map(w =>
+        w._id === programToAssign._id
+          ? { ...w, assignedTeams: [assignTeamId] }
+          : w
+      ));
+
+      setShowAssignModal(false);
+      setProgramToAssign(null);
+      setAssignTeamId('');
+      setSelectedTeam(assignTeamId);
+      setSelectedProgram(programToAssign._id);
+    } catch (err) {
+      console.error('Failed to assign team:', err);
+      alert('Failed to assign team. Please try again.');
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  const openAssignModal = (program) => {
+    setProgramToAssign(program);
+    setAssignTeamId('');
+    setShowAssignModal(true);
+  };
 
   // Get the active program to display in calendar
   const activeProgram = selectedProgram
@@ -109,10 +155,13 @@ const CoachWorkouts = () => {
     return programWorkouts;
   };
 
-  const teamOptions = teams.map(t => ({
-    value: t._id,
-    label: t.teamName
-  }));
+  const teamOptions = [
+    { value: 'unassigned', label: 'Unassigned Programs' },
+    ...teams.map(t => ({
+      value: t._id,
+      label: t.teamName
+    }))
+  ];
 
   const programOptions = programsForSelectedTeam.map(w => ({
     value: w._id,
@@ -220,13 +269,24 @@ const CoachWorkouts = () => {
                       day: 'numeric'
                     })}
                   </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/coach/workouts/${selectedWorkout.programId}`)}
-                  >
-                    Edit Program
-                  </Button>
+                  <div className="detail-actions">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/coach/workouts/${selectedWorkout.programId}`)}
+                    >
+                      Edit Program
+                    </Button>
+                    {selectedTeam === 'unassigned' && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => openAssignModal(workouts.find(w => w._id === selectedWorkout.programId))}
+                      >
+                        Assign to Team
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="exercises-list">
@@ -263,6 +323,37 @@ const CoachWorkouts = () => {
           </div>
         </div>
       )}
+
+      {/* Assign to Team Modal */}
+      <Modal
+        isOpen={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        title="Assign Program to Team"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowAssignModal(false)}>Cancel</Button>
+            <Button
+              variant="primary"
+              onClick={handleAssignTeam}
+              disabled={!assignTeamId}
+              loading={assigning}
+            >
+              Assign to Team
+            </Button>
+          </>
+        }
+      >
+        <p style={{ marginBottom: 'var(--spacing-4)' }}>
+          Assign "<strong>{programToAssign?.programName}</strong>" to a team. Athletes on that team will be able to see this workout program.
+        </p>
+        <Dropdown
+          label="Select Team"
+          value={assignTeamId}
+          onChange={(e) => setAssignTeamId(e.target.value)}
+          options={teams.map(t => ({ value: t._id, label: t.teamName }))}
+          placeholder="Choose a team"
+        />
+      </Modal>
     </div>
   );
 };

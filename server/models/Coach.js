@@ -42,6 +42,10 @@ const coachSchema = new mongoose.Schema({
     enum: ['pending', 'active', 'cancelled'],
     default: 'pending'
   },
+  paidTeams: {
+    type: Number,
+    default: 0  // Number of teams they've paid for ($200 each)
+  },
   stripeCustomerId: {
     type: String,
     default: null

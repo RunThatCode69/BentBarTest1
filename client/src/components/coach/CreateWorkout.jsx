@@ -54,7 +54,16 @@ const CreateWorkout = () => {
           })
         ]);
 
-        setTeams(teamsRes.data?.teams || []);
+        const fetchedTeams = teamsRes.data?.teams || [];
+        setTeams(fetchedTeams);
+
+        // Auto-select team if coach only has one
+        if (fetchedTeams.length === 1) {
+          setProgram(prev => ({
+            ...prev,
+            assignedTeams: [fetchedTeams[0]._id]
+          }));
+        }
 
         // Get custom exercises from API and merge with defaults
         const apiExercises = exercisesRes.data?.exercises || [];
@@ -221,7 +230,11 @@ const CreateWorkout = () => {
       }
     } catch (err) {
       console.error('Failed to create team:', err);
-      alert('Failed to create team. Please try again.');
+      if (err.response?.data?.code === 'TEAM_LIMIT_REACHED') {
+        alert('You have reached your team limit. Please purchase additional team slots to add more teams.');
+      } else {
+        alert('Failed to create team. Please try again.');
+      }
     } finally {
       setCreatingTeam(false);
     }
