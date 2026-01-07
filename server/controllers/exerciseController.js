@@ -23,14 +23,6 @@ const getExercises = async (req, res) => {
       query.name = { $regex: search, $options: 'i' };
     }
 
-    // Filter by applicable sports
-    if (sport) {
-      query.$or = [
-        { applicableSports: sport },
-        { applicableSports: 'all' }
-      ];
-    }
-
     // Include global exercises and user-created exercises
     let creatorId = null;
     let creatorModel = null;
@@ -45,11 +37,28 @@ const getExercises = async (req, res) => {
       creatorModel = 'Trainer';
     }
 
+    // Build the $and query for proper filtering
+    const andConditions = [];
+
     // Global exercises OR created by this user
-    query.$or = [
-      { isGlobal: true },
-      { createdBy: creatorId, createdByModel: creatorModel }
-    ];
+    andConditions.push({
+      $or: [
+        { isGlobal: true },
+        { createdBy: creatorId, createdByModel: creatorModel }
+      ]
+    });
+
+    // Filter by applicable sports (if specified)
+    if (sport) {
+      andConditions.push({
+        $or: [
+          { applicableSports: sport },
+          { applicableSports: 'all' }
+        ]
+      });
+    }
+
+    query.$and = andConditions;
 
     const exercises = await Exercise.find(query).sort({ name: 1 });
 
