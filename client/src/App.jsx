@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 // Pages
 import Welcome from './pages/Welcome';
@@ -73,10 +74,11 @@ function App() {
   const { user } = useAuth();
 
   return (
-    <div className="app">
-      {user && <Navbar />}
-      <main className={user ? 'main-content with-navbar' : 'main-content'}>
-        <Routes>
+    <ErrorBoundary>
+      <div className="app">
+        {user && <Navbar />}
+        <main className={user ? 'main-content with-navbar' : 'main-content'}>
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<PublicRoute><Welcome /></PublicRoute>} />
           <Route path="/about" element={<About />} />
@@ -157,9 +159,10 @@ function App() {
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-    </div>
+          </Routes>
+        </main>
+      </div>
+    </ErrorBoundary>
   );
 }
 
