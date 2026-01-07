@@ -24,6 +24,11 @@ const CoachWorkouts = () => {
   const [assignTeamId, setAssignTeamId] = useState('');
   const [assigning, setAssigning] = useState(false);
 
+  // Move program modal state
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [newStartDate, setNewStartDate] = useState('');
+  const [moving, setMoving] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -145,6 +150,83 @@ const CoachWorkouts = () => {
   const activeProgram = selectedProgram
     ? workouts.find(w => w._id === selectedProgram)
     : null;
+
+  // Move program to new start date
+  const handleMoveProgram = async () => {
+    if (!activeProgram || !newStartDate) return;
+
+    setMoving(true);
+    try {
+      // Find the earliest workout date in the program
+      const workoutDates = activeProgram.workouts
+        ?.map(w => new Date(w.date))
+        .sort((a, b) => a - b);
+
+      if (!workoutDates || workoutDates.length === 0) {
+        alert('No workouts to move');
+        return;
+      }
+
+      const oldStartDate = workoutDates[0];
+      const newStart = new Date(newStartDate);
+      const diffMs = newStart.getTime() - oldStartDate.getTime();
+      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+      // Shift all workout dates by the difference
+      const updatedWorkouts = activeProgram.workouts.map(w => {
+        const oldDate = new Date(w.date);
+        const newDate = new Date(oldDate.getTime() + diffDays * 24 * 60 * 60 * 1000);
+        return {
+          ...w,
+          date: newDate.toISOString(),
+          dayOfWeek: newDate.toLocaleDateString('en-US', { weekday: 'long' })
+        };
+      });
+
+      // Update start/end dates
+      const newStartDateObj = new Date(newStartDate);
+      const programDuration = activeProgram.endDate && activeProgram.startDate
+        ? new Date(activeProgram.endDate).getTime() - new Date(activeProgram.startDate).getTime()
+        : 0;
+      const newEndDate = programDuration
+        ? new Date(newStartDateObj.getTime() + programDuration).toISOString()
+        : null;
+
+      const updatedProgram = {
+        ...activeProgram,
+        workouts: updatedWorkouts,
+        startDate: newStartDateObj.toISOString(),
+        ...(newEndDate && { endDate: newEndDate })
+      };
+
+      await api.put(`/workouts/${activeProgram._id}`, updatedProgram);
+
+      // Update local state
+      setWorkouts(prev => prev.map(w =>
+        w._id === activeProgram._id ? updatedProgram : w
+      ));
+
+      setShowMoveModal(false);
+      setNewStartDate('');
+      setSelectedWorkout(null);
+    } catch (err) {
+      console.error('Failed to move program:', err);
+      alert('Failed to move program. Please try again.');
+    } finally {
+      setMoving(false);
+    }
+  };
+
+  const openMoveModal = () => {
+    if (activeProgram?.workouts?.length > 0) {
+      // Pre-fill with current earliest date
+      const earliestDate = activeProgram.workouts
+        .map(w => new Date(w.date))
+        .sort((a, b) => a - b)[0];
+      setNewStartDate(earliestDate.toISOString().split('T')[0]);
+    }
+    setShowMoveModal(true);
+  };
 
   // Build calendar workouts from the active program only
   const getCalendarWorkouts = () => {
@@ -283,6 +365,13 @@ const CoachWorkouts = () => {
                     >
                       Edit Program
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={openMoveModal}
+                    >
+                      Move Program
+                    </Button>
                     {selectedTeam === 'unassigned' && (
                       <Button
                         variant="primary"
@@ -359,6 +448,52 @@ const CoachWorkouts = () => {
           options={teams.map(t => ({ value: t._id, label: t.teamName }))}
           placeholder="Choose a team"
         />
+      </Modal>
+
+      {/* Move Program Modal */}
+      <Modal
+        isOpen={showMoveModal}
+        onClose={() => setShowMoveModal(false)}
+        title="Move Program"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowMoveModal(false)}>Cancel</Button>
+            <Button
+              variant="primary"
+              onClick={handleMoveProgram}
+              disabled={!newStartDate}
+              loading={moving}
+            >
+              Move Program
+            </Button>
+          </>
+        }
+      >
+        <p style={{ marginBottom: 'var(--spacing-4)' }}>
+          Move "<strong>{activeProgram?.programName}</strong>" to a new start date. All workout dates will shift accordingly while maintaining the same schedule pattern.
+        </p>
+        <div style={{ marginBottom: 'var(--spacing-2)' }}>
+          <label style={{ display: 'block', marginBottom: 'var(--spacing-1)', fontWeight: 500 }}>
+            New Start Date
+          </label>
+          <input
+            type="date"
+            value={newStartDate}
+            onChange={(e) => setNewStartDate(e.target.value)}
+            style={{
+              width: '100%',
+              padding: 'var(--spacing-2)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-border)',
+              fontSize: '14px'
+            }}
+          />
+        </div>
+        {activeProgram?.workouts?.length > 0 && (
+          <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: 'var(--spacing-2)' }}>
+            This program has {activeProgram.workouts.length} workout day{activeProgram.workouts.length !== 1 ? 's' : ''}.
+          </p>
+        )}
       </Modal>
     </div>
   );
