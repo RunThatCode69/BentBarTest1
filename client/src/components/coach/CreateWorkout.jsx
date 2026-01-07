@@ -28,6 +28,7 @@ const CreateWorkout = () => {
   const [showNameModal, setShowNameModal] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const [currentDayWorkout, setCurrentDayWorkout] = useState(null);
+  const [calendarView, setCalendarView] = useState('threeWeeks');
 
   // Create Team Modal state
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
@@ -300,7 +301,8 @@ const CreateWorkout = () => {
           selectedDate={selectedDate}
           onDateSelect={handleDateSelect}
           workouts={calendarWorkouts}
-          view="monthly"
+          view={calendarView}
+          onViewChange={setCalendarView}
         />
       </div>
 
