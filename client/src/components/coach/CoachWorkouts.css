@@ -1,34 +1,40 @@
 .coach-workouts-page {
-  padding: var(--spacing-6);
-  max-width: var(--max-content-width);
+  padding: var(--spacing-4);
+  max-width: 100%;
   margin: 0 auto;
+  height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
+  flex-shrink: 0;
 }
 
 .page-header h1 {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   margin-bottom: var(--spacing-1);
 }
 
 .page-header p {
   color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
 }
 
 .workouts-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
   background-color: var(--color-white);
-  padding: var(--spacing-4);
+  padding: var(--spacing-3);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
 }
 
 .workouts-toolbar .form-group {
@@ -44,7 +50,7 @@
 }
 
 .toggle-btn {
-  padding: var(--spacing-2) var(--spacing-4);
+  padding: var(--spacing-2) var(--spacing-3);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-600);
@@ -68,6 +74,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--spacing-12);
+  flex: 1;
 }
 
 .loading-state p {
@@ -76,23 +83,38 @@
 }
 
 .workouts-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--spacing-6);
+  display: flex;
+  gap: var(--spacing-4);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .calendar-section {
+  flex: 1;
   background-color: var(--color-white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-section .calendar {
+  flex: 1;
+  border: none;
+  border-radius: 0;
 }
 
 .workout-detail {
+  width: 350px;
+  flex-shrink: 0;
   background-color: var(--color-white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   padding: var(--spacing-4);
+  overflow-y: auto;
+  max-height: 100%;
 }
 
 .detail-header {
@@ -175,9 +197,30 @@
   margin-bottom: var(--spacing-4);
 }
 
+@media (max-width: 1200px) {
+  .workout-detail {
+    width: 300px;
+  }
+}
+
 @media (max-width: 992px) {
+  .coach-workouts-page {
+    height: auto;
+    padding: var(--spacing-4);
+  }
+
   .workouts-content {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .calendar-section {
+    min-height: 500px;
+  }
+
+  .workout-detail {
+    width: 100%;
+    max-height: none;
   }
 
   .page-header {
@@ -188,5 +231,17 @@
   .workouts-toolbar {
     flex-direction: column;
     gap: var(--spacing-3);
+  }
+}
+
+@media (max-width: 768px) {
+  .view-toggle {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .toggle-btn {
+    padding: var(--spacing-1) var(--spacing-2);
+    font-size: var(--font-size-xs);
   }
 }

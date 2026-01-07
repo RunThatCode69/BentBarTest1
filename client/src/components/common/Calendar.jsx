@@ -5,8 +5,9 @@ const Calendar = ({
   selectedDate,
   onDateSelect,
   workouts = [],
-  view = 'monthly',
-  onViewChange
+  view = 'threeWeeks',
+  onViewChange,
+  onDayExpand
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -52,10 +53,27 @@ const Calendar = ({
     return days;
   };
 
-  const navigateMonth = (direction) => {
+  const getThreeWeeksDays = (date) => {
+    const start = new Date(date);
+    // Start from the beginning of the current week
+    start.setDate(start.getDate() - start.getDay());
+    const days = [];
+    for (let i = 0; i < 21; i++) { // 3 weeks = 21 days
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      days.push({ date: d, isCurrentMonth: true });
+    }
+    return days;
+  };
+
+  const navigateCalendar = (direction) => {
     const newDate = new Date(currentDate);
     if (view === 'weekly') {
       newDate.setDate(newDate.getDate() + (direction * 7));
+    } else if (view === 'threeWeeks') {
+      newDate.setDate(newDate.getDate() + (direction * 21));
+    } else if (view === 'daily') {
+      newDate.setDate(newDate.getDate() + direction);
     } else {
       newDate.setMonth(newDate.getMonth() + direction);
     }
@@ -91,21 +109,77 @@ const Calendar = ({
     return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
   };
 
-  const days = view === 'weekly' ? getWeekDays(currentDate) : getDaysInMonth(currentDate);
+  const formatThreeWeeksRange = (date) => {
+    const start = new Date(date);
+    start.setDate(start.getDate() - start.getDay());
+    const end = new Date(start);
+    end.setDate(end.getDate() + 20);
+    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  };
+
+  const formatDayTitle = (date) => {
+    return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  };
+
+  const handleDayClick = (date) => {
+    if (onDateSelect) {
+      onDateSelect(date);
+    }
+    // If onDayExpand is provided, switch to day view when clicking a day
+    if (onDayExpand) {
+      onDayExpand(date);
+    }
+  };
+
+  const getDays = () => {
+    switch (view) {
+      case 'daily':
+        return [{ date: currentDate, isCurrentMonth: true }];
+      case 'weekly':
+        return getWeekDays(currentDate);
+      case 'threeWeeks':
+        return getThreeWeeksDays(currentDate);
+      case 'monthly':
+      default:
+        return getDaysInMonth(currentDate);
+    }
+  };
+
+  const getTitle = () => {
+    switch (view) {
+      case 'daily':
+        return formatDayTitle(currentDate);
+      case 'weekly':
+        return formatWeekRange(currentDate);
+      case 'threeWeeks':
+        return formatThreeWeeksRange(currentDate);
+      case 'monthly':
+      default:
+        return formatMonth(currentDate);
+    }
+  };
+
+  const days = getDays();
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+  // Calculate number of rows for grid
+  const getRowCount = () => {
+    if (view === 'threeWeeks') return 3;
+    if (view === 'weekly') return 1;
+    if (view === 'daily') return 1;
+    return 6; // monthly
+  };
+
   return (
-    <div className="calendar">
+    <div className={`calendar calendar-${view}`}>
       <div className="calendar-header">
-        <button className="calendar-nav" onClick={() => navigateMonth(-1)}>
+        <button className="calendar-nav" onClick={() => navigateCalendar(-1)}>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
         </button>
-        <span className="calendar-title">
-          {view === 'weekly' ? formatWeekRange(currentDate) : formatMonth(currentDate)}
-        </span>
-        <button className="calendar-nav" onClick={() => navigateMonth(1)}>
+        <span className="calendar-title">{getTitle()}</span>
+        <button className="calendar-nav" onClick={() => navigateCalendar(1)}>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
           </svg>
@@ -118,32 +192,47 @@ const Calendar = ({
             className={`calendar-view-btn ${view === 'daily' ? 'active' : ''}`}
             onClick={() => onViewChange('daily')}
           >
-            Daily
+            Day
           </button>
           <button
             className={`calendar-view-btn ${view === 'weekly' ? 'active' : ''}`}
             onClick={() => onViewChange('weekly')}
           >
-            Weekly
+            Week
+          </button>
+          <button
+            className={`calendar-view-btn ${view === 'threeWeeks' ? 'active' : ''}`}
+            onClick={() => onViewChange('threeWeeks')}
+          >
+            3 Weeks
           </button>
           <button
             className={`calendar-view-btn ${view === 'monthly' ? 'active' : ''}`}
             onClick={() => onViewChange('monthly')}
           >
-            Monthly
+            Month
           </button>
         </div>
       )}
 
-      <div className="calendar-weekdays">
-        {weekDays.map(day => (
-          <div key={day} className="calendar-weekday">{day}</div>
-        ))}
-      </div>
+      {view !== 'daily' && (
+        <div className="calendar-weekdays">
+          {weekDays.map(day => (
+            <div key={day} className="calendar-weekday">{day}</div>
+          ))}
+        </div>
+      )}
 
-      <div className={`calendar-days ${view === 'weekly' ? 'weekly' : ''}`}>
+      <div
+        className={`calendar-days calendar-days-${view}`}
+        style={{ '--row-count': getRowCount() }}
+      >
         {days.map((day, index) => {
           const workout = getWorkoutForDate(day.date);
+          const exercises = workout?.exercises || [];
+          const displayExercises = exercises.slice(0, 5);
+          const remainingCount = exercises.length - 5;
+
           const dayClasses = [
             'calendar-day',
             !day.isCurrentMonth && 'other-month',
@@ -156,12 +245,38 @@ const Calendar = ({
             <div
               key={index}
               className={dayClasses}
-              onClick={() => onDateSelect && onDateSelect(day.date)}
+              onClick={() => handleDayClick(day.date)}
             >
-              <span className="calendar-day-number">{day.date.getDate()}</span>
+              <div className="calendar-day-header">
+                <span className="calendar-day-number">{day.date.getDate()}</span>
+                {view === 'daily' && (
+                  <span className="calendar-day-name">
+                    {day.date.toLocaleDateString('en-US', { weekday: 'long' })}
+                  </span>
+                )}
+              </div>
+
               {workout && (
-                <div className="calendar-workout-preview">
-                  <span className="calendar-workout-title">{workout.title || 'Workout'}</span>
+                <div className="calendar-workout-content">
+                  {workout.title && (
+                    <div className="calendar-workout-title">{workout.title}</div>
+                  )}
+                  <div className="calendar-exercises">
+                    {displayExercises.map((exercise, i) => (
+                      <div key={i} className="calendar-exercise-preview">
+                        <span className="exercise-preview-name">{exercise.exerciseName}</span>
+                        <span className="exercise-preview-sets">
+                          {exercise.sets}x{exercise.reps}
+                          {exercise.percentage && ` @${exercise.percentage}%`}
+                        </span>
+                      </div>
+                    ))}
+                    {remainingCount > 0 && (
+                      <div className="calendar-exercise-more">
+                        +{remainingCount} more exercise{remainingCount > 1 ? 's' : ''}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

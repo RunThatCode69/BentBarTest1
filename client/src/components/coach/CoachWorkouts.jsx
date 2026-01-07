@@ -11,7 +11,7 @@ const CoachWorkouts = () => {
   const [workouts, setWorkouts] = useState([]);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState('monthly');
+  const [view, setView] = useState('threeWeeks');
   const [selectedTeam, setSelectedTeam] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
@@ -117,19 +117,25 @@ const CoachWorkouts = () => {
             className={`toggle-btn ${view === 'daily' ? 'active' : ''}`}
             onClick={() => setView('daily')}
           >
-            Daily
+            Day
           </button>
           <button
             className={`toggle-btn ${view === 'weekly' ? 'active' : ''}`}
             onClick={() => setView('weekly')}
           >
-            Weekly
+            Week
+          </button>
+          <button
+            className={`toggle-btn ${view === 'threeWeeks' ? 'active' : ''}`}
+            onClick={() => setView('threeWeeks')}
+          >
+            3 Weeks
           </button>
           <button
             className={`toggle-btn ${view === 'monthly' ? 'active' : ''}`}
             onClick={() => setView('monthly')}
           >
-            Monthly
+            Month
           </button>
         </div>
       </div>
