@@ -7,6 +7,7 @@ import Input from '../common/Input';
 import Calendar from '../common/Calendar';
 import WorkoutEditor from './WorkoutEditor';
 import api from '../../services/api';
+import { DEFAULT_EXERCISES, mergeExercises } from '../../constants/defaultExercises';
 import './EditWorkout.css';
 
 const EditWorkout = () => {
@@ -14,7 +15,7 @@ const EditWorkout = () => {
   const navigate = useNavigate();
 
   const [program, setProgram] = useState(null);
-  const [exercises, setExercises] = useState([]);
+  const [exercises, setExercises] = useState(DEFAULT_EXERCISES);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -31,10 +32,16 @@ const EditWorkout = () => {
       setLoading(true);
       const [programRes, exercisesRes] = await Promise.all([
         api.get(`/workouts/${programId}`),
-        api.get('/exercises')
+        api.get('/exercises').catch(err => {
+          console.error('Failed to fetch custom exercises:', err);
+          return { data: { exercises: [] } };
+        })
       ]);
       setProgram(programRes.data.workout || programRes.data);
-      setExercises(exercisesRes.data.exercises || exercisesRes.data);
+
+      // Merge custom exercises with defaults
+      const customExercises = exercisesRes.data?.exercises || [];
+      setExercises(mergeExercises(customExercises));
     } catch (err) {
       setError('Failed to load program');
       console.error(err);

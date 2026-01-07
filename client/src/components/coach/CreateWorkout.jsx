@@ -7,12 +7,14 @@ import Dropdown from '../common/Dropdown';
 import Modal from '../common/Modal';
 import Calendar from '../common/Calendar';
 import WorkoutEditor from './WorkoutEditor';
+import { DEFAULT_EXERCISES, mergeExercises } from '../../constants/defaultExercises';
 import './CreateWorkout.css';
 
 const CreateWorkout = () => {
   const navigate = useNavigate();
   const [teams, setTeams] = useState([]);
-  const [exercises, setExercises] = useState([]);
+  const [exercises, setExercises] = useState(DEFAULT_EXERCISES);
+  const [customExercises, setCustomExercises] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -40,7 +42,7 @@ const CreateWorkout = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch teams and exercises separately to handle errors independently
+        // Fetch teams and custom exercises separately to handle errors independently
         const [teamsRes, exercisesRes] = await Promise.all([
           api.get('/coach/teams').catch(err => {
             console.error('Failed to fetch teams:', err);
@@ -53,7 +55,11 @@ const CreateWorkout = () => {
         ]);
 
         setTeams(teamsRes.data?.teams || []);
-        setExercises(exercisesRes.data?.exercises || []);
+
+        // Get custom exercises from API and merge with defaults
+        const apiExercises = exercisesRes.data?.exercises || [];
+        setCustomExercises(apiExercises);
+        setExercises(mergeExercises(apiExercises));
       } catch (err) {
         console.error('Failed to fetch data:', err);
       } finally {
@@ -399,7 +405,9 @@ const CreateWorkout = () => {
           exercises={exercises}
           onSave={handleSaveDayWorkout}
           onExerciseCreated={(newExercise) => {
-            setExercises(prev => [...prev, newExercise]);
+            const updatedCustom = [...customExercises, newExercise];
+            setCustomExercises(updatedCustom);
+            setExercises(mergeExercises(updatedCustom));
           }}
         />
       )}
