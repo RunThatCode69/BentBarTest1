@@ -12,6 +12,9 @@ const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
+// Trust proxy - required for Railway/Vercel deployments with rate limiting
+app.set('trust proxy', 1);
+
 // Connect to database
 connectDB();
 
