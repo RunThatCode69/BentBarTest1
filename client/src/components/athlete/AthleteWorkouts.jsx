@@ -1,32 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../common/Navbar';
 import Card from '../common/Card';
 import Calendar from '../common/Calendar';
-import { useAuth } from '../../hooks/useAuth';
+import WorkoutDayViewer from '../common/WorkoutDayViewer';
 import api from '../../services/api';
 import './AthleteWorkouts.css';
 
 const AthleteWorkouts = () => {
-  const { user } = useAuth();
   const [workouts, setWorkouts] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'list'
 
+  // Day viewer modal state
+  const [showDayViewer, setShowDayViewer] = useState(false);
+  const [viewingWorkout, setViewingWorkout] = useState(null);
+
   useEffect(() => {
     fetchWorkouts();
   }, []);
-
-  useEffect(() => {
-    if (workouts.length > 0 && selectedDate) {
-      const workout = workouts.find(
-        w => new Date(w.date).toDateString() === selectedDate.toDateString()
-      );
-      setSelectedWorkout(workout || null);
-    }
-  }, [selectedDate, workouts]);
 
   const fetchWorkouts = async () => {
     try {
@@ -47,16 +39,28 @@ const AthleteWorkouts = () => {
       .map(w => new Date(w.date));
   };
 
-  const handleDateSelect = (date) => {
-    setSelectedDate(date);
+  const getWorkoutForDate = (date) => {
+    return workouts.find(
+      w => new Date(w.date).toDateString() === date.toDateString()
+    );
   };
 
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric'
-    });
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    const workout = getWorkoutForDate(date);
+    if (workout) {
+      setViewingWorkout(workout);
+    } else {
+      // Create empty workout structure for display
+      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+      setViewingWorkout({
+        date: date.toISOString(),
+        dayOfWeek,
+        title: '',
+        exercises: []
+      });
+    }
+    setShowDayViewer(true);
   };
 
   const getUpcomingWorkouts = () => {
@@ -76,7 +80,6 @@ const AthleteWorkouts = () => {
   if (loading) {
     return (
       <div className="athlete-workouts-page">
-        <Navbar />
         <div className="page-content">
           <div className="loading">Loading workouts...</div>
         </div>
@@ -86,7 +89,6 @@ const AthleteWorkouts = () => {
 
   return (
     <div className="athlete-workouts-page">
-      <Navbar />
       <div className="page-content">
         <div className="page-header">
           <div>
@@ -113,64 +115,13 @@ const AthleteWorkouts = () => {
 
         {viewMode === 'calendar' ? (
           <div className="calendar-view">
-            <div className="calendar-section">
-              <Card>
-                <Calendar
-                  onDateSelect={handleDateSelect}
-                  selectedDate={selectedDate}
-                  highlightedDates={getWorkoutDates()}
-                />
-              </Card>
-            </div>
-
-            <div className="workout-details-section">
-              <Card>
-                <h2>{formatDate(selectedDate)}</h2>
-                {selectedWorkout ? (
-                  <div className="workout-details">
-                    {selectedWorkout.title && (
-                      <h3 className="workout-title">{selectedWorkout.title}</h3>
-                    )}
-
-                    <div className="exercises-list">
-                      {selectedWorkout.exercises.map((exercise, index) => (
-                        <div key={index} className="exercise-item">
-                          <div className="exercise-header">
-                            <span className="exercise-number">{index + 1}</span>
-                            <div className="exercise-info">
-                              <span className="exercise-name">{exercise.exerciseName}</span>
-                              <span className="exercise-prescription">
-                                {exercise.sets} x {exercise.reps}
-                                {exercise.percentage && ` @ ${exercise.percentage}%`}
-                                {exercise.weight && ` @ ${exercise.weight} lbs`}
-                              </span>
-                            </div>
-                            {exercise.youtubeUrl && (
-                              <a
-                                href={exercise.youtubeUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="video-link"
-                              >
-                                Watch Demo
-                              </a>
-                            )}
-                          </div>
-                          {exercise.notes && (
-                            <p className="exercise-notes">{exercise.notes}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="no-workout">
-                    <span className="no-workout-icon">😴</span>
-                    <p>No workout scheduled for this day</p>
-                  </div>
-                )}
-              </Card>
-            </div>
+            <Card>
+              <Calendar
+                onDateSelect={handleDateSelect}
+                selectedDate={selectedDate}
+                highlightedDates={getWorkoutDates()}
+              />
+            </Card>
           </div>
         ) : (
           <div className="list-view">
@@ -179,7 +130,11 @@ const AthleteWorkouts = () => {
               {getUpcomingWorkouts().length > 0 ? (
                 <div className="workouts-list">
                   {getUpcomingWorkouts().map((workout, index) => (
-                    <div key={index} className="workout-list-item">
+                    <div
+                      key={index}
+                      className="workout-list-item"
+                      onClick={() => handleDateSelect(new Date(workout.date))}
+                    >
                       <div className="workout-date-badge">
                         <span className="month">
                           {new Date(workout.date).toLocaleDateString('en-US', { month: 'short' })}
@@ -214,7 +169,6 @@ const AthleteWorkouts = () => {
                 </div>
               ) : (
                 <div className="no-workouts">
-                  <span className="no-workout-icon">📅</span>
                   <p>No upcoming workouts scheduled</p>
                 </div>
               )}
@@ -222,6 +176,19 @@ const AthleteWorkouts = () => {
           </div>
         )}
       </div>
+
+      {/* Day Viewer Modal - Read-only for athletes */}
+      {showDayViewer && viewingWorkout && (
+        <WorkoutDayViewer
+          isOpen={showDayViewer}
+          onClose={() => {
+            setShowDayViewer(false);
+            setViewingWorkout(null);
+          }}
+          workout={viewingWorkout}
+          canEdit={false}
+        />
+      )}
     </div>
   );
 };

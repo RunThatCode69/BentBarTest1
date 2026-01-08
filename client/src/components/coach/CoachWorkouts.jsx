@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
 import Button from '../common/Button';
 import Dropdown from '../common/Dropdown';
 import Modal from '../common/Modal';
 import Calendar from '../common/Calendar';
-import WorkoutEditor from './WorkoutEditor';
+import WorkoutDayViewer from '../common/WorkoutDayViewer';
 import { DEFAULT_EXERCISES, mergeExercises } from '../../constants/defaultExercises';
 import './CoachWorkouts.css';
 
 const CoachWorkouts = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [workouts, setWorkouts] = useState([]);
   const [teams, setTeams] = useState([]);
   const [exercises, setExercises] = useState(DEFAULT_EXERCISES);
@@ -32,9 +33,9 @@ const CoachWorkouts = () => {
   const [newStartDate, setNewStartDate] = useState('');
   const [moving, setMoving] = useState(false);
 
-  // Workout editor modal state
-  const [showEditor, setShowEditor] = useState(false);
-  const [editingWorkout, setEditingWorkout] = useState(null);
+  // Day viewer modal state
+  const [showDayViewer, setShowDayViewer] = useState(false);
+  const [viewingWorkout, setViewingWorkout] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,9 +55,19 @@ const CoachWorkouts = () => {
         setCustomExercises(apiExercises);
         setExercises(mergeExercises(apiExercises));
 
-        // Auto-select team if coach only has one team
-        if (fetchedTeams.length === 1) {
+        // Check for URL params to pre-select team and program
+        const urlTeam = searchParams.get('team');
+        const urlProgram = searchParams.get('program');
+
+        if (urlTeam) {
+          setSelectedTeam(urlTeam);
+        } else if (fetchedTeams.length === 1) {
+          // Auto-select team if coach only has one team
           setSelectedTeam(fetchedTeams[0]._id);
+        }
+
+        if (urlProgram) {
+          setSelectedProgram(urlProgram);
         }
       } catch (err) {
         console.error('Failed to fetch data:', err);
@@ -66,29 +77,7 @@ const CoachWorkouts = () => {
     };
 
     fetchData();
-  }, []);
-
-  // When clicking a date, switch to day view
-  const handleDateSelect = (date) => {
-    setSelectedDate(date);
-    setView('daily');
-  };
-
-  // Navigate to previous day
-  const goToPreviousDay = () => {
-    if (!selectedDate) return;
-    const prevDay = new Date(selectedDate);
-    prevDay.setDate(prevDay.getDate() - 1);
-    setSelectedDate(prevDay);
-  };
-
-  // Navigate to next day
-  const goToNextDay = () => {
-    if (!selectedDate) return;
-    const nextDay = new Date(selectedDate);
-    nextDay.setDate(nextDay.getDate() + 1);
-    setSelectedDate(nextDay);
-  };
+  }, [searchParams]);
 
   // Get programs filtered by selected team
   const programsForSelectedTeam = selectedTeam === 'unassigned'
@@ -141,6 +130,38 @@ const CoachWorkouts = () => {
   const activeProgram = selectedProgram
     ? workouts.find(w => w._id === selectedProgram)
     : null;
+
+  // Get workout for a specific date
+  const getWorkoutForDate = (date) => {
+    if (!activeProgram || !date) return null;
+
+    return activeProgram.workouts?.find(day => {
+      const dayDate = new Date(day.date);
+      dayDate.setHours(0, 0, 0, 0);
+      const targetDate = new Date(date);
+      targetDate.setHours(0, 0, 0, 0);
+      return dayDate.getTime() === targetDate.getTime();
+    });
+  };
+
+  // When clicking a date, open the day viewer modal
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    const workout = getWorkoutForDate(date);
+    if (workout) {
+      setViewingWorkout(workout);
+    } else {
+      // Create empty workout for this date
+      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+      setViewingWorkout({
+        date: date.toISOString(),
+        dayOfWeek,
+        title: '',
+        exercises: []
+      });
+    }
+    setShowDayViewer(true);
+  };
 
   // Move program to new start date
   const handleMoveProgram = async () => {
@@ -217,39 +238,7 @@ const CoachWorkouts = () => {
     })) || [];
   };
 
-  // Get workout for selected date (for day view)
-  const getSelectedDayWorkout = () => {
-    if (!activeProgram || !selectedDate) return null;
-
-    return activeProgram.workouts?.find(day => {
-      const dayDate = new Date(day.date);
-      dayDate.setHours(0, 0, 0, 0);
-      const targetDate = new Date(selectedDate);
-      targetDate.setHours(0, 0, 0, 0);
-      return dayDate.getTime() === targetDate.getTime();
-    });
-  };
-
-  // Open editor for current day
-  const openEditorForDay = () => {
-    const existingWorkout = getSelectedDayWorkout();
-
-    if (existingWorkout) {
-      setEditingWorkout(existingWorkout);
-    } else {
-      // Create a new workout for this date
-      const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
-      setEditingWorkout({
-        date: selectedDate.toISOString(),
-        dayOfWeek,
-        title: '',
-        exercises: []
-      });
-    }
-    setShowEditor(true);
-  };
-
-  // Save workout from editor
+  // Save workout from day viewer
   const handleSaveWorkout = async (updatedWorkout) => {
     if (!activeProgram) return;
 
@@ -282,8 +271,8 @@ const CoachWorkouts = () => {
         w._id === activeProgram._id ? updatedProgram : w
       ));
 
-      setShowEditor(false);
-      setEditingWorkout(null);
+      setShowDayViewer(false);
+      setViewingWorkout(null);
     } catch (err) {
       console.error('Failed to save workout:', err);
       alert('Failed to save workout. Please try again.');
@@ -311,8 +300,6 @@ const CoachWorkouts = () => {
   const handleProgramChange = (e) => {
     setSelectedProgram(e.target.value);
   };
-
-  const selectedDayWorkout = getSelectedDayWorkout();
 
   return (
     <div className="coach-workouts-page">
@@ -366,12 +353,6 @@ const CoachWorkouts = () => {
         <div className="toolbar-right">
           <div className="view-toggle">
             <button
-              className={`toggle-btn ${view === 'daily' ? 'active' : ''}`}
-              onClick={() => setView('daily')}
-            >
-              Day
-            </button>
-            <button
               className={`toggle-btn ${view === 'weekly' ? 'active' : ''}`}
               onClick={() => setView('weekly')}
             >
@@ -398,107 +379,7 @@ const CoachWorkouts = () => {
           <div className="spinner"></div>
           <p>Loading workouts...</p>
         </div>
-      ) : view === 'daily' && selectedDate ? (
-        // Day View - Full workout details with navigation
-        <div className="day-view-container">
-          <div className="day-view-header">
-            <button className="day-nav-btn" onClick={goToPreviousDay}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-
-            <div className="day-view-title">
-              <h2>
-                {selectedDate.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
-              </h2>
-              {activeProgram && <span className="program-name">{activeProgram.programName}</span>}
-            </div>
-
-            <button className="day-nav-btn" onClick={goToNextDay}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="day-view-actions-bar">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setView('threeWeeks')}
-            >
-              Back to Calendar
-            </Button>
-            {activeProgram && (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={openEditorForDay}
-              >
-                {selectedDayWorkout ? 'Edit Workout' : 'Add Workout'}
-              </Button>
-            )}
-          </div>
-
-          {selectedDayWorkout ? (
-            <div className="day-workout-content">
-              {selectedDayWorkout.title && (
-                <h3 className="workout-title">{selectedDayWorkout.title}</h3>
-              )}
-              <div className="exercises-full-list">
-                {selectedDayWorkout.exercises?.map((exercise, index) => (
-                  <div key={index} className="exercise-full-item">
-                    <div className="exercise-number">{index + 1}</div>
-                    <div className="exercise-details-full">
-                      <span className="exercise-name-full">{exercise.exerciseName}</span>
-                      <div className="exercise-params">
-                        <span className="param">
-                          <strong>{exercise.sets}</strong> sets
-                        </span>
-                        <span className="param">
-                          <strong>{exercise.reps}</strong> reps
-                        </span>
-                        {exercise.percentage && (
-                          <span className="param">
-                            <strong>{exercise.percentage}%</strong> intensity
-                          </span>
-                        )}
-                        {exercise.weight && (
-                          <span className="param">
-                            <strong>{exercise.weight}</strong> lbs
-                          </span>
-                        )}
-                      </div>
-                      {exercise.notes && (
-                        <p className="exercise-notes-full">{exercise.notes}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="no-workout-day">
-              <p>No workout scheduled for this day</p>
-              {activeProgram && (
-                <Button
-                  variant="outline"
-                  onClick={openEditorForDay}
-                >
-                  Add Workout to This Day
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
       ) : (
-        // Calendar View (Week/3 Weeks/Month)
         <div className="calendar-container">
           <Calendar
             selectedDate={selectedDate}
@@ -587,15 +468,15 @@ const CoachWorkouts = () => {
         )}
       </Modal>
 
-      {/* Workout Editor Modal */}
-      {showEditor && editingWorkout && (
-        <WorkoutEditor
-          isOpen={showEditor}
+      {/* Day Viewer Modal */}
+      {showDayViewer && viewingWorkout && (
+        <WorkoutDayViewer
+          isOpen={showDayViewer}
           onClose={() => {
-            setShowEditor(false);
-            setEditingWorkout(null);
+            setShowDayViewer(false);
+            setViewingWorkout(null);
           }}
-          workout={editingWorkout}
+          workout={viewingWorkout}
           exercises={exercises}
           onSave={handleSaveWorkout}
           onExerciseCreated={(newExercise) => {
@@ -603,6 +484,7 @@ const CoachWorkouts = () => {
             setCustomExercises(updatedCustom);
             setExercises(mergeExercises(updatedCustom));
           }}
+          canEdit={true}
         />
       )}
     </div>

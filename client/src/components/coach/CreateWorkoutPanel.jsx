@@ -6,8 +6,10 @@ import './CreateWorkoutPanel.css';
 const CreateWorkoutPanel = ({ workoutPrograms = [], teams = [], onCreateNew }) => {
   const navigate = useNavigate();
 
-  const handleProgramClick = (programId) => {
-    navigate(`/coach/workouts/${programId}`);
+  const handleProgramClick = (program) => {
+    // Navigate to workouts page with team and program pre-selected
+    const teamId = program.assignedTeams?.[0] || 'unassigned';
+    navigate(`/coach/workouts?team=${teamId}&program=${program.id}`);
   };
 
   // Get team name from team ID
@@ -33,7 +35,7 @@ const CreateWorkoutPanel = ({ workoutPrograms = [], teams = [], onCreateNew }) =
             <div
               key={program.id}
               className="program-item"
-              onClick={() => handleProgramClick(program.id)}
+              onClick={() => handleProgramClick(program)}
             >
               <div className="program-info">
                 <span className="program-name">{program.programName}</span>
