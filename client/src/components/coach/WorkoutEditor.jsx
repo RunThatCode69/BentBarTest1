@@ -48,6 +48,8 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
   const updateWorkout = (updater) => {
     setDayWorkout(prev => {
       const updated = typeof updater === 'function' ? updater(prev) : updater;
+      console.log('WorkoutEditor updateWorkout - sending to parent:', updated);
+      console.log('WorkoutEditor updateWorkout - exercises count:', updated.exercises?.length);
       // Notify parent immediately with the updated data
       if (onChange) {
         onChange(updated);
