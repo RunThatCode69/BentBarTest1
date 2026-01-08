@@ -48,10 +48,12 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
   const updateWorkout = (updater) => {
     setDayWorkout(prev => {
       const updated = typeof updater === 'function' ? updater(prev) : updater;
-      // Notify parent of change for live calendar update
-      if (onChange) {
-        onChange(updated);
-      }
+      // Schedule onChange call after state update (don't call inside setState callback)
+      setTimeout(() => {
+        if (onChange) {
+          onChange(updated);
+        }
+      }, 0);
       return updated;
     });
   };
