@@ -484,7 +484,7 @@ const CoachWorkouts = () => {
             setCustomExercises(updatedCustom);
             setExercises(mergeExercises(updatedCustom));
           }}
-          canEdit={true}
+          canEdit={!!activeProgram}
         />
       )}
     </div>
