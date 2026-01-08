@@ -262,9 +262,6 @@ const Calendar = ({
 
               {workout && (
                 <div className="calendar-workout-content">
-                  {workout.title && (
-                    <div className="calendar-workout-title">{workout.title}</div>
-                  )}
                   <div className="calendar-exercises">
                     {displayExercises.map((exercise, i) => (
                       <div key={i} className="calendar-exercise-preview">

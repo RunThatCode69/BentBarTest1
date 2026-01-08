@@ -263,10 +263,6 @@ const WorkoutDayViewer = ({
           </div>
         )}
 
-        {/* Workout Title */}
-        {dayWorkout.title && (
-          <h3 className="viewer-workout-title">{dayWorkout.title}</h3>
-        )}
 
         {/* View Mode - Show exercises as read-only list */}
         {!isEditing && (
