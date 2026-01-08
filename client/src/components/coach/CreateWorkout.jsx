@@ -18,9 +18,17 @@ const CreateWorkout = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Default end date is 3 weeks from start
+  const getDefaultEndDate = () => {
+    const end = new Date();
+    end.setDate(end.getDate() + 21);
+    return end.toISOString().split('T')[0];
+  };
+
   const [program, setProgram] = useState({
     programName: '',
     startDate: new Date().toISOString().split('T')[0],
+    endDate: getDefaultEndDate(),
     assignedTeams: [],
     workouts: []
   });
