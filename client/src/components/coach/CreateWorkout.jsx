@@ -15,15 +15,8 @@ const CreateWorkout = () => {
   const [teams, setTeams] = useState([]);
   const [exercises, setExercises] = useState(DEFAULT_EXERCISES);
   const [customExercises, setCustomExercises] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  // DEBUG: On-screen logging
-  const [debugLogs, setDebugLogs] = useState([]);
-  const addDebugLog = (message) => {
-    const timestamp = new Date().toLocaleTimeString();
-    setDebugLogs(prev => [...prev.slice(-19), `[${timestamp}] ${message}`]);
-  };
 
   const [program, setProgram] = useState({
     programName: '',
@@ -31,10 +24,13 @@ const CreateWorkout = () => {
     assignedTeams: [],
     workouts: []
   });
-  const [programId, setProgramId] = useState(null); // Track saved draft ID
+  const [programId, setProgramId] = useState(null);
+
+  // Show setup modal immediately - user MUST create program first
+  const [showSetupModal, setShowSetupModal] = useState(true);
+  const [creatingProgram, setCreatingProgram] = useState(false);
 
   const [selectedDate, setSelectedDate] = useState(null);
-  const [showNameModal, setShowNameModal] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const [currentDayWorkout, setCurrentDayWorkout] = useState(null);
   const [calendarView, setCalendarView] = useState('threeWeeks');
@@ -49,7 +45,6 @@ const CreateWorkout = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch teams and custom exercises separately to handle errors independently
         const [teamsRes, exercisesRes] = await Promise.all([
           api.get('/coach/teams').catch(err => {
             console.error('Failed to fetch teams:', err);
@@ -72,7 +67,6 @@ const CreateWorkout = () => {
           }));
         }
 
-        // Get custom exercises from API and merge with defaults
         const apiExercises = exercisesRes.data?.exercises || [];
         setCustomExercises(apiExercises);
         setExercises(mergeExercises(apiExercises));
@@ -86,14 +80,44 @@ const CreateWorkout = () => {
     fetchData();
   }, []);
 
-  const handleDateSelect = (date) => {
-    setSelectedDate(date);
-
-    // If program doesn't have a name yet, show the modal
-    if (!program.programName) {
-      setShowNameModal(true);
+  // Create the program in the database immediately
+  const handleCreateProgram = async () => {
+    if (!program.programName.trim()) {
+      alert('Please enter a program name');
       return;
     }
+
+    setCreatingProgram(true);
+    try {
+      const response = await api.post('/workouts', {
+        ...program,
+        isDraft: false,
+        isPublished: false,
+        isSavedProgram: true
+      });
+
+      if (response.data.success && response.data.workout?._id) {
+        setProgramId(response.data.workout._id);
+        setShowSetupModal(false);
+      } else {
+        alert('Failed to create program. Please try again.');
+      }
+    } catch (err) {
+      console.error('Failed to create program:', err);
+      alert('Failed to create program. Please try again.');
+    } finally {
+      setCreatingProgram(false);
+    }
+  };
+
+  const handleDateSelect = (date) => {
+    // Program must be created first
+    if (!programId) {
+      setShowSetupModal(true);
+      return;
+    }
+
+    setSelectedDate(date);
 
     // Find existing workout for this date
     const existingWorkout = program.workouts.find(w => {
@@ -118,76 +142,19 @@ const CreateWorkout = () => {
     setShowEditor(true);
   };
 
-  const handleSaveProgramName = () => {
-    if (!program.programName.trim()) return;
-    setShowNameModal(false);
-
-    // Now open the editor for the selected date
-    if (selectedDate) {
-      setCurrentDayWorkout({
-        date: selectedDate.toISOString(),
-        dayOfWeek: selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(),
-        title: '',
-        exercises: []
-      });
-      setShowEditor(true);
-    }
-  };
-
-  // Update program workouts (used for both live changes and final save)
-  const updateProgramWorkout = (dayWorkout) => {
-    setProgram(prev => {
-      const existingIndex = prev.workouts.findIndex(w => {
-        const workoutDate = new Date(w.date);
-        workoutDate.setHours(0, 0, 0, 0);
-        const targetDate = new Date(dayWorkout.date);
-        targetDate.setHours(0, 0, 0, 0);
-        return workoutDate.getTime() === targetDate.getTime();
-      });
-
-      const newWorkouts = [...prev.workouts];
-      if (existingIndex >= 0) {
-        newWorkouts[existingIndex] = dayWorkout;
-      } else {
-        newWorkouts.push(dayWorkout);
-      }
-
-      return { ...prev, workouts: newWorkouts };
-    });
-  };
-
-  // Auto-save draft to database
-  const saveDraftToDatabase = async (updatedProgram) => {
-    if (!updatedProgram.programName) return;
+  // Save workout changes to database
+  const saveToDatabase = async (updatedProgram) => {
+    if (!programId) return;
 
     try {
-      if (programId) {
-        // Update existing draft
-        await api.put(`/workouts/${programId}`, {
-          ...updatedProgram,
-          isDraft: true,
-          isPublished: false
-        });
-      } else {
-        // Create new draft
-        const response = await api.post('/workouts', {
-          ...updatedProgram,
-          isDraft: true,
-          isPublished: false
-        });
-        if (response.data.success && response.data.workout?._id) {
-          setProgramId(response.data.workout._id);
-        }
-      }
+      await api.put(`/workouts/${programId}`, updatedProgram);
     } catch (err) {
-      console.error('Failed to auto-save draft:', err);
+      console.error('Failed to save:', err);
     }
   };
 
   // Live update as exercises are added/removed
   const handleWorkoutChange = (dayWorkout) => {
-    addDebugLog(`handleWorkoutChange called! exercises: ${dayWorkout?.exercises?.length || 0}`);
-    // Update program state with the new workout data
     setProgram(prev => {
       const existingIndex = prev.workouts.findIndex(w => {
         const workoutDate = new Date(w.date);
@@ -205,103 +172,35 @@ const CreateWorkout = () => {
       }
 
       const updatedProgram = { ...prev, workouts: newWorkouts };
-      addDebugLog(`program.workouts updated: ${newWorkouts.length} days, total exercises: ${newWorkouts.reduce((sum, w) => sum + (w.exercises?.length || 0), 0)}`);
-
-      // Auto-save to database
-      saveDraftToDatabase(updatedProgram);
-
+      saveToDatabase(updatedProgram);
       return updatedProgram;
     });
   };
 
-  const handleSaveDayWorkout = (dayWorkout) => {
-    // Final save already happened via onChange, just close editor
+  const handleSaveDayWorkout = () => {
     setShowEditor(false);
     setCurrentDayWorkout(null);
   };
 
   const handlePublish = async () => {
-    // Check program name exists
-    if (!program.programName) {
-      alert('Please add a program name');
-      return;
-    }
-
-    // Check that at least one workout day has exercises
-    const workoutsWithExercises = program.workouts.filter(w => w.exercises && w.exercises.length > 0);
-    if (workoutsWithExercises.length === 0) {
-      alert('Please add at least one workout day with exercises');
-      return;
-    }
+    if (!programId) return;
 
     if (program.assignedTeams.length === 0) {
-      alert('Please assign this program to a team before publishing. Use "Save to My Programs" if you want to save it without assigning to a team.');
+      alert('Please assign this program to a team before publishing.');
       return;
     }
 
     setSaving(true);
     try {
-      if (programId) {
-        // Update existing draft to published
-        await api.put(`/workouts/${programId}`, {
-          ...program,
-          isDraft: false,
-          isPublished: true
-        });
-      } else {
-        // Create new published program
-        await api.post('/workouts', {
-          ...program,
-          isPublished: true
-        });
-      }
+      await api.put(`/workouts/${programId}`, {
+        ...program,
+        isDraft: false,
+        isPublished: true
+      });
       navigate('/coach/workouts');
     } catch (err) {
-      console.error('Failed to save program:', err);
-      alert('Failed to save program. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveToMyPrograms = async () => {
-    // Check program name exists
-    if (!program.programName) {
-      alert('Please add a program name');
-      return;
-    }
-
-    // Check that at least one workout day has exercises
-    const workoutsWithExercises = program.workouts.filter(w => w.exercises && w.exercises.length > 0);
-    if (workoutsWithExercises.length === 0) {
-      alert('Please add at least one workout day with exercises');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      if (programId) {
-        // Update existing draft
-        await api.put(`/workouts/${programId}`, {
-          ...program,
-          assignedTeams: [],
-          isDraft: false,
-          isPublished: false,
-          isSavedProgram: true
-        });
-      } else {
-        // Create new saved program
-        await api.post('/workouts', {
-          ...program,
-          assignedTeams: [],
-          isPublished: false,
-          isSavedProgram: true
-        });
-      }
-      navigate('/coach/workouts');
-    } catch (err) {
-      console.error('Failed to save program:', err);
-      alert('Failed to save program. Please try again.');
+      console.error('Failed to publish:', err);
+      alert('Failed to publish program. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -332,7 +231,7 @@ const CreateWorkout = () => {
     } catch (err) {
       console.error('Failed to create team:', err);
       if (err.response?.data?.code === 'TEAM_LIMIT_REACHED') {
-        alert('You have reached your team limit. Please purchase additional team slots to add more teams.');
+        alert('You have reached your team limit.');
       } else {
         alert('Failed to create team. Please try again.');
       }
@@ -341,10 +240,14 @@ const CreateWorkout = () => {
     }
   };
 
-  const teamOptions = teams.map(t => ({
-    value: t._id,
-    label: t.teamName
-  }));
+  // Team options with "Unassigned" option
+  const teamOptions = [
+    { value: '', label: 'Unassigned (Save to My Programs)' },
+    ...teams.map(t => ({
+      value: t._id,
+      label: t.teamName
+    }))
+  ];
 
   const sportOptions = [
     { value: 'football', label: 'Football' },
@@ -364,11 +267,6 @@ const CreateWorkout = () => {
     exercises: w.exercises
   }));
 
-  // DEBUG: Log when calendarWorkouts changes
-  useEffect(() => {
-    addDebugLog(`calendarWorkouts render: ${calendarWorkouts.length} days with exercises: ${calendarWorkouts.map(w => w.exercises?.length || 0).join(',')}`);
-  }, [calendarWorkouts.length, JSON.stringify(calendarWorkouts.map(w => w.exercises?.length))]);
-
   if (loading) {
     return (
       <div className="create-workout-page">
@@ -382,100 +280,22 @@ const CreateWorkout = () => {
 
   return (
     <div className="create-workout-page">
-      {/* DEBUG PANEL - Remove after fixing */}
-      <div style={{
-        position: 'fixed',
-        bottom: '10px',
-        right: '10px',
-        width: '400px',
-        maxHeight: '300px',
-        background: '#1a1a2e',
-        color: '#00ff00',
-        fontFamily: 'monospace',
-        fontSize: '11px',
-        padding: '10px',
-        borderRadius: '8px',
-        overflow: 'auto',
-        zIndex: 9999,
-        border: '2px solid #00ff00'
-      }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '5px', color: '#fff' }}>
-          DEBUG PANEL - program.workouts: {program.workouts.length} |
-          calendarWorkouts: {calendarWorkouts.length}
-        </div>
-        {debugLogs.map((log, i) => (
-          <div key={i} style={{ borderBottom: '1px solid #333', padding: '2px 0' }}>{log}</div>
-        ))}
-        {debugLogs.length === 0 && <div>Waiting for events...</div>}
-      </div>
-
-      <div className="page-header">
-        <div>
-          <h1>{program.programName || 'New Workout Program'}</h1>
-          <p>Click on a date to add exercises</p>
-        </div>
-        <div className="header-actions">
-          <Button variant="ghost" onClick={() => navigate('/coach/workouts')}>
-            Cancel
-          </Button>
-          <Button variant="outline" onClick={handleSaveToMyPrograms} loading={saving}>
-            Save to My Programs
-          </Button>
-          <Button variant="primary" onClick={handlePublish} loading={saving}>
-            Publish to Team
-          </Button>
-        </div>
-      </div>
-
-      <div className="program-settings">
-        <Input
-          label="Program Name"
-          value={program.programName}
-          onChange={(e) => setProgram(prev => ({ ...prev, programName: e.target.value }))}
-          placeholder="e.g., Fall Strength Program"
-        />
-
-        <Input
-          label="Start Date"
-          type="date"
-          value={program.startDate}
-          onChange={(e) => setProgram(prev => ({ ...prev, startDate: e.target.value }))}
-        />
-
-        <Dropdown
-          label="Assign to Team"
-          value={program.assignedTeams[0] || ''}
-          onChange={(e) => setProgram(prev => ({
-            ...prev,
-            assignedTeams: e.target.value ? [e.target.value] : []
-          }))}
-          options={teamOptions}
-          placeholder="Select a team"
-          showCreateNew={true}
-          createNewLabel="+ Create New Team"
-          onCreateNew={() => setShowCreateTeamModal(true)}
-        />
-      </div>
-
-      <div className="calendar-container">
-        <Calendar
-          selectedDate={selectedDate}
-          onDateSelect={handleDateSelect}
-          workouts={calendarWorkouts}
-          view={calendarView}
-          onViewChange={setCalendarView}
-        />
-      </div>
-
-      {/* Name Modal */}
+      {/* Setup Modal - Shows immediately */}
       <Modal
-        isOpen={showNameModal}
-        onClose={() => setShowNameModal(false)}
-        title="Name Your Program"
+        isOpen={showSetupModal}
+        onClose={() => navigate('/coach/workouts')}
+        title="Create New Program"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setShowNameModal(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleSaveProgramName}>Save & Continue</Button>
+            <Button variant="ghost" onClick={() => navigate('/coach/workouts')}>Cancel</Button>
+            <Button
+              variant="primary"
+              onClick={handleCreateProgram}
+              loading={creatingProgram}
+              disabled={!program.programName.trim()}
+            >
+              Create Program
+            </Button>
           </>
         }
       >
@@ -485,21 +305,110 @@ const CreateWorkout = () => {
           onChange={(e) => setProgram(prev => ({ ...prev, programName: e.target.value }))}
           placeholder="e.g., Fall Strength Program"
           autoFocus
+          required
         />
-        <Dropdown
-          label="Assign to Team"
-          value={program.assignedTeams[0] || ''}
-          onChange={(e) => setProgram(prev => ({
-            ...prev,
-            assignedTeams: e.target.value ? [e.target.value] : []
-          }))}
-          options={teamOptions}
-          placeholder="Select a team"
-          showCreateNew={true}
-          createNewLabel="+ Create New Team"
-          onCreateNew={() => setShowCreateTeamModal(true)}
-        />
+        <div style={{ marginTop: 'var(--spacing-3)' }}>
+          <Dropdown
+            label="Assign to Team"
+            value={program.assignedTeams[0] || ''}
+            onChange={(e) => setProgram(prev => ({
+              ...prev,
+              assignedTeams: e.target.value ? [e.target.value] : []
+            }))}
+            options={teamOptions}
+            placeholder="Select a team or leave unassigned"
+            showCreateNew={true}
+            createNewLabel="+ Create New Team"
+            onCreateNew={() => setShowCreateTeamModal(true)}
+          />
+        </div>
+        <p style={{ marginTop: 'var(--spacing-3)', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+          You can always change the team assignment later.
+        </p>
       </Modal>
+
+      {/* Only show main content after program is created */}
+      {programId && (
+        <>
+          <div className="page-header">
+            <div>
+              <h1>{program.programName}</h1>
+              <p>Click on a date to add exercises</p>
+            </div>
+            <div className="header-actions">
+              <Button variant="ghost" onClick={() => navigate('/coach/workouts')}>
+                Done
+              </Button>
+              {program.assignedTeams.length > 0 && (
+                <Button variant="primary" onClick={handlePublish} loading={saving}>
+                  Publish to Team
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="program-settings">
+            <Input
+              label="Program Name"
+              value={program.programName}
+              onChange={(e) => {
+                const newName = e.target.value;
+                setProgram(prev => {
+                  const updated = { ...prev, programName: newName };
+                  saveToDatabase(updated);
+                  return updated;
+                });
+              }}
+              placeholder="e.g., Fall Strength Program"
+            />
+
+            <Input
+              label="Start Date"
+              type="date"
+              value={program.startDate}
+              onChange={(e) => {
+                const newDate = e.target.value;
+                setProgram(prev => {
+                  const updated = { ...prev, startDate: newDate };
+                  saveToDatabase(updated);
+                  return updated;
+                });
+              }}
+            />
+
+            <Dropdown
+              label="Assign to Team"
+              value={program.assignedTeams[0] || ''}
+              onChange={(e) => {
+                const teamId = e.target.value;
+                setProgram(prev => {
+                  const updated = {
+                    ...prev,
+                    assignedTeams: teamId ? [teamId] : []
+                  };
+                  saveToDatabase(updated);
+                  return updated;
+                });
+              }}
+              options={teamOptions}
+              placeholder="Select a team"
+              showCreateNew={true}
+              createNewLabel="+ Create New Team"
+              onCreateNew={() => setShowCreateTeamModal(true)}
+            />
+          </div>
+
+          <div className="calendar-container">
+            <Calendar
+              selectedDate={selectedDate}
+              onDateSelect={handleDateSelect}
+              workouts={calendarWorkouts}
+              view={calendarView}
+              onViewChange={setCalendarView}
+            />
+          </div>
+        </>
+      )}
 
       {/* Create Team Modal */}
       <Modal
@@ -542,7 +451,6 @@ const CreateWorkout = () => {
           exercises={exercises}
           onSave={handleSaveDayWorkout}
           onChange={handleWorkoutChange}
-          onDebug={addDebugLog}
           onExerciseCreated={(newExercise) => {
             const updatedCustom = [...customExercises, newExercise];
             setCustomExercises(updatedCustom);

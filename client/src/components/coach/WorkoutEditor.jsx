@@ -6,9 +6,7 @@ import Dropdown from '../common/Dropdown';
 import api from '../../services/api';
 import './WorkoutEditor.css';
 
-const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onChange, onExerciseCreated, onDebug }) => {
-  // Helper for debug logging
-  const debugLog = (msg) => onDebug && onDebug(msg);
+const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onChange, onExerciseCreated }) => {
   const [dayWorkout, setDayWorkout] = useState({
     date: '',
     dayOfWeek: '',
@@ -53,7 +51,6 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
   // Notify parent of changes after state has updated
   useEffect(() => {
     if (shouldNotifyParent && onChange && dayWorkout.exercises) {
-      debugLog(`WorkoutEditor: calling onChange with ${dayWorkout.exercises.length} exercises`);
       onChange(dayWorkout);
       setShouldNotifyParent(false);
     }
@@ -61,14 +58,11 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
 
   // Helper to update workout and notify parent
   const updateWorkout = (updater) => {
-    debugLog('WorkoutEditor: updateWorkout called');
     setDayWorkout(prev => {
       const updated = typeof updater === 'function' ? updater(prev) : updater;
-      debugLog(`WorkoutEditor: setDayWorkout - exercises: ${updated.exercises?.length}`);
       return updated;
     });
     // Flag that we need to notify parent after this state update
-    debugLog('WorkoutEditor: setting shouldNotifyParent = true');
     setShouldNotifyParent(true);
   };
 
@@ -124,14 +118,11 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
   };
 
   const handleAddExercise = () => {
-    debugLog(`WorkoutEditor: Add Exercise button clicked - ${newExercise.exerciseName}`);
     // Validate at least first set config has sets and reps
     const firstConfig = newExercise.setConfigs[0];
     if (!newExercise.exerciseName || !firstConfig.sets || !firstConfig.reps) {
-      debugLog('WorkoutEditor: Validation failed - missing exercise/sets/reps');
       return;
     }
-    debugLog('WorkoutEditor: Validation passed, adding exercise...');
 
     // Filter out empty set configs and process them
     const validConfigs = newExercise.setConfigs.filter(c => c.sets && c.reps).map(c => ({
