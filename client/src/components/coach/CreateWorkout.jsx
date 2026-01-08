@@ -203,8 +203,6 @@ const CreateWorkout = () => {
 
       return updatedProgram;
     });
-    // Don't update currentDayWorkout here - WorkoutEditor manages its own local state
-    // Updating currentDayWorkout would cause unnecessary re-renders and potential state conflicts
   };
 
   const handleSaveDayWorkout = (dayWorkout) => {

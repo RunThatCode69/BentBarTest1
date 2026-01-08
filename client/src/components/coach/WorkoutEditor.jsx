@@ -36,26 +36,34 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
     description: ''
   });
 
+  // Track if we should notify parent of changes
+  const [shouldNotifyParent, setShouldNotifyParent] = useState(false);
+
   // Only sync from props when modal opens (isOpen changes to true)
   // Don't sync on every workout prop change to avoid overwriting local edits
   useEffect(() => {
     if (isOpen && workout) {
       setDayWorkout(workout);
+      setShouldNotifyParent(false); // Don't notify on initial load
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Notify parent of changes after state has updated
+  useEffect(() => {
+    if (shouldNotifyParent && onChange && dayWorkout.exercises) {
+      onChange(dayWorkout);
+      setShouldNotifyParent(false);
+    }
+  }, [shouldNotifyParent, dayWorkout, onChange]);
 
   // Helper to update workout and notify parent
   const updateWorkout = (updater) => {
     setDayWorkout(prev => {
       const updated = typeof updater === 'function' ? updater(prev) : updater;
-      // Schedule onChange call after state update (don't call inside setState callback)
-      setTimeout(() => {
-        if (onChange) {
-          onChange(updated);
-        }
-      }, 0);
       return updated;
     });
+    // Flag that we need to notify parent after this state update
+    setShouldNotifyParent(true);
   };
 
   const handleExerciseSelect = (e) => {
