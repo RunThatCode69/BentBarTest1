@@ -18,6 +18,13 @@ const CreateWorkout = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // DEBUG: On-screen logging
+  const [debugLogs, setDebugLogs] = useState([]);
+  const addDebugLog = (message) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setDebugLogs(prev => [...prev.slice(-19), `[${timestamp}] ${message}`]);
+  };
+
   const [program, setProgram] = useState({
     programName: '',
     startDate: new Date().toISOString().split('T')[0],
@@ -179,6 +186,7 @@ const CreateWorkout = () => {
 
   // Live update as exercises are added/removed
   const handleWorkoutChange = (dayWorkout) => {
+    addDebugLog(`handleWorkoutChange called! exercises: ${dayWorkout?.exercises?.length || 0}`);
     // Update program state with the new workout data
     setProgram(prev => {
       const existingIndex = prev.workouts.findIndex(w => {
@@ -197,6 +205,7 @@ const CreateWorkout = () => {
       }
 
       const updatedProgram = { ...prev, workouts: newWorkouts };
+      addDebugLog(`program.workouts updated: ${newWorkouts.length} days, total exercises: ${newWorkouts.reduce((sum, w) => sum + (w.exercises?.length || 0), 0)}`);
 
       // Auto-save to database
       saveDraftToDatabase(updatedProgram);
@@ -355,6 +364,11 @@ const CreateWorkout = () => {
     exercises: w.exercises
   }));
 
+  // DEBUG: Log when calendarWorkouts changes
+  useEffect(() => {
+    addDebugLog(`calendarWorkouts render: ${calendarWorkouts.length} days with exercises: ${calendarWorkouts.map(w => w.exercises?.length || 0).join(',')}`);
+  }, [calendarWorkouts.length, JSON.stringify(calendarWorkouts.map(w => w.exercises?.length))]);
+
   if (loading) {
     return (
       <div className="create-workout-page">
@@ -368,6 +382,33 @@ const CreateWorkout = () => {
 
   return (
     <div className="create-workout-page">
+      {/* DEBUG PANEL - Remove after fixing */}
+      <div style={{
+        position: 'fixed',
+        bottom: '10px',
+        right: '10px',
+        width: '400px',
+        maxHeight: '300px',
+        background: '#1a1a2e',
+        color: '#00ff00',
+        fontFamily: 'monospace',
+        fontSize: '11px',
+        padding: '10px',
+        borderRadius: '8px',
+        overflow: 'auto',
+        zIndex: 9999,
+        border: '2px solid #00ff00'
+      }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '5px', color: '#fff' }}>
+          DEBUG PANEL - program.workouts: {program.workouts.length} |
+          calendarWorkouts: {calendarWorkouts.length}
+        </div>
+        {debugLogs.map((log, i) => (
+          <div key={i} style={{ borderBottom: '1px solid #333', padding: '2px 0' }}>{log}</div>
+        ))}
+        {debugLogs.length === 0 && <div>Waiting for events...</div>}
+      </div>
+
       <div className="page-header">
         <div>
           <h1>{program.programName || 'New Workout Program'}</h1>
@@ -501,6 +542,7 @@ const CreateWorkout = () => {
           exercises={exercises}
           onSave={handleSaveDayWorkout}
           onChange={handleWorkoutChange}
+          onDebug={addDebugLog}
           onExerciseCreated={(newExercise) => {
             const updatedCustom = [...customExercises, newExercise];
             setCustomExercises(updatedCustom);
