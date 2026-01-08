@@ -163,9 +163,6 @@ const CreateWorkout = () => {
 
   // Live update as exercises are added/removed
   const handleWorkoutChange = (dayWorkout) => {
-    console.log('CreateWorkout handleWorkoutChange received:', dayWorkout);
-    console.log('CreateWorkout handleWorkoutChange - exercises count:', dayWorkout.exercises?.length);
-
     // Update currentDayWorkout to keep it in sync (prevents stale data)
     setCurrentDayWorkout(dayWorkout);
 
@@ -280,9 +277,6 @@ const CreateWorkout = () => {
     date: w.date,
     exercises: w.exercises
   }));
-
-  // Debug: log what we're passing to Calendar
-  console.log('Calendar workouts:', calendarWorkouts);
 
   if (loading) {
     return (
