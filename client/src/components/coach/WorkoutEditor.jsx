@@ -110,11 +110,16 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
   };
 
   const handleAddExercise = () => {
+    console.log('handleAddExercise CALLED');
+    console.log('newExercise state:', newExercise);
+
     // Validate at least first set config has sets and reps
     const firstConfig = newExercise.setConfigs[0];
     if (!newExercise.exerciseName || !firstConfig.sets || !firstConfig.reps) {
+      console.log('handleAddExercise validation FAILED - missing required fields');
       return;
     }
+    console.log('handleAddExercise validation PASSED');
 
     // Filter out empty set configs and process them
     const validConfigs = newExercise.setConfigs.filter(c => c.sets && c.reps).map(c => ({
@@ -464,11 +469,19 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
 
             <Button
               variant="outline"
-              onClick={handleAddExercise}
+              onClick={() => {
+                console.log('Add Exercise button clicked!');
+                handleAddExercise();
+              }}
               disabled={!newExercise.exerciseName || !newExercise.setConfigs[0].sets || !newExercise.setConfigs[0].reps}
             >
               Add Exercise
             </Button>
+            <p style={{fontSize: '10px', color: 'red'}}>
+              Debug: name={newExercise.exerciseName || 'EMPTY'},
+              sets={newExercise.setConfigs[0]?.sets || 'EMPTY'},
+              reps={newExercise.setConfigs[0]?.reps || 'EMPTY'}
+            </p>
           </div>
         </div>
       </div>
