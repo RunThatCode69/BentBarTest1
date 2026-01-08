@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const exerciseEntrySchema = new mongoose.Schema({
   exerciseId: {
-    type: mongoose.Schema.Types.Mixed, // Can be ObjectId or string for default exercises
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Exercise',
     required: false
   },
