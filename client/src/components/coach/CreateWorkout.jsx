@@ -24,6 +24,7 @@ const CreateWorkout = () => {
     assignedTeams: [],
     workouts: []
   });
+  const [programId, setProgramId] = useState(null); // Track saved draft ID
 
   const [selectedDate, setSelectedDate] = useState(null);
   const [showNameModal, setShowNameModal] = useState(false);
@@ -126,7 +127,8 @@ const CreateWorkout = () => {
     }
   };
 
-  const handleSaveDayWorkout = (dayWorkout) => {
+  // Update program workouts (used for both live changes and final save)
+  const updateProgramWorkout = (dayWorkout) => {
     setProgram(prev => {
       const existingIndex = prev.workouts.findIndex(w => {
         const workoutDate = new Date(w.date);
@@ -145,7 +147,66 @@ const CreateWorkout = () => {
 
       return { ...prev, workouts: newWorkouts };
     });
+  };
 
+  // Auto-save draft to database
+  const saveDraftToDatabase = async (updatedProgram) => {
+    if (!updatedProgram.programName) return;
+
+    try {
+      if (programId) {
+        // Update existing draft
+        await api.put(`/workouts/${programId}`, {
+          ...updatedProgram,
+          isDraft: true,
+          isPublished: false
+        });
+      } else {
+        // Create new draft
+        const response = await api.post('/workouts', {
+          ...updatedProgram,
+          isDraft: true,
+          isPublished: false
+        });
+        if (response.data.success && response.data.workout?._id) {
+          setProgramId(response.data.workout._id);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to auto-save draft:', err);
+    }
+  };
+
+  // Live update as exercises are added/removed
+  const handleWorkoutChange = (dayWorkout) => {
+    setProgram(prev => {
+      const existingIndex = prev.workouts.findIndex(w => {
+        const workoutDate = new Date(w.date);
+        workoutDate.setHours(0, 0, 0, 0);
+        const targetDate = new Date(dayWorkout.date);
+        targetDate.setHours(0, 0, 0, 0);
+        return workoutDate.getTime() === targetDate.getTime();
+      });
+
+      const newWorkouts = [...prev.workouts];
+      if (existingIndex >= 0) {
+        newWorkouts[existingIndex] = dayWorkout;
+      } else {
+        newWorkouts.push(dayWorkout);
+      }
+
+      const updatedProgram = { ...prev, workouts: newWorkouts };
+
+      // Auto-save to database
+      saveDraftToDatabase(updatedProgram);
+
+      return updatedProgram;
+    });
+    setCurrentDayWorkout(dayWorkout);
+  };
+
+  const handleSaveDayWorkout = (dayWorkout) => {
+    // Final save already happened via onChange, just close editor
     setShowEditor(false);
     setCurrentDayWorkout(null);
   };
@@ -163,14 +224,21 @@ const CreateWorkout = () => {
 
     setSaving(true);
     try {
-      const response = await api.post('/workouts', {
-        ...program,
-        isPublished: true
-      });
-
-      if (response.data.success) {
-        navigate('/coach/workouts');
+      if (programId) {
+        // Update existing draft to published
+        await api.put(`/workouts/${programId}`, {
+          ...program,
+          isDraft: false,
+          isPublished: true
+        });
+      } else {
+        // Create new published program
+        await api.post('/workouts', {
+          ...program,
+          isPublished: true
+        });
       }
+      navigate('/coach/workouts');
     } catch (err) {
       console.error('Failed to save program:', err);
       alert('Failed to save program. Please try again.');
@@ -187,16 +255,25 @@ const CreateWorkout = () => {
 
     setSaving(true);
     try {
-      const response = await api.post('/workouts', {
-        ...program,
-        assignedTeams: [], // Save without team assignment
-        isPublished: false,
-        isSavedProgram: true
-      });
-
-      if (response.data.success) {
-        navigate('/coach/workouts');
+      if (programId) {
+        // Update existing draft
+        await api.put(`/workouts/${programId}`, {
+          ...program,
+          assignedTeams: [],
+          isDraft: false,
+          isPublished: false,
+          isSavedProgram: true
+        });
+      } else {
+        // Create new saved program
+        await api.post('/workouts', {
+          ...program,
+          assignedTeams: [],
+          isPublished: false,
+          isSavedProgram: true
+        });
       }
+      navigate('/coach/workouts');
     } catch (err) {
       console.error('Failed to save program:', err);
       alert('Failed to save program. Please try again.');
@@ -259,7 +336,6 @@ const CreateWorkout = () => {
   // Get workouts for calendar display
   const calendarWorkouts = program.workouts.map(w => ({
     date: w.date,
-    title: w.title || 'Workout',
     exercises: w.exercises
   }));
 
@@ -408,6 +484,7 @@ const CreateWorkout = () => {
           workout={currentDayWorkout}
           exercises={exercises}
           onSave={handleSaveDayWorkout}
+          onChange={handleWorkoutChange}
           onExerciseCreated={(newExercise) => {
             const updatedCustom = [...customExercises, newExercise];
             setCustomExercises(updatedCustom);

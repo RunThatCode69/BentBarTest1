@@ -6,7 +6,7 @@ import Dropdown from '../common/Dropdown';
 import api from '../../services/api';
 import './WorkoutEditor.css';
 
-const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onExerciseCreated }) => {
+const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onChange, onExerciseCreated }) => {
   const [dayWorkout, setDayWorkout] = useState({
     date: '',
     dayOfWeek: '',
@@ -37,6 +37,18 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onExe
       setDayWorkout(workout);
     }
   }, [workout]);
+
+  // Helper to update workout and notify parent
+  const updateWorkout = (updater) => {
+    setDayWorkout(prev => {
+      const updated = typeof updater === 'function' ? updater(prev) : updater;
+      // Notify parent of change for live calendar update
+      if (onChange) {
+        onChange(updated);
+      }
+      return updated;
+    });
+  };
 
   const handleExerciseSelect = (e) => {
     const selectedId = e.target.value;
@@ -122,7 +134,7 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onExe
       weight: validConfigs[0].weight
     };
 
-    setDayWorkout(prev => ({
+    updateWorkout(prev => ({
       ...prev,
       exercises: [...prev.exercises, exercise]
     }));
@@ -138,7 +150,7 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onExe
   };
 
   const handleRemoveExercise = (index) => {
-    setDayWorkout(prev => ({
+    updateWorkout(prev => ({
       ...prev,
       exercises: prev.exercises.filter((_, i) => i !== index)
     }));
@@ -157,7 +169,7 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onExe
       ex.order = i + 1;
     });
 
-    setDayWorkout(prev => ({ ...prev, exercises: newExercises }));
+    updateWorkout(prev => ({ ...prev, exercises: newExercises }));
   };
 
   const handleSave = () => {

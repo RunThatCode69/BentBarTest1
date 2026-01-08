@@ -123,7 +123,6 @@ const EditWorkout = () => {
   // Get workouts for calendar display (same format as CreateWorkout)
   const calendarWorkouts = program?.workouts?.map(w => ({
     date: w.date,
-    title: w.title || 'Workout',
     exercises: w.exercises
   })) || [];
 
