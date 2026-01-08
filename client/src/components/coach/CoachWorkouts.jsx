@@ -5,12 +5,16 @@ import Button from '../common/Button';
 import Dropdown from '../common/Dropdown';
 import Modal from '../common/Modal';
 import Calendar from '../common/Calendar';
+import WorkoutEditor from './WorkoutEditor';
+import { DEFAULT_EXERCISES, mergeExercises } from '../../constants/defaultExercises';
 import './CoachWorkouts.css';
 
 const CoachWorkouts = () => {
   const navigate = useNavigate();
   const [workouts, setWorkouts] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [exercises, setExercises] = useState(DEFAULT_EXERCISES);
+  const [customExercises, setCustomExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('threeWeeks');
   const [selectedTeam, setSelectedTeam] = useState('');
@@ -28,17 +32,27 @@ const CoachWorkouts = () => {
   const [newStartDate, setNewStartDate] = useState('');
   const [moving, setMoving] = useState(false);
 
+  // Workout editor modal state
+  const [showEditor, setShowEditor] = useState(false);
+  const [editingWorkout, setEditingWorkout] = useState(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [workoutsRes, teamsRes] = await Promise.all([
+        const [workoutsRes, teamsRes, exercisesRes] = await Promise.all([
           api.get('/workouts'),
-          api.get('/coach/teams')
+          api.get('/coach/teams'),
+          api.get('/exercises').catch(() => ({ data: { exercises: [] } }))
         ]);
 
         setWorkouts(workoutsRes.data.workouts);
         const fetchedTeams = teamsRes.data.teams;
         setTeams(fetchedTeams);
+
+        // Merge custom exercises with defaults
+        const apiExercises = exercisesRes.data?.exercises || [];
+        setCustomExercises(apiExercises);
+        setExercises(mergeExercises(apiExercises));
 
         // Auto-select team if coach only has one team
         if (fetchedTeams.length === 1) {
@@ -58,6 +72,22 @@ const CoachWorkouts = () => {
   const handleDateSelect = (date) => {
     setSelectedDate(date);
     setView('daily');
+  };
+
+  // Navigate to previous day
+  const goToPreviousDay = () => {
+    if (!selectedDate) return;
+    const prevDay = new Date(selectedDate);
+    prevDay.setDate(prevDay.getDate() - 1);
+    setSelectedDate(prevDay);
+  };
+
+  // Navigate to next day
+  const goToNextDay = () => {
+    if (!selectedDate) return;
+    const nextDay = new Date(selectedDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    setSelectedDate(nextDay);
   };
 
   // Get programs filtered by selected team
@@ -200,6 +230,66 @@ const CoachWorkouts = () => {
     });
   };
 
+  // Open editor for current day
+  const openEditorForDay = () => {
+    const existingWorkout = getSelectedDayWorkout();
+
+    if (existingWorkout) {
+      setEditingWorkout(existingWorkout);
+    } else {
+      // Create a new workout for this date
+      const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
+      setEditingWorkout({
+        date: selectedDate.toISOString(),
+        dayOfWeek,
+        title: '',
+        exercises: []
+      });
+    }
+    setShowEditor(true);
+  };
+
+  // Save workout from editor
+  const handleSaveWorkout = async (updatedWorkout) => {
+    if (!activeProgram) return;
+
+    try {
+      const existingIndex = activeProgram.workouts?.findIndex(w => {
+        const workoutDate = new Date(w.date);
+        workoutDate.setHours(0, 0, 0, 0);
+        const targetDate = new Date(updatedWorkout.date);
+        targetDate.setHours(0, 0, 0, 0);
+        return workoutDate.getTime() === targetDate.getTime();
+      });
+
+      let newWorkouts;
+      if (existingIndex >= 0) {
+        newWorkouts = [...activeProgram.workouts];
+        newWorkouts[existingIndex] = updatedWorkout;
+      } else {
+        newWorkouts = [...(activeProgram.workouts || []), updatedWorkout];
+      }
+
+      const updatedProgram = {
+        ...activeProgram,
+        workouts: newWorkouts
+      };
+
+      await api.put(`/workouts/${activeProgram._id}`, updatedProgram);
+
+      // Update local state
+      setWorkouts(prev => prev.map(w =>
+        w._id === activeProgram._id ? updatedProgram : w
+      ));
+
+      setShowEditor(false);
+      setEditingWorkout(null);
+    } catch (err) {
+      console.error('Failed to save workout:', err);
+      alert('Failed to save workout. Please try again.');
+    }
+  };
+
   const teamOptions = [
     { value: 'unassigned', label: 'Unassigned Programs' },
     ...teams.map(t => ({
@@ -309,9 +399,15 @@ const CoachWorkouts = () => {
           <p>Loading workouts...</p>
         </div>
       ) : view === 'daily' && selectedDate ? (
-        // Day View - Full workout details
+        // Day View - Full workout details with navigation
         <div className="day-view-container">
           <div className="day-view-header">
+            <button className="day-nav-btn" onClick={goToPreviousDay}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+
             <div className="day-view-title">
               <h2>
                 {selectedDate.toLocaleDateString('en-US', {
@@ -323,24 +419,31 @@ const CoachWorkouts = () => {
               </h2>
               {activeProgram && <span className="program-name">{activeProgram.programName}</span>}
             </div>
-            <div className="day-view-actions">
+
+            <button className="day-nav-btn" onClick={goToNextDay}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="day-view-actions-bar">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setView('threeWeeks')}
+            >
+              Back to Calendar
+            </Button>
+            {activeProgram && (
               <Button
-                variant="ghost"
+                variant="primary"
                 size="sm"
-                onClick={() => setView('threeWeeks')}
+                onClick={openEditorForDay}
               >
-                Back to Calendar
+                {selectedDayWorkout ? 'Edit Workout' : 'Add Workout'}
               </Button>
-              {activeProgram && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => navigate(`/coach/workouts/${activeProgram._id}`)}
-                >
-                  Edit Program
-                </Button>
-              )}
-            </div>
+            )}
           </div>
 
           {selectedDayWorkout ? (
@@ -386,7 +489,7 @@ const CoachWorkouts = () => {
               {activeProgram && (
                 <Button
                   variant="outline"
-                  onClick={() => navigate(`/coach/workouts/${activeProgram._id}`)}
+                  onClick={openEditorForDay}
                 >
                   Add Workout to This Day
                 </Button>
@@ -483,6 +586,25 @@ const CoachWorkouts = () => {
           </p>
         )}
       </Modal>
+
+      {/* Workout Editor Modal */}
+      {showEditor && editingWorkout && (
+        <WorkoutEditor
+          isOpen={showEditor}
+          onClose={() => {
+            setShowEditor(false);
+            setEditingWorkout(null);
+          }}
+          workout={editingWorkout}
+          exercises={exercises}
+          onSave={handleSaveWorkout}
+          onExerciseCreated={(newExercise) => {
+            const updatedCustom = [...customExercises, newExercise];
+            setCustomExercises(updatedCustom);
+            setExercises(mergeExercises(updatedCustom));
+          }}
+        />
+      )}
     </div>
   );
 };
