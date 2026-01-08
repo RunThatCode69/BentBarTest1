@@ -156,7 +156,7 @@ const CoachWorkouts = () => {
       setViewingWorkout(workout);
     } else {
       // Create empty workout for this date
-      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       setViewingWorkout({
         date: date.toISOString(),
         dayOfWeek,
@@ -194,7 +194,7 @@ const CoachWorkouts = () => {
         return {
           ...w,
           date: newDate.toISOString(),
-          dayOfWeek: newDate.toLocaleDateString('en-US', { weekday: 'long' })
+          dayOfWeek: newDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
         };
       });
 

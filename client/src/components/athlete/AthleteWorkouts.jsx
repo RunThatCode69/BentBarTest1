@@ -52,7 +52,7 @@ const AthleteWorkouts = () => {
       setViewingWorkout(workout);
     } else {
       // Create empty workout structure for display
-      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       setViewingWorkout({
         date: date.toISOString(),
         dayOfWeek,

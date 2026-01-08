@@ -74,7 +74,7 @@ const EditWorkout = () => {
       setSelectedWorkout(existingWorkout);
     } else {
       // Create new workout for this date
-      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       setSelectedWorkout({
         date: date.toISOString(),
         dayOfWeek,
