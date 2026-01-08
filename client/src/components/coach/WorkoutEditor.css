@@ -30,6 +30,46 @@
   background-color: var(--color-gray-50);
   border: 1px solid var(--color-gray-200);
   border-radius: var(--radius-md);
+  cursor: grab;
+  transition: all var(--transition-fast);
+}
+
+.exercise-row:active {
+  cursor: grabbing;
+}
+
+.exercise-row.dragging {
+  opacity: 0.5;
+  background-color: var(--color-gray-100);
+  border-style: dashed;
+}
+
+.exercise-row.drag-over {
+  border-color: var(--color-primary);
+  border-width: 2px;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Drag handle - desktop only */
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  color: var(--color-gray-400);
+  font-size: var(--font-size-lg);
+  letter-spacing: -3px;
+  cursor: grab;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.drag-handle:hover {
+  color: var(--color-gray-600);
+}
+
+.exercise-row.dragging .drag-handle {
+  cursor: grabbing;
 }
 
 .exercise-order {
@@ -242,6 +282,33 @@
   color: var(--color-gray-500);
   font-style: italic;
   margin-top: var(--spacing-1);
+}
+
+/* Hide drag handle and show arrow buttons on tablet/mobile */
+@media (max-width: 768px) {
+  .drag-handle {
+    display: none;
+  }
+
+  .exercise-row {
+    cursor: default;
+  }
+
+  .exercise-row[draggable] {
+    -webkit-user-drag: none;
+  }
+
+  /* Show arrow buttons on mobile (they're hidden on desktop) */
+  .action-btn.move-btn {
+    display: flex;
+  }
+}
+
+/* Hide arrow buttons on desktop (use drag instead) */
+@media (min-width: 769px) {
+  .action-btn.move-btn {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {

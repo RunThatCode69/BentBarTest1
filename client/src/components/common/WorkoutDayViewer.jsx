@@ -23,6 +23,10 @@ const WorkoutDayViewer = ({
     exercises: []
   });
 
+  // Drag and drop state
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
   const [newExercise, setNewExercise] = useState({
     exerciseId: '',
     exerciseName: '',
@@ -162,6 +166,54 @@ const WorkoutDayViewer = ({
     });
 
     setDayWorkout(prev => ({ ...prev, exercises: newExercises }));
+  };
+
+  // Drag and drop handlers (desktop only)
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => {
+      e.target.classList.add('dragging');
+    }, 0);
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.classList.remove('dragging');
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedIndex !== null && index !== draggedIndex) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const newExercises = [...dayWorkout.exercises];
+    const [draggedItem] = newExercises.splice(draggedIndex, 1);
+    newExercises.splice(dropIndex, 0, draggedItem);
+
+    newExercises.forEach((ex, i) => {
+      ex.order = i + 1;
+    });
+
+    setDayWorkout(prev => ({ ...prev, exercises: newExercises }));
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleSave = () => {
@@ -310,7 +362,17 @@ const WorkoutDayViewer = ({
             {dayWorkout.exercises.length > 0 && (
               <div className="editor-exercises-list">
                 {dayWorkout.exercises.map((ex, index) => (
-                  <div key={index} className="editor-exercise-row">
+                  <div
+                    key={index}
+                    className={`editor-exercise-row ${draggedIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, index)}
+                  >
+                    <span className="editor-drag-handle" title="Drag to reorder">⋮⋮</span>
                     <span className="editor-exercise-order">{index + 1}</span>
                     <div className="editor-exercise-details">
                       <span className="editor-exercise-name">{ex.exerciseName}</span>
@@ -321,22 +383,25 @@ const WorkoutDayViewer = ({
                     </div>
                     <div className="editor-exercise-actions">
                       <button
-                        className="editor-action-btn"
+                        className="editor-action-btn move-btn"
                         onClick={() => handleMoveExercise(index, 'up')}
                         disabled={index === 0}
+                        title="Move up"
                       >
                         ↑
                       </button>
                       <button
-                        className="editor-action-btn"
+                        className="editor-action-btn move-btn"
                         onClick={() => handleMoveExercise(index, 'down')}
                         disabled={index === dayWorkout.exercises.length - 1}
+                        title="Move down"
                       >
                         ↓
                       </button>
                       <button
                         className="editor-action-btn delete"
                         onClick={() => handleRemoveExercise(index)}
+                        title="Remove exercise"
                       >
                         ×
                       </button>

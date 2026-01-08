@@ -13,6 +13,10 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
     exercises: []
   });
 
+  // Drag and drop state
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
   const [newExercise, setNewExercise] = useState({
     exerciseId: '',
     exerciseName: '',
@@ -32,11 +36,13 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
     description: ''
   });
 
+  // Only sync from props when modal opens (isOpen changes to true)
+  // Don't sync on every workout prop change to avoid overwriting local edits
   useEffect(() => {
-    if (workout) {
+    if (isOpen && workout) {
       setDayWorkout(workout);
     }
-  }, [workout]);
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Helper to update workout and notify parent
   const updateWorkout = (updater) => {
@@ -172,6 +178,56 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
     updateWorkout(prev => ({ ...prev, exercises: newExercises }));
   };
 
+  // Drag and drop handlers (desktop only)
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Add a slight delay to allow the drag image to be captured
+    setTimeout(() => {
+      e.target.classList.add('dragging');
+    }, 0);
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.classList.remove('dragging');
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedIndex !== null && index !== draggedIndex) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const newExercises = [...dayWorkout.exercises];
+    const [draggedItem] = newExercises.splice(draggedIndex, 1);
+    newExercises.splice(dropIndex, 0, draggedItem);
+
+    // Update order numbers
+    newExercises.forEach((ex, i) => {
+      ex.order = i + 1;
+    });
+
+    updateWorkout(prev => ({ ...prev, exercises: newExercises }));
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   const handleSave = () => {
     onSave(dayWorkout);
   };
@@ -256,7 +312,17 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
           {dayWorkout.exercises.length > 0 && (
             <div className="exercises-list">
               {dayWorkout.exercises.map((ex, index) => (
-                <div key={index} className="exercise-row">
+                <div
+                  key={index}
+                  className={`exercise-row ${draggedIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                >
+                  <span className="drag-handle" title="Drag to reorder">⋮⋮</span>
                   <span className="exercise-order">{index + 1}</span>
                   <div className="exercise-details">
                     <span className="name">{ex.exerciseName}</span>
@@ -270,22 +336,25 @@ const WorkoutEditor = ({ isOpen, onClose, workout, exercises = [], onSave, onCha
                   </div>
                   <div className="exercise-actions">
                     <button
-                      className="action-btn"
+                      className="action-btn move-btn"
                       onClick={() => handleMoveExercise(index, 'up')}
                       disabled={index === 0}
+                      title="Move up"
                     >
                       ↑
                     </button>
                     <button
-                      className="action-btn"
+                      className="action-btn move-btn"
                       onClick={() => handleMoveExercise(index, 'down')}
                       disabled={index === dayWorkout.exercises.length - 1}
+                      title="Move down"
                     >
                       ↓
                     </button>
                     <button
                       className="action-btn delete"
                       onClick={() => handleRemoveExercise(index)}
+                      title="Remove exercise"
                     >
                       ×
                     </button>

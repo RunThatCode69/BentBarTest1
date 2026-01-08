@@ -179,6 +179,7 @@ const CreateWorkout = () => {
 
   // Live update as exercises are added/removed
   const handleWorkoutChange = (dayWorkout) => {
+    // Update program state with the new workout data
     setProgram(prev => {
       const existingIndex = prev.workouts.findIndex(w => {
         const workoutDate = new Date(w.date);
@@ -202,7 +203,8 @@ const CreateWorkout = () => {
 
       return updatedProgram;
     });
-    setCurrentDayWorkout(dayWorkout);
+    // Don't update currentDayWorkout here - WorkoutEditor manages its own local state
+    // Updating currentDayWorkout would cause unnecessary re-renders and potential state conflicts
   };
 
   const handleSaveDayWorkout = (dayWorkout) => {
@@ -212,8 +214,16 @@ const CreateWorkout = () => {
   };
 
   const handlePublish = async () => {
-    if (!program.programName || program.workouts.length === 0) {
-      alert('Please add a program name and at least one workout day');
+    // Check program name exists
+    if (!program.programName) {
+      alert('Please add a program name');
+      return;
+    }
+
+    // Check that at least one workout day has exercises
+    const workoutsWithExercises = program.workouts.filter(w => w.exercises && w.exercises.length > 0);
+    if (workoutsWithExercises.length === 0) {
+      alert('Please add at least one workout day with exercises');
       return;
     }
 
@@ -248,8 +258,16 @@ const CreateWorkout = () => {
   };
 
   const handleSaveToMyPrograms = async () => {
-    if (!program.programName || program.workouts.length === 0) {
-      alert('Please add a program name and at least one workout day');
+    // Check program name exists
+    if (!program.programName) {
+      alert('Please add a program name');
+      return;
+    }
+
+    // Check that at least one workout day has exercises
+    const workoutsWithExercises = program.workouts.filter(w => w.exercises && w.exercises.length > 0);
+    if (workoutsWithExercises.length === 0) {
+      alert('Please add at least one workout day with exercises');
       return;
     }
 
