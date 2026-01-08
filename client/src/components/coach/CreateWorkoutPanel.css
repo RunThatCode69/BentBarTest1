@@ -61,6 +61,36 @@
   color: var(--color-gray-500);
 }
 
+.program-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.delete-program-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  opacity: 0;
+}
+
+.program-item:hover .delete-program-btn {
+  opacity: 1;
+}
+
+.delete-program-btn:hover {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
 .program-arrow {
   color: var(--color-gray-400);
   transition: transform var(--transition-fast);

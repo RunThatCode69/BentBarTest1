@@ -33,6 +33,10 @@ const CoachWorkouts = () => {
   const [newStartDate, setNewStartDate] = useState('');
   const [moving, setMoving] = useState(false);
 
+  // Delete program modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   // Day viewer modal state
   const [showDayViewer, setShowDayViewer] = useState(false);
   const [viewingWorkout, setViewingWorkout] = useState(null);
@@ -227,6 +231,26 @@ const CoachWorkouts = () => {
     setShowMoveModal(true);
   };
 
+  // Delete program
+  const handleDeleteProgram = async () => {
+    if (!activeProgram) return;
+
+    setDeleting(true);
+    try {
+      await api.delete(`/workouts/${activeProgram._id}`);
+
+      // Update local state
+      setWorkouts(prev => prev.filter(w => w._id !== activeProgram._id));
+      setSelectedProgram('');
+      setShowDeleteModal(false);
+    } catch (err) {
+      console.error('Failed to delete program:', err);
+      alert('Failed to delete program. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // Build calendar workouts from the active program only
   const getCalendarWorkouts = () => {
     if (!activeProgram) return [];
@@ -340,13 +364,22 @@ const CoachWorkouts = () => {
             </Button>
           )}
           {selectedProgram && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={openMoveModal}
-            >
-              Move Program
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openMoveModal}
+              >
+                Move Program
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => setShowDeleteModal(true)}
+              >
+                Delete Program
+              </Button>
+            </>
           )}
         </div>
 
@@ -466,6 +499,30 @@ const CoachWorkouts = () => {
             This program has {activeProgram.workouts.length} workout day{activeProgram.workouts.length !== 1 ? 's' : ''}.
           </p>
         )}
+      </Modal>
+
+      {/* Delete Program Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete Program"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteProgram}
+              loading={deleting}
+            >
+              Delete Program
+            </Button>
+          </>
+        }
+      >
+        <p>Are you sure you want to delete "<strong>{activeProgram?.programName}</strong>"?</p>
+        <p style={{ marginTop: 'var(--spacing-2)', color: 'var(--color-text-secondary)', fontSize: '14px' }}>
+          This will permanently remove the program and all its workouts. This action cannot be undone.
+        </p>
       </Modal>
 
       {/* Day Viewer Modal */}

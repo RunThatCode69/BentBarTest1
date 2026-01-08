@@ -66,6 +66,18 @@
   background-color: var(--color-gray-100);
 }
 
+/* Danger Button */
+.btn-danger {
+  background-color: var(--color-error);
+  color: var(--color-white);
+  border-color: var(--color-error);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--color-error-dark, #c53030);
+  border-color: var(--color-error-dark, #c53030);
+}
+
 /* Button Sizes */
 .btn-sm {
   padding: var(--spacing-2) var(--spacing-4);
