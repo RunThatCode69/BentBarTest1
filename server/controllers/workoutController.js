@@ -187,6 +187,10 @@ const updateWorkout = async (req, res) => {
   try {
     const { programName, startDate, endDate, workouts, assignedTeams, isPublished } = req.body;
 
+    console.log('=== UPDATE WORKOUT DEBUG ===');
+    console.log('Program ID:', req.params.id);
+    console.log('Workouts received:', JSON.stringify(workouts, null, 2));
+
     let workout = await WorkoutProgram.findById(req.params.id);
 
     if (!workout) {
@@ -218,7 +222,16 @@ const updateWorkout = async (req, res) => {
       workout.isDraft = !isPublished;
     }
 
+    console.log('About to save workout with workouts:', workout.workouts?.length, 'days');
+    if (workout.workouts?.length > 0) {
+      workout.workouts.forEach((w, i) => {
+        console.log(`Day ${i}: ${w.date}, exercises:`, w.exercises?.length);
+      });
+    }
+
     await workout.save();
+
+    console.log('Saved successfully! Workout now has:', workout.workouts?.length, 'days');
 
     res.json({
       success: true,
@@ -227,7 +240,8 @@ const updateWorkout = async (req, res) => {
 
   } catch (error) {
     console.error('Update workout error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Full error:', JSON.stringify(error, null, 2));
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
