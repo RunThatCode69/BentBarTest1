@@ -1,5 +1,13 @@
 const mongoose = require('mongoose');
 
+// Schema for individual set configuration (e.g., 1x3 @50%)
+const setConfigSchema = new mongoose.Schema({
+  sets: { type: Number, required: true, min: 1 },
+  reps: { type: String, required: true },
+  percentage: { type: Number, min: 0, max: 120, default: null },
+  weight: { type: Number, min: 0, default: null }
+}, { _id: false });
+
 const exerciseEntrySchema = new mongoose.Schema({
   exerciseId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -10,24 +18,30 @@ const exerciseEntrySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Complex set programming - stores all set configs
+  setConfigs: {
+    type: [setConfigSchema],
+    default: []
+  },
+  // Summary fields for backwards compatibility
   sets: {
     type: Number,
     required: true,
     min: 1,
-    max: 20
+    max: 100
   },
   reps: {
-    type: String, // Can be "5" or "5-8" range
+    type: String,
     required: true
   },
   percentage: {
-    type: Number, // Of 1RM, e.g., 75
+    type: Number,
     min: 0,
     max: 120,
     default: null
   },
   weight: {
-    type: Number, // Optional fixed weight
+    type: Number,
     min: 0,
     default: null
   },
