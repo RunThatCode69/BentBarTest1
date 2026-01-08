@@ -147,10 +147,7 @@ const AthleteWorkouts = () => {
                         </span>
                       </div>
                       <div className="workout-info">
-                        <h4>{workout.title || 'Workout'}</h4>
-                        <p className="exercise-count">
-                          {workout.exercises.length} exercise{workout.exercises.length !== 1 ? 's' : ''}
-                        </p>
+                        <h4>{workout.exercises.length} exercise{workout.exercises.length !== 1 ? 's' : ''}</h4>
                         <div className="exercise-preview">
                           {workout.exercises.slice(0, 3).map((ex, i) => (
                             <span key={i} className="exercise-tag">

@@ -184,10 +184,6 @@ const AthleteDashboard = () => {
                 </div>
               ) : (
                 <div className="workout-content">
-                  {todayWorkout.title && (
-                    <h3 className="workout-title">{todayWorkout.title}</h3>
-                  )}
-
                   <div className="exercises-list">
                     {todayWorkout.exercises.map((exercise, index) => {
                       const isCompleted = completedExercises.includes(index);

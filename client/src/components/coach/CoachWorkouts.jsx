@@ -257,7 +257,6 @@ const CoachWorkouts = () => {
 
     return activeProgram.workouts?.map(day => ({
       date: day.date,
-      title: day.title || activeProgram.programName,
       exercises: day.exercises
     })) || [];
   };
