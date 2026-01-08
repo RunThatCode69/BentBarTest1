@@ -1,17 +1,6 @@
 import React, { useState } from 'react';
 import './Calendar.css';
 
-// Format set configs for display (e.g., "1x3 @40%, 1x3 @50%, 1x3 @60%")
-const formatSetConfigs = (setConfigs) => {
-  if (!setConfigs || setConfigs.length === 0) return null;
-  return setConfigs.map(config => {
-    let str = `${config.sets}x${config.reps}`;
-    if (config.percentage) str += ` @${config.percentage}%`;
-    if (config.weight) str += ` @${config.weight}lbs`;
-    return str;
-  }).join(', ');
-};
-
 const Calendar = ({
   selectedDate,
   onDateSelect,
@@ -281,12 +270,6 @@ const Calendar = ({
                     {displayExercises.map((exercise, i) => (
                       <div key={i} className="calendar-exercise-preview">
                         <span className="exercise-preview-name">{exercise.exerciseName}</span>
-                        <span className="exercise-preview-sets">
-                          {exercise.setConfigs && exercise.setConfigs.length > 0
-                            ? formatSetConfigs(exercise.setConfigs)
-                            : `${exercise.sets}x${exercise.reps}${exercise.percentage ? ` @${exercise.percentage}%` : ''}`
-                          }
-                        </span>
                       </div>
                     ))}
                     {remainingCount > 0 && (
