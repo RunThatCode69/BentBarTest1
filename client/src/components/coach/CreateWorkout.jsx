@@ -163,6 +163,9 @@ const CreateWorkout = () => {
 
   // Live update as exercises are added/removed
   const handleWorkoutChange = (dayWorkout) => {
+    // Update currentDayWorkout to keep it in sync (prevents stale data)
+    setCurrentDayWorkout(dayWorkout);
+
     setProgram(prev => {
       const existingIndex = prev.workouts.findIndex(w => {
         const workoutDate = new Date(w.date);
