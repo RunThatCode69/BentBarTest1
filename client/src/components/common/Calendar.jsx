@@ -81,10 +81,19 @@ const Calendar = ({
   };
 
   const getWorkoutForDate = (date) => {
-    return workouts.find(w => {
+    const found = workouts.find(w => {
       const workoutDate = new Date(w.date);
-      return workoutDate.toDateString() === date.toDateString();
+      // Normalize both dates to midnight local time for comparison
+      workoutDate.setHours(0, 0, 0, 0);
+      const targetDate = new Date(date);
+      targetDate.setHours(0, 0, 0, 0);
+      return workoutDate.getTime() === targetDate.getTime();
     });
+    // Debug: log workout data
+    if (found) {
+      console.log('Found workout for', date.toDateString(), ':', found);
+    }
+    return found;
   };
 
   const isToday = (date) => {

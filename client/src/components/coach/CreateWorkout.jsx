@@ -278,6 +278,9 @@ const CreateWorkout = () => {
     exercises: w.exercises
   }));
 
+  // Debug: log what we're passing to Calendar
+  console.log('Calendar workouts:', calendarWorkouts);
+
   if (loading) {
     return (
       <div className="create-workout-page">
