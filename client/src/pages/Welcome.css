@@ -31,6 +31,7 @@
 
 .hero-image {
   margin-bottom: var(--spacing-6);
+  position: relative;
 }
 
 .hero-image img {
@@ -38,6 +39,20 @@
   height: auto;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
+}
+
+.hero-overlay-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 .hero-title {

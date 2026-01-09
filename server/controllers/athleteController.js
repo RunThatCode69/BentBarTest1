@@ -114,11 +114,77 @@ const getStats = async (req, res) => {
       return res.status(404).json({ message: 'Athlete profile not found' });
     }
 
+    // Calculate stats from WorkoutLog data
+    const workoutLogs = await WorkoutLog.find({ athleteId: athlete._id })
+      .sort({ date: -1 });
+
+    // Count completed workouts
+    const workoutsCompleted = workoutLogs.filter(log => log.isCompleted).length;
+
+    // Calculate total sets and volume from all workout logs
+    let totalSets = 0;
+    let totalVolume = 0;
+
+    workoutLogs.forEach(log => {
+      if (log.exercises) {
+        log.exercises.forEach(exercise => {
+          if (exercise.sets) {
+            exercise.sets.forEach(set => {
+              if (set.completedWeight !== null && set.completedReps !== null) {
+                totalSets++;
+                totalVolume += (set.completedWeight || 0) * (set.completedReps || 0);
+              }
+            });
+          }
+        });
+      }
+    });
+
+    // Calculate current streak (consecutive days with completed workouts)
+    let currentStreak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Get unique dates of completed workouts, sorted descending
+    const completedDates = workoutLogs
+      .filter(log => log.isCompleted)
+      .map(log => {
+        const d = new Date(log.date);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime();
+      })
+      .filter((date, index, self) => self.indexOf(date) === index) // unique
+      .sort((a, b) => b - a); // descending
+
+    if (completedDates.length > 0) {
+      // Check if most recent workout was today or yesterday
+      const mostRecent = completedDates[0];
+      const diffFromToday = Math.floor((today.getTime() - mostRecent) / (1000 * 60 * 60 * 24));
+
+      if (diffFromToday <= 1) {
+        currentStreak = 1;
+        let expectedDate = mostRecent - (1000 * 60 * 60 * 24);
+
+        for (let i = 1; i < completedDates.length; i++) {
+          if (completedDates[i] === expectedDate) {
+            currentStreak++;
+            expectedDate -= (1000 * 60 * 60 * 24);
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
     res.json({
       success: true,
       maxes: athlete.maxes,
       trackedMaxes: athlete.trackedMaxes || [],
       stats: athlete.stats.slice(-50), // Last 50 entries
+      workoutsCompleted,
+      totalSets,
+      totalVolume: Math.round(totalVolume),
+      currentStreak,
       athlete: {
         id: athlete._id,
         firstName: athlete.firstName,
@@ -550,14 +616,19 @@ const saveWorkoutLog = async (req, res) => {
       return res.status(404).json({ message: 'Athlete profile not found' });
     }
 
-    // Normalize date to midnight
+    // Normalize date to midnight for consistent storage
     const logDate = new Date(date);
     logDate.setHours(0, 0, 0, 0);
+
+    // Use date range to find existing log (handles timezone issues)
+    const startOfDay = new Date(logDate);
+    const endOfDay = new Date(logDate);
+    endOfDay.setHours(23, 59, 59, 999);
 
     // Find existing log or create new one
     let workoutLog = await WorkoutLog.findOne({
       athleteId: athlete._id,
-      date: logDate
+      date: { $gte: startOfDay, $lte: endOfDay }
     });
 
     if (workoutLog) {
@@ -646,13 +717,16 @@ const getWorkoutLog = async (req, res) => {
       return res.status(404).json({ message: 'Athlete profile not found' });
     }
 
-    // Normalize date to midnight
-    const logDate = new Date(date);
-    logDate.setHours(0, 0, 0, 0);
+    // Use date range to handle timezone issues
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
 
     const workoutLog = await WorkoutLog.findOne({
       athleteId: athlete._id,
-      date: logDate
+      date: { $gte: startOfDay, $lte: endOfDay }
     });
 
     res.json({

@@ -46,6 +46,7 @@ const Welcome = () => {
       <div className="welcome-hero">
         <div className="hero-content">
           <div className="hero-image">
+            <span className="hero-overlay-text">Bent Bar</span>
             <img src="/team-photo.jpg" alt="Athletes training together" />
           </div>
           <h1 className="hero-title">The platform coaches trust.</h1>
