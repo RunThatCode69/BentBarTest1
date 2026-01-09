@@ -166,61 +166,60 @@ const CoachDashboard = () => {
   return (
     <div className="coach-dashboard">
       <div className="dashboard-header">
-        <div>
+        <div className="header-left">
           <h1>Welcome, {dashboardData.coach.firstName}!</h1>
           <p className="subtitle">{dashboardData.coach.schoolName}</p>
+        </div>
+        <div className="header-center">
+          {dashboardData.teams.map(team => (
+            <div key={team.id} className="team-badge">
+              <div className="team-name-row">
+                {editingTeamId === team.id ? (
+                  <div className="team-name-edit">
+                    <input
+                      type="text"
+                      value={editingTeamName}
+                      onChange={(e) => setEditingTeamName(e.target.value)}
+                      onKeyDown={(e) => handleTeamNameKeyDown(e, team.id)}
+                      className="team-name-input"
+                      autoFocus
+                    />
+                    <button
+                      className="team-edit-btn save"
+                      onClick={() => handleSaveTeamName(team.id)}
+                      disabled={savingTeamName}
+                    >
+                      ✓
+                    </button>
+                    <button
+                      className="team-edit-btn cancel"
+                      onClick={handleCancelEditTeam}
+                      disabled={savingTeamName}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <span className="team-name">{team.teamName}</span>
+                    <button
+                      className="team-edit-icon-btn"
+                      onClick={() => handleStartEditTeam(team)}
+                      title="Edit team name"
+                    >
+                      ✎
+                    </button>
+                  </>
+                )}
+              </div>
+              <span className="athlete-count">{team.athleteCount} athletes</span>
+              <span className="access-code">Code: {team.accessCode}</span>
+            </div>
+          ))}
         </div>
         <Button variant="primary" size="sm" onClick={handleOpenAddTeam}>
           + Add Team
         </Button>
-      </div>
-
-      <div className="team-info-section">
-        {dashboardData.teams.map(team => (
-          <div key={team.id} className="team-badge">
-            <div className="team-name-row">
-              {editingTeamId === team.id ? (
-                <div className="team-name-edit">
-                  <input
-                    type="text"
-                    value={editingTeamName}
-                    onChange={(e) => setEditingTeamName(e.target.value)}
-                    onKeyDown={(e) => handleTeamNameKeyDown(e, team.id)}
-                    className="team-name-input"
-                    autoFocus
-                  />
-                  <button
-                    className="team-edit-btn save"
-                    onClick={() => handleSaveTeamName(team.id)}
-                    disabled={savingTeamName}
-                  >
-                    ✓
-                  </button>
-                  <button
-                    className="team-edit-btn cancel"
-                    onClick={handleCancelEditTeam}
-                    disabled={savingTeamName}
-                  >
-                    ✕
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <span className="team-name">{team.teamName}</span>
-                  <button
-                    className="team-edit-icon-btn"
-                    onClick={() => handleStartEditTeam(team)}
-                    title="Edit team name"
-                  >
-                    ✎
-                  </button>
-                </>
-              )}
-            </div>
-            <span className="athlete-count">{team.athleteCount} athletes</span>
-            <span className="access-code">Code: {team.accessCode}</span>
-          </div>
-        ))}
       </div>
 
       <div className="dashboard-grid">
