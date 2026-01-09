@@ -8,7 +8,8 @@ const {
   logStat,
   updateMax,
   getWorkouts,
-  getWorkoutByDate
+  getWorkoutByDate,
+  getExercises
 } = require('../controllers/athleteController');
 
 // All routes require athlete authentication
@@ -26,5 +27,8 @@ router.put('/stats/max', updateMax);
 // Workouts
 router.get('/workouts', getWorkouts);
 router.get('/workouts/:date', getWorkoutByDate);
+
+// Exercises
+router.get('/exercises', getExercises);
 
 module.exports = router;

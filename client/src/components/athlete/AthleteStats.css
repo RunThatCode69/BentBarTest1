@@ -75,26 +75,159 @@
   color: var(--color-gray-600);
 }
 
-/* One Rep Maxes */
-.card-header-with-action {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* One Rep Maxes - Exercise Selector */
+.exercise-selector {
   margin-bottom: var(--spacing-4);
 }
 
-.card-header-with-action h2 {
-  margin-bottom: 0;
+.exercise-dropdown {
+  width: 100%;
+  padding: var(--spacing-3);
+  font-size: var(--font-size-base);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  background-color: var(--color-white);
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
-.edit-actions {
+.exercise-dropdown:hover {
+  border-color: var(--color-primary);
+}
+
+.exercise-dropdown:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* Selected Max Display */
+.selected-max-display {
+  padding: var(--spacing-4);
+  background-color: var(--color-primary-light);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-4);
+}
+
+.selected-exercise-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-3);
+}
+
+.max-edit-inline {
   display: flex;
+  align-items: center;
   gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.max-input {
+  width: 120px;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.max-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.max-unit {
+  font-size: var(--font-size-base);
+  color: var(--color-gray-600);
+}
+
+.save-max-btn {
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.save-max-btn:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.save-max-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-max-btn {
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: transparent;
+  color: var(--color-gray-600);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.cancel-max-btn:hover {
+  background-color: var(--color-gray-100);
+}
+
+.max-value-display {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.max-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.edit-max-btn {
+  padding: var(--spacing-1) var(--spacing-2);
+  background-color: transparent;
+  color: var(--color-gray-600);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.edit-max-btn:hover {
+  background-color: var(--color-gray-100);
+  border-color: var(--color-gray-400);
+}
+
+.no-max-message {
+  color: var(--color-gray-500);
+  font-style: italic;
+}
+
+/* Recorded Maxes Section */
+.recorded-maxes {
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.recorded-maxes h3 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-700);
+  margin-bottom: var(--spacing-3);
 }
 
 .maxes-display-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: var(--spacing-3);
 }
 
@@ -106,57 +239,45 @@
   background-color: var(--color-gray-50);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-gray-200);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.max-display-item:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-white);
+}
+
+.max-display-item.selected {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
 }
 
 .max-display-item .exercise-name {
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-700);
+  font-size: var(--font-size-sm);
 }
 
 .max-display-item .exercise-max {
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
-  font-size: var(--font-size-lg);
-}
-
-.maxes-edit-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--spacing-4);
-}
-
-.max-edit-item {
-  width: 100%;
-}
-
-.add-exercise-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-4);
-  border: 2px dashed var(--color-gray-300);
-  border-radius: var(--radius-md);
-  color: var(--color-gray-500);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  background: transparent;
-}
-
-.add-exercise-btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  font-size: var(--font-size-base);
 }
 
 .no-maxes {
   text-align: center;
   padding: var(--spacing-6);
-  grid-column: 1 / -1;
 }
 
 .no-maxes p {
   color: var(--color-gray-500);
-  margin-bottom: var(--spacing-3);
+  margin-bottom: var(--spacing-2);
+}
+
+.no-maxes .hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-400);
 }
 
 /* Activity List */

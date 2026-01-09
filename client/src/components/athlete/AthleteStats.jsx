@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../common/Navbar';
 import Card from '../common/Card';
 import Button from '../common/Button';
-import Input from '../common/Input';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
+import { DEFAULT_EXERCISES, mergeExercises } from '../../constants/defaultExercises';
 import './AthleteStats.css';
 
 const AthleteStats = () => {
@@ -12,21 +12,26 @@ const AthleteStats = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [editingMaxes, setEditingMaxes] = useState(false);
-  const [newMaxes, setNewMaxes] = useState({});
-  const [savingMaxes, setSavingMaxes] = useState(false);
+  const [exercises, setExercises] = useState(DEFAULT_EXERCISES);
+  const [selectedExercise, setSelectedExercise] = useState('');
+  const [editingMax, setEditingMax] = useState(null); // exercise name being edited
+  const [editValue, setEditValue] = useState('');
+  const [savingMax, setSavingMax] = useState(false);
 
   useEffect(() => {
-    fetchStats();
+    fetchData();
   }, []);
 
-  const fetchStats = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/athlete/stats');
+      const [statsRes, exercisesRes] = await Promise.all([
+        api.get('/athlete/stats'),
+        api.get('/athlete/exercises').catch(() => ({ data: { customExercises: [] } }))
+      ]);
 
       // Transform maxes array to oneRepMaxes object for compatibility
-      const maxesArray = response.data.maxes || [];
+      const maxesArray = statsRes.data.maxes || [];
       const oneRepMaxes = {};
       maxesArray.forEach(max => {
         if (max.exerciseName && max.oneRepMax) {
@@ -35,10 +40,13 @@ const AthleteStats = () => {
       });
 
       setStats({
-        ...response.data,
+        ...statsRes.data,
         oneRepMaxes
       });
-      setNewMaxes(oneRepMaxes);
+
+      // Merge custom exercises with defaults
+      const customExercises = exercisesRes.data?.customExercises || [];
+      setExercises(mergeExercises(customExercises));
     } catch (err) {
       setError('Failed to load stats');
       console.error(err);
@@ -47,41 +55,77 @@ const AthleteStats = () => {
     }
   };
 
-  const handleMaxChange = (exercise, value) => {
-    setNewMaxes(prev => ({
-      ...prev,
-      [exercise]: value ? parseFloat(value) : ''
-    }));
+  // Get the max value for an exercise
+  const getMaxForExercise = (exerciseName) => {
+    return stats?.oneRepMaxes?.[exerciseName] || null;
   };
 
-  const handleAddExercise = () => {
-    const exerciseName = prompt('Enter exercise name:');
-    if (exerciseName && exerciseName.trim()) {
-      setNewMaxes(prev => ({
-        ...prev,
-        [exerciseName.trim()]: ''
-      }));
+  // Handle selecting an exercise from dropdown
+  const handleExerciseSelect = (e) => {
+    const exerciseName = e.target.value;
+    setSelectedExercise(exerciseName);
+
+    if (exerciseName) {
+      const currentMax = getMaxForExercise(exerciseName);
+      if (!currentMax) {
+        // No max exists, start editing immediately
+        setEditingMax(exerciseName);
+        setEditValue('');
+      }
     }
   };
 
-  const handleSaveMaxes = async () => {
+  // Start editing a max
+  const handleStartEdit = (exerciseName) => {
+    setEditingMax(exerciseName);
+    setEditValue(getMaxForExercise(exerciseName) || '');
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingMax(null);
+    setEditValue('');
+  };
+
+  // Save a single max
+  const handleSaveMax = async (exerciseName) => {
+    if (!editValue || isNaN(parseFloat(editValue))) {
+      return;
+    }
+
+    setSavingMax(true);
     try {
-      setSavingMaxes(true);
-      const cleanedMaxes = {};
-      Object.entries(newMaxes).forEach(([key, value]) => {
-        if (value !== '' && value !== null) {
-          cleanedMaxes[key] = parseFloat(value);
-        }
+      await api.put('/athlete/stats/max', {
+        exerciseName,
+        oneRepMax: parseFloat(editValue)
       });
 
-      await api.put('/athlete/stats', { oneRepMaxes: cleanedMaxes });
-      setStats(prev => ({ ...prev, oneRepMaxes: cleanedMaxes }));
-      setEditingMaxes(false);
+      // Update local state
+      setStats(prev => ({
+        ...prev,
+        oneRepMaxes: {
+          ...prev.oneRepMaxes,
+          [exerciseName]: parseFloat(editValue)
+        }
+      }));
+
+      setEditingMax(null);
+      setEditValue('');
+      setSelectedExercise('');
     } catch (err) {
-      setError('Failed to save maxes');
+      setError('Failed to save max');
       console.error(err);
     } finally {
-      setSavingMaxes(false);
+      setSavingMax(false);
+    }
+  };
+
+  // Handle Enter key to save
+  const handleKeyDown = (e, exerciseName) => {
+    if (e.key === 'Enter') {
+      handleSaveMax(exerciseName);
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
     }
   };
 
@@ -175,67 +219,103 @@ const AthleteStats = () => {
 
           {/* One Rep Maxes */}
           <Card>
-            <div className="card-header-with-action">
-              <h2>One Rep Maxes</h2>
-              {!editingMaxes ? (
-                <Button variant="outline" size="sm" onClick={() => setEditingMaxes(true)}>
-                  Edit Maxes
-                </Button>
-              ) : (
-                <div className="edit-actions">
-                  <Button variant="ghost" size="sm" onClick={() => {
-                    setEditingMaxes(false);
-                    setNewMaxes(stats?.oneRepMaxes || {});
-                  }}>
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={handleSaveMaxes}
-                    disabled={savingMaxes}
-                  >
-                    {savingMaxes ? 'Saving...' : 'Save'}
-                  </Button>
-                </div>
-              )}
+            <h2>One Rep Maxes</h2>
+
+            {/* Exercise Dropdown */}
+            <div className="exercise-selector">
+              <select
+                value={selectedExercise}
+                onChange={handleExerciseSelect}
+                className="exercise-dropdown"
+              >
+                <option value="">Select an exercise...</option>
+                {exercises.map(ex => {
+                  const hasMax = getMaxForExercise(ex.name);
+                  return (
+                    <option key={ex._id} value={ex.name}>
+                      {ex.name} {hasMax ? `(${hasMax} lbs)` : ''}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
 
-            {editingMaxes ? (
-              <div className="maxes-edit-grid">
-                {Object.entries(newMaxes).map(([exercise, value]) => (
-                  <div key={exercise} className="max-edit-item">
-                    <Input
-                      label={exercise}
+            {/* Selected Exercise Display/Edit */}
+            {selectedExercise && (
+              <div className="selected-max-display">
+                <div className="selected-exercise-name">{selectedExercise}</div>
+                {editingMax === selectedExercise ? (
+                  <div className="max-edit-inline">
+                    <input
                       type="number"
-                      value={value}
-                      onChange={(e) => handleMaxChange(exercise, e.target.value)}
-                      placeholder="Enter weight"
-                      hint="lbs"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, selectedExercise)}
+                      placeholder="Enter 1RM"
+                      className="max-input"
+                      autoFocus
                     />
+                    <span className="max-unit">lbs</span>
+                    <button
+                      className="save-max-btn"
+                      onClick={() => handleSaveMax(selectedExercise)}
+                      disabled={savingMax}
+                    >
+                      {savingMax ? '...' : 'Save'}
+                    </button>
+                    <button
+                      className="cancel-max-btn"
+                      onClick={handleCancelEdit}
+                    >
+                      Cancel
+                    </button>
                   </div>
-                ))}
-                <button className="add-exercise-btn" onClick={handleAddExercise}>
-                  + Add Exercise
-                </button>
+                ) : (
+                  <div className="max-value-display">
+                    {getMaxForExercise(selectedExercise) ? (
+                      <>
+                        <span className="max-value">{getMaxForExercise(selectedExercise)} lbs</span>
+                        <button
+                          className="edit-max-btn"
+                          onClick={() => handleStartEdit(selectedExercise)}
+                        >
+                          Edit
+                        </button>
+                      </>
+                    ) : (
+                      <span className="no-max-message">No max recorded - enter one above</span>
+                    )}
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="maxes-display-grid">
-                {stats?.oneRepMaxes && Object.keys(stats.oneRepMaxes).length > 0 ? (
-                  Object.entries(stats.oneRepMaxes).map(([exercise, value]) => (
-                    <div key={exercise} className="max-display-item">
+            )}
+
+            {/* All Recorded Maxes */}
+            {stats?.oneRepMaxes && Object.keys(stats.oneRepMaxes).length > 0 && (
+              <div className="recorded-maxes">
+                <h3>Your Recorded Maxes</h3>
+                <div className="maxes-display-grid">
+                  {Object.entries(stats.oneRepMaxes).map(([exercise, value]) => (
+                    <div
+                      key={exercise}
+                      className={`max-display-item ${selectedExercise === exercise ? 'selected' : ''}`}
+                      onClick={() => {
+                        setSelectedExercise(exercise);
+                        setEditingMax(null);
+                      }}
+                    >
                       <span className="exercise-name">{exercise}</span>
                       <span className="exercise-max">{value} lbs</span>
                     </div>
-                  ))
-                ) : (
-                  <div className="no-maxes">
-                    <p>No one rep maxes recorded yet.</p>
-                    <Button variant="outline" onClick={() => setEditingMaxes(true)}>
-                      Add Your Maxes
-                    </Button>
-                  </div>
-                )}
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(!stats?.oneRepMaxes || Object.keys(stats.oneRepMaxes).length === 0) && !selectedExercise && (
+              <div className="no-maxes">
+                <p>No one rep maxes recorded yet.</p>
+                <p className="hint">Select an exercise above to add your first max!</p>
               </div>
             )}
           </Card>

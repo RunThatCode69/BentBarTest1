@@ -406,11 +406,46 @@ const getWorkoutByDate = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get available exercises for athlete (defaults + coach's custom exercises)
+ * @route   GET /api/athlete/exercises
+ * @access  Private (Athlete only)
+ */
+const getExercises = async (req, res) => {
+  try {
+    const athlete = await Athlete.findOne({ userId: req.user._id });
+
+    if (!athlete) {
+      return res.status(404).json({ message: 'Athlete profile not found' });
+    }
+
+    // Get custom exercises created by the team's coach
+    const team = await Team.findById(athlete.teamId);
+    let customExercises = [];
+
+    if (team && team.coachId) {
+      customExercises = await Exercise.find({ coachId: team.coachId })
+        .select('_id name category youtubeUrl')
+        .lean();
+    }
+
+    res.json({
+      success: true,
+      customExercises
+    });
+
+  } catch (error) {
+    console.error('Get exercises error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getStats,
   logStat,
   updateMax,
   getWorkouts,
-  getWorkoutByDate
+  getWorkoutByDate,
+  getExercises
 };
