@@ -4,6 +4,8 @@ import api from '../../services/api';
 import AthleteStatsPanel from './AthleteStatsPanel';
 import CreateWorkoutPanel from './CreateWorkoutPanel';
 import AthleteCenterPanel from './AthleteCenterPanel';
+import Button from '../common/Button';
+import Modal from '../common/Modal';
 import './CoachDashboard.css';
 
 const CoachDashboard = () => {
@@ -16,6 +18,13 @@ const CoachDashboard = () => {
   const [editingTeamId, setEditingTeamId] = useState(null);
   const [editingTeamName, setEditingTeamName] = useState('');
   const [savingTeamName, setSavingTeamName] = useState(false);
+
+  // Add team modal state
+  const [showAddTeamModal, setShowAddTeamModal] = useState(false);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [newTeamSport, setNewTeamSport] = useState('');
+  const [addingTeam, setAddingTeam] = useState(false);
+  const [addTeamError, setAddTeamError] = useState(null);
 
 
   const fetchDashboard = async () => {
@@ -82,6 +91,54 @@ const CoachDashboard = () => {
       handleSaveTeamName(teamId);
     } else if (e.key === 'Escape') {
       handleCancelEditTeam();
+    }
+  };
+
+  // Open add team modal
+  const handleOpenAddTeam = () => {
+    setNewTeamName('');
+    setNewTeamSport('');
+    setAddTeamError(null);
+    setShowAddTeamModal(true);
+  };
+
+  // Close add team modal
+  const handleCloseAddTeam = () => {
+    setShowAddTeamModal(false);
+    setNewTeamName('');
+    setNewTeamSport('');
+    setAddTeamError(null);
+  };
+
+  // Create new team
+  const handleAddTeam = async () => {
+    if (!newTeamName.trim() || !newTeamSport.trim()) {
+      setAddTeamError('Please enter both team name and sport');
+      return;
+    }
+
+    setAddingTeam(true);
+    setAddTeamError(null);
+
+    try {
+      await api.post('/coach/teams', {
+        teamName: newTeamName.trim(),
+        sport: newTeamSport.trim()
+      });
+
+      // Success - close modal and refresh dashboard
+      setShowAddTeamModal(false);
+      setNewTeamName('');
+      setNewTeamSport('');
+      fetchDashboard();
+    } catch (err) {
+      if (err.response?.data?.code === 'TEAM_LIMIT_REACHED') {
+        setAddTeamError('You have reached your team limit. Please purchase additional team slots to add more teams.');
+      } else {
+        setAddTeamError(err.response?.data?.message || 'Failed to create team. Please try again.');
+      }
+    } finally {
+      setAddingTeam(false);
     }
   };
 
@@ -159,6 +216,17 @@ const CoachDashboard = () => {
               <span className="access-code">Code: {team.accessCode}</span>
             </div>
           ))}
+          <button
+            className="add-team-btn"
+            onClick={handleOpenAddTeam}
+            title="Add new team"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Add Team</span>
+          </button>
         </div>
       </div>
 
@@ -189,6 +257,57 @@ const CoachDashboard = () => {
           />
         </div>
       </div>
+
+      {/* Add Team Modal */}
+      <Modal
+        isOpen={showAddTeamModal}
+        onClose={handleCloseAddTeam}
+        title="Add New Team"
+        footer={
+          <>
+            <Button variant="ghost" onClick={handleCloseAddTeam}>Cancel</Button>
+            <Button
+              variant="primary"
+              onClick={handleAddTeam}
+              loading={addingTeam}
+              disabled={!newTeamName.trim() || !newTeamSport.trim()}
+            >
+              Create Team
+            </Button>
+          </>
+        }
+      >
+        <div className="add-team-form">
+          {addTeamError && (
+            <div className="add-team-error">
+              {addTeamError}
+            </div>
+          )}
+          <div className="form-group">
+            <label htmlFor="teamName">Team Name</label>
+            <input
+              id="teamName"
+              type="text"
+              value={newTeamName}
+              onChange={(e) => setNewTeamName(e.target.value)}
+              placeholder="e.g., Varsity Football"
+              className="form-input"
+              autoFocus
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="teamSport">Sport</label>
+            <input
+              id="teamSport"
+              type="text"
+              value={newTeamSport}
+              onChange={(e) => setNewTeamSport(e.target.value)}
+              placeholder="e.g., Football"
+              className="form-input"
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
