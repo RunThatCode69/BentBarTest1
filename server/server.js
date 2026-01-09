@@ -7,6 +7,34 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
+// ============================================
+// CRITICAL: Validate required environment variables at startup
+// ============================================
+const requiredEnvVars = ['JWT_SECRET', 'MONGODB_URI'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  console.error('FATAL ERROR: Missing required environment variables:');
+  missingVars.forEach(varName => console.error(`  - ${varName}`));
+  console.error('\nPlease set these variables in your .env file');
+  process.exit(1);
+}
+
+// Validate JWT_SECRET strength
+if (process.env.JWT_SECRET.length < 32) {
+  console.error('FATAL ERROR: JWT_SECRET must be at least 32 characters long');
+  console.error(`Current length: ${process.env.JWT_SECRET.length}`);
+  process.exit(1);
+}
+
+// Warn about production configuration
+if (process.env.NODE_ENV === 'production') {
+  if (process.env.JWT_SECRET === 'your-super-secret-jwt-key-change-this') {
+    console.error('FATAL ERROR: Using default JWT_SECRET in production is not allowed');
+    process.exit(1);
+  }
+}
+
 const connectDB = require('./config/db');
 const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 

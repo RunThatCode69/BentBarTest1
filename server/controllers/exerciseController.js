@@ -18,9 +18,15 @@ const getExercises = async (req, res) => {
       query.category = category;
     }
 
-    // Search by name
+    // Search by name - with ReDoS protection
     if (search) {
-      query.name = { $regex: search, $options: 'i' };
+      // Limit search length to prevent abuse
+      if (search.length > 100) {
+        return res.status(400).json({ message: 'Search term too long (max 100 characters)' });
+      }
+      // Escape special regex characters to prevent ReDoS attacks
+      const sanitizedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.name = { $regex: sanitizedSearch, $options: 'i' };
     }
 
     // Include global exercises and user-created exercises
