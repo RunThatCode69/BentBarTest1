@@ -197,22 +197,21 @@ const createTeam = async (req, res) => {
     }
 
     // Check if coach has paid for enough teams
-    // Bypass for testing/troubleshooting
-    const bypassEmails = ['bpoulter2019@gmail.com'];
-    const isBypassed = bypassEmails.includes(req.user.email);
+    // Admin/test accounts get elevated limits (not infinite to avoid system issues)
+    const adminEmails = ['bpoulter2019@gmail.com'];
+    const isAdmin = adminEmails.includes(req.user.email);
+    const ADMIN_TEAM_LIMIT = 100;
 
-    if (!isBypassed) {
-      const currentTeamCount = coach.teams?.length || 0;
-      const paidTeamSlots = coach.paidTeams || 0;
+    const currentTeamCount = coach.teams?.length || 0;
+    const paidTeamSlots = isAdmin ? ADMIN_TEAM_LIMIT : (coach.paidTeams || 0);
 
-      if (currentTeamCount >= paidTeamSlots) {
-        return res.status(403).json({
-          message: 'Team limit reached. Please purchase additional team slots to add more teams.',
-          code: 'TEAM_LIMIT_REACHED',
-          currentTeams: currentTeamCount,
-          paidTeams: paidTeamSlots
-        });
-      }
+    if (currentTeamCount >= paidTeamSlots) {
+      return res.status(403).json({
+        message: 'Team limit reached. Please purchase additional team slots to add more teams.',
+        code: 'TEAM_LIMIT_REACHED',
+        currentTeams: currentTeamCount,
+        paidTeams: paidTeamSlots
+      });
     }
 
     const accessCode = await generateAccessCode();
