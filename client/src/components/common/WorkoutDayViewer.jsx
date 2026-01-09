@@ -436,6 +436,9 @@ const WorkoutDayViewer = ({
         {/* Edit button for coaches */}
         {canEdit && !isEditing && (
           <div className="viewer-header">
+            {dayWorkout.title && (
+              <h4 className="workout-title">{dayWorkout.title}</h4>
+            )}
             <Button variant="primary" onClick={() => setIsEditing(true)}>
               Edit This Workout
             </Button>
@@ -581,6 +584,19 @@ const WorkoutDayViewer = ({
         {/* Edit Mode - Show editable list with add form */}
         {isEditing && (
           <div className="editor-section">
+            {/* Workout Title Input */}
+            <div className="workout-title-input">
+              <Input
+                label="Workout Name (optional)"
+                value={dayWorkout.title || ''}
+                onChange={(e) => {
+                  setDayWorkout(prev => ({ ...prev, title: e.target.value }));
+                  setHasChanges(true);
+                }}
+                placeholder="e.g., Upper Body Day, Heavy Squats, etc."
+              />
+            </div>
+
             {/* Add Exercise Form - shows at top when toggled */}
             {showAddExerciseForm && (
               <div className="add-exercise-form add-exercise-form-top">

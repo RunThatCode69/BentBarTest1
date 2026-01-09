@@ -4,6 +4,22 @@
 
 /* Header with Edit button */
 .viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.workout-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-800);
+  margin: 0;
+}
+
+.workout-title-input {
   margin-bottom: var(--spacing-4);
   padding-bottom: var(--spacing-4);
   border-bottom: 1px solid var(--color-gray-200);
