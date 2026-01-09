@@ -72,6 +72,13 @@ const WorkoutDayViewer = ({
     }
   }, [isOpen]);
 
+  // Show add exercise form when entering edit mode
+  useEffect(() => {
+    if (isEditing) {
+      setShowAddExerciseForm(true);
+    }
+  }, [isEditing]);
+
   const handleExerciseSelect = (e) => {
     const selectedId = e.target.value;
     const selectedExercise = exercises.find(ex => ex._id === selectedId);
@@ -159,7 +166,6 @@ const WorkoutDayViewer = ({
       youtubeUrl: '',
       setConfigs: [{ sets: '', reps: '', percentage: '', weight: '' }]
     });
-    setShowAddExerciseForm(false);
     setHasChanges(true);
   };
 
@@ -406,7 +412,8 @@ const WorkoutDayViewer = ({
           <div className="modal-footer-with-add">
             <Button
               variant="outline"
-              onClick={() => setShowAddExerciseForm(true)}
+              onClick={handleAddExercise}
+              disabled={!newExercise.exerciseName || !newExercise.setConfigs[0].sets || !newExercise.setConfigs[0].reps}
             >
               + Add Exercise
             </Button>
@@ -671,22 +678,6 @@ const WorkoutDayViewer = ({
                   onChange={(e) => setNewExercise(prev => ({ ...prev, youtubeUrl: e.target.value }))}
                   placeholder="https://youtube.com/watch?v=..."
                 />
-
-                <div className="add-exercise-actions">
-                  <Button
-                    variant="ghost"
-                    onClick={() => setShowAddExerciseForm(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onClick={handleAddExercise}
-                    disabled={!newExercise.exerciseName || !newExercise.setConfigs[0].sets || !newExercise.setConfigs[0].reps}
-                  >
-                    Add Exercise
-                  </Button>
-                </div>
               </div>
             )}
 
