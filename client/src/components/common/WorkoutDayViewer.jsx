@@ -42,6 +42,9 @@ const WorkoutDayViewer = ({
     setConfigs: [{ sets: '', reps: '', percentage: '', weight: '' }]
   });
 
+  // Show/hide add exercise form
+  const [showAddExerciseForm, setShowAddExerciseForm] = useState(false);
+
   // Create Exercise Modal state
   const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
   const [creatingExercise, setCreatingExercise] = useState(false);
@@ -65,6 +68,7 @@ const WorkoutDayViewer = ({
       setHasChanges(false);
       setEditingExerciseIndex(null);
       setEditingExercise(null);
+      setShowAddExerciseForm(false);
     }
   }, [isOpen]);
 
@@ -155,6 +159,8 @@ const WorkoutDayViewer = ({
       youtubeUrl: '',
       setConfigs: [{ sets: '', reps: '', percentage: '', weight: '' }]
     });
+    setShowAddExerciseForm(false);
+    setHasChanges(true);
   };
 
   const handleRemoveExercise = (index) => {
@@ -400,9 +406,9 @@ const WorkoutDayViewer = ({
           <div className="modal-footer-with-add">
             <Button
               variant="outline"
-              onClick={() => document.getElementById('add-exercise-section')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => setShowAddExerciseForm(!showAddExerciseForm)}
             >
-              + Add Exercise
+              {showAddExerciseForm ? 'Hide Form' : '+ Add Exercise'}
             </Button>
             <div className="modal-footer-right">
               <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel Edit</Button>
@@ -568,6 +574,122 @@ const WorkoutDayViewer = ({
         {/* Edit Mode - Show editable list with add form */}
         {isEditing && (
           <div className="editor-section">
+            {/* Add Exercise Form - shows at top when toggled */}
+            {showAddExerciseForm && (
+              <div className="add-exercise-form add-exercise-form-top">
+                <div className="add-exercise-header">
+                  <h5>Add Exercise</h5>
+                  <button
+                    type="button"
+                    className="create-exercise-link"
+                    onClick={() => setShowCreateExerciseModal(true)}
+                  >
+                    + Create New Exercise
+                  </button>
+                </div>
+
+                <Dropdown
+                  label="Exercise"
+                  value={newExercise.exerciseId}
+                  onChange={handleExerciseSelect}
+                  options={exerciseOptions}
+                  placeholder="Select an exercise"
+                />
+
+                <div className="set-configs-section">
+                  <div className="set-configs-header">
+                    <span className="set-configs-label">Set Programming</span>
+                    <button
+                      type="button"
+                      className="add-set-config-btn"
+                      onClick={addSetConfig}
+                    >
+                      + Add Set
+                    </button>
+                  </div>
+
+                  {newExercise.setConfigs.map((config, index) => (
+                    <div key={index} className="set-config-row">
+                      <div className="exercise-inputs">
+                        <Input
+                          label={index === 0 ? "Sets" : ""}
+                          type="number"
+                          value={config.sets}
+                          onChange={(e) => handleSetConfigChange(index, 'sets', e.target.value)}
+                          placeholder="3"
+                          min="1"
+                        />
+                        <Input
+                          label={index === 0 ? "Reps" : ""}
+                          value={config.reps}
+                          onChange={(e) => handleSetConfigChange(index, 'reps', e.target.value)}
+                          placeholder="5 or 8-10"
+                        />
+                        <Input
+                          label={index === 0 ? "% of 1RM" : ""}
+                          type="number"
+                          value={config.percentage}
+                          onChange={(e) => handleSetConfigChange(index, 'percentage', e.target.value)}
+                          placeholder="75"
+                          min="0"
+                          max="120"
+                        />
+                        <Input
+                          label={index === 0 ? "Weight (lbs)" : ""}
+                          type="number"
+                          value={config.weight}
+                          onChange={(e) => handleSetConfigChange(index, 'weight', e.target.value)}
+                          placeholder="135"
+                        />
+                      </div>
+                      {newExercise.setConfigs.length > 1 && (
+                        <button
+                          type="button"
+                          className="remove-set-config-btn"
+                          onClick={() => removeSetConfig(index)}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <p className="set-config-hint">
+                    Add multiple rows for complex programming (e.g., 3@50%, 3@60%, 3@70%)
+                  </p>
+                </div>
+
+                <Input
+                  label="Notes"
+                  value={newExercise.notes}
+                  onChange={(e) => setNewExercise(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Optional notes for athletes"
+                />
+
+                <Input
+                  label="Video Example"
+                  value={newExercise.youtubeUrl}
+                  onChange={(e) => setNewExercise(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                  placeholder="https://youtube.com/watch?v=..."
+                />
+
+                <div className="add-exercise-actions">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowAddExerciseForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleAddExercise}
+                    disabled={!newExercise.exerciseName || !newExercise.setConfigs[0].sets || !newExercise.setConfigs[0].reps}
+                  >
+                    Add Exercise
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <h4>Exercises</h4>
 
             {dayWorkout.exercises.length > 0 && (
@@ -622,110 +744,11 @@ const WorkoutDayViewer = ({
               </div>
             )}
 
-            <div id="add-exercise-section" className="add-exercise-form">
-              <div className="add-exercise-header">
-                <h5>Add Exercise</h5>
-                <button
-                  type="button"
-                  className="create-exercise-link"
-                  onClick={() => setShowCreateExerciseModal(true)}
-                >
-                  + Create New Exercise
-                </button>
+            {dayWorkout.exercises.length === 0 && !showAddExerciseForm && (
+              <div className="viewer-no-exercises">
+                <p>No exercises yet. Click "+ Add Exercise" to get started.</p>
               </div>
-
-              <Dropdown
-                label="Exercise"
-                value={newExercise.exerciseId}
-                onChange={handleExerciseSelect}
-                options={exerciseOptions}
-                placeholder="Select an exercise"
-              />
-
-              <div className="set-configs-section">
-                <div className="set-configs-header">
-                  <span className="set-configs-label">Set Programming</span>
-                  <button
-                    type="button"
-                    className="add-set-config-btn"
-                    onClick={addSetConfig}
-                  >
-                    + Add Set
-                  </button>
-                </div>
-
-                {newExercise.setConfigs.map((config, index) => (
-                  <div key={index} className="set-config-row">
-                    <div className="exercise-inputs">
-                      <Input
-                        label={index === 0 ? "Sets" : ""}
-                        type="number"
-                        value={config.sets}
-                        onChange={(e) => handleSetConfigChange(index, 'sets', e.target.value)}
-                        placeholder="3"
-                        min="1"
-                      />
-                      <Input
-                        label={index === 0 ? "Reps" : ""}
-                        value={config.reps}
-                        onChange={(e) => handleSetConfigChange(index, 'reps', e.target.value)}
-                        placeholder="5 or 8-10"
-                      />
-                      <Input
-                        label={index === 0 ? "% of 1RM" : ""}
-                        type="number"
-                        value={config.percentage}
-                        onChange={(e) => handleSetConfigChange(index, 'percentage', e.target.value)}
-                        placeholder="75"
-                        min="0"
-                        max="120"
-                      />
-                      <Input
-                        label={index === 0 ? "Weight (lbs)" : ""}
-                        type="number"
-                        value={config.weight}
-                        onChange={(e) => handleSetConfigChange(index, 'weight', e.target.value)}
-                        placeholder="135"
-                      />
-                    </div>
-                    {newExercise.setConfigs.length > 1 && (
-                      <button
-                        type="button"
-                        className="remove-set-config-btn"
-                        onClick={() => removeSetConfig(index)}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <p className="set-config-hint">
-                  Add multiple rows for complex programming (e.g., 3@50%, 3@60%, 3@70%)
-                </p>
-              </div>
-
-              <Input
-                label="Notes"
-                value={newExercise.notes}
-                onChange={(e) => setNewExercise(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Optional notes for athletes"
-              />
-
-              <Input
-                label="Video Example"
-                value={newExercise.youtubeUrl}
-                onChange={(e) => setNewExercise(prev => ({ ...prev, youtubeUrl: e.target.value }))}
-                placeholder="https://youtube.com/watch?v=..."
-              />
-
-              <Button
-                variant="outline"
-                onClick={handleAddExercise}
-                disabled={!newExercise.exerciseName || !newExercise.setConfigs[0].sets || !newExercise.setConfigs[0].reps}
-              >
-                Add Exercise
-              </Button>
-            </div>
+            )}
           </div>
         )}
       </div>
