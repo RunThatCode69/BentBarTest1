@@ -9,6 +9,8 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import SignupSelect from './pages/SignupSelect';
 import TeamProgramInfo from './pages/TeamProgramInfo';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import NotFound from './pages/NotFound';
 
 // Auth Components
@@ -91,6 +93,8 @@ function App() {
           <Route path="/signup/coach" element={<PublicRoute><CoachSignup /></PublicRoute>} />
           <Route path="/signup/athlete" element={<PublicRoute><AthleteSignup /></PublicRoute>} />
           <Route path="/signup/trainer" element={<PublicRoute><TrainerSignup /></PublicRoute>} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+          <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
 
           {/* Coach Routes */}
           <Route

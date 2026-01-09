@@ -35,18 +35,25 @@ const TrainerSignup = () => {
     if (!formData.firstName) errors.firstName = 'First name is required';
     if (!formData.lastName) errors.lastName = 'Last name is required';
     if (!formData.email) errors.email = 'Email is required';
-    if (!formData.password) errors.password = 'Password is required';
-    if (formData.password.length < 8) errors.password = 'Password must be at least 8 characters';
-    if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
+
+    // Password validation - collect all failing requirements
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    } else {
+      const passwordErrors = [];
+      if (formData.password.length < 8) passwordErrors.push('at least 8 characters');
+      if (!/[A-Z]/.test(formData.password)) passwordErrors.push('an uppercase letter');
+      if (!/[a-z]/.test(formData.password)) passwordErrors.push('a lowercase letter');
+      if (!/[0-9]/.test(formData.password)) passwordErrors.push('a number');
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) passwordErrors.push('a special character');
+
+      if (passwordErrors.length > 0) {
+        errors.password = `Password must contain ${passwordErrors.join(', ')}`;
+      }
     }
 
-    // Password requirements
-    if (!/[A-Z]/.test(formData.password)) errors.password = 'Password must contain an uppercase letter';
-    if (!/[a-z]/.test(formData.password)) errors.password = 'Password must contain a lowercase letter';
-    if (!/[0-9]/.test(formData.password)) errors.password = 'Password must contain a number';
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
-      errors.password = 'Password must contain a special character';
+    if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
     }
 
     setFormErrors(errors);

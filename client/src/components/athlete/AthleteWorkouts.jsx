@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../common/Navbar';
 import Calendar from '../common/Calendar';
-import WorkoutDayViewer from '../common/WorkoutDayViewer';
+import WorkoutLogModal from './WorkoutLogModal';
 import api from '../../services/api';
 import './AthleteWorkouts.css';
 
@@ -17,20 +17,43 @@ const AthleteWorkouts = () => {
   const [showDayViewer, setShowDayViewer] = useState(false);
   const [viewingWorkout, setViewingWorkout] = useState(null);
 
+  // Fetch workouts on mount and when window gains focus (to catch coach updates)
   useEffect(() => {
     fetchWorkouts();
+
+    // Refetch when user returns to the page
+    const handleFocus = () => {
+      fetchWorkouts();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const fetchWorkouts = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/athlete/workouts');
+
+      // Fetch workouts for a wider range (3 months back, 3 months ahead)
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 3);
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + 3);
+
+      const response = await api.get('/athlete/workouts', {
+        params: {
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0]
+        }
+      });
       const workoutsData = response.data.workouts || [];
       setWorkouts(workoutsData);
 
       // Get program name from first workout if available
       if (workoutsData.length > 0 && workoutsData[0].programName) {
         setProgramName(workoutsData[0].programName);
+      } else {
+        setProgramName('');
       }
     } catch (err) {
       setError('Failed to load workouts');
@@ -126,18 +149,16 @@ const AthleteWorkouts = () => {
         </div>
       </div>
 
-      {/* Day Viewer Modal - Read-only for athletes */}
-      {showDayViewer && viewingWorkout && (
-        <WorkoutDayViewer
-          isOpen={showDayViewer}
-          onClose={() => {
-            setShowDayViewer(false);
-            setViewingWorkout(null);
-          }}
-          workout={viewingWorkout}
-          canEdit={false}
-        />
-      )}
+      {/* Workout Log Modal - Athletes can input their weights */}
+      <WorkoutLogModal
+        isOpen={showDayViewer}
+        onClose={() => {
+          setShowDayViewer(false);
+          setViewingWorkout(null);
+        }}
+        workout={viewingWorkout}
+        date={selectedDate}
+      />
     </div>
   );
 };

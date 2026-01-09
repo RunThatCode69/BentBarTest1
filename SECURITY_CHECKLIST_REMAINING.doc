@@ -1,0 +1,176 @@
+BAR BEND SECOND PRO - SECURITY CHECKLIST
+=========================================
+Date: January 9, 2026
+Status: Remaining Items After Fixes
+
+
+COMPLETED FIXES (Already Done)
+------------------------------
+[X] Section 3: Memory Leaks - Fixed event listener accumulation, added reconnection logic
+[X] Section 4: Rate Limiting - Applied rate limiters to password reset, stats logging, exercise creation
+[X] Section 5: Cascading Failures - Fixed N+1 query, added query timeouts, fixed generateAccessCode
+
+
+=========================================
+REMAINING SECURITY CHECKLIST
+=========================================
+
+
+1. JWT SECURITY ISSUES (CRITICAL)
+---------------------------------
+
+[ ] Add JWT_SECRET validation at startup
+    File: server/server.js
+    Action: Check for required env vars and minimum secret length (32+ chars)
+
+[ ] Implement token blacklist/revocation
+    File: server/controllers/authController.js
+    Action: Add token blacklist for logout (use Redis in production)
+
+[ ] Reduce token expiration time
+    File: server/utils/tokenUtils.js
+    Action: Change from 7 days to 1 hour, implement refresh tokens
+
+
+2. UNBOUNDED QUERIES (HIGH)
+---------------------------
+
+[ ] Add pagination to stats queries
+    File: server/controllers/statsController.js (lines 282-283)
+    Action: Add skip/limit to Athlete.find()
+
+[ ] Add pagination to workout queries
+    File: server/controllers/workoutController.js
+    Action: Add pagination to getWorkouts
+
+[ ] Limit athlete.stats array growth
+    File: server/models/Athlete.js
+    Action: Archive old stats or use capped array
+
+
+3. INPUT VALIDATION & INJECTION (HIGH)
+--------------------------------------
+
+[ ] Fix ReDoS vulnerability in search
+    File: server/controllers/exerciseController.js (lines 22-24)
+    Action: Escape regex special characters in user input
+
+[ ] Add input sanitization on numbers
+    File: server/controllers/athleteController.js (lines 155-156)
+    Action: Validate reps (1-1000) and weight (0-2000)
+
+[ ] Validate date query parameters
+    File: server/controllers/workoutController.js (lines 55-61)
+    Action: Check valid date format before using in query
+
+
+4. SINGLE POINTS OF FAILURE (CRITICAL)
+--------------------------------------
+
+[ ] Remove hardcoded bypass email
+    File: server/controllers/coachController.js (lines 176-178)
+    Action: Move to env var, disable in production
+
+[ ] Implement actual payment service OR disable
+    File: server/services/paymentService.js
+    Action: Replace placeholder with real Stripe integration
+
+[ ] Plan for MongoDB replica set (production)
+    Action: Configure MongoDB Atlas with at least 3-node replica set
+
+[ ] Plan for load balancing (production)
+    Action: Set up multiple Node.js instances behind load balancer
+
+
+5. EVENT LOOP BLOCKING (MEDIUM)
+-------------------------------
+
+[ ] Remove JSON.stringify debug logging
+    File: server/controllers/workoutController.js (lines 192-193, 243)
+    Action: Remove or wrap in setImmediate for dev only
+
+[ ] Consider proper logging library
+    Action: Replace console.log with pino or winston for production
+
+
+6. LOCAL DATA CACHING - ENHANCEMENT (MEDIUM)
+--------------------------------------------
+
+[ ] Implement React Query persistence
+    Action: Add @tanstack/react-query-persist-client for offline data access
+
+[ ] Consider Service Worker for full offline support
+    Action: Cache API responses in IndexedDB for offline access
+
+
+7. MONGODB CONNECTION (HIGH)
+----------------------------
+
+[ ] Add health check endpoint
+    Action: Create GET /api/health endpoint that checks MongoDB connection status
+
+[ ] Add connection pool monitoring
+    Action: Log connection pool stats periodically in production
+
+
+=========================================
+PRIORITY MATRIX
+=========================================
+
+IMMEDIATE (Before Production)
+-----------------------------
+- JWT_SECRET validation at startup
+- Remove hardcoded bypass email
+- Fix ReDoS vulnerability in search
+- Implement/disable payment service
+
+SHORT TERM (1-2 Weeks)
+----------------------
+- Token blacklist for logout
+- Input validation on numbers/dates
+- Reduce token expiration
+- Add pagination to queries
+
+MEDIUM TERM (1 Month)
+---------------------
+- Health check endpoint
+- Proper logging library
+- React Query persistence
+- Remove debug logging
+- Archive old stats
+
+LONG TERM (Production Launch)
+-----------------------------
+- MongoDB replica set
+- Load balancing
+- Service Worker offline support
+- Comprehensive monitoring
+
+
+=========================================
+QUICK REFERENCE: FILES TO UPDATE
+=========================================
+
+server/server.js                      - Add startup checks for JWT_SECRET, MONGODB_URI
+server/controllers/authController.js  - Add token blacklist on logout
+server/controllers/coachController.js - Remove hardcoded bypass email
+server/controllers/exerciseController.js - Escape regex characters in search
+server/controllers/athleteController.js - Validate reps/weight ranges
+server/controllers/workoutController.js - Remove JSON.stringify, validate dates
+server/controllers/statsController.js - Add pagination
+server/utils/tokenUtils.js            - Reduce to 1hr + refresh tokens
+server/services/paymentService.js     - Implement real Stripe or disable
+
+
+=========================================
+COMPLETION TRACKING
+=========================================
+
+Total Remaining Items: 20
+Critical: 4 | High: 8 | Medium: 6 | Low: 2
+
+Check off items as you complete them.
+
+
+-----------------------------------------
+Generated by Claude Code - January 9, 2026

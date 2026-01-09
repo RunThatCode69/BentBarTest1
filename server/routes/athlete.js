@@ -11,7 +11,10 @@ const {
   untrackMax,
   getWorkouts,
   getWorkoutByDate,
-  getExercises
+  getExercises,
+  saveWorkoutLog,
+  getWorkoutLog,
+  getWorkoutLogs
 } = require('../controllers/athleteController');
 
 // All routes require athlete authentication
@@ -34,5 +37,10 @@ router.get('/workouts/:date', getWorkoutByDate);
 
 // Exercises
 router.get('/exercises', getExercises);
+
+// Workout logs (athlete's recorded weights)
+router.get('/workout-logs', getWorkoutLogs);
+router.get('/workout-log/:date', getWorkoutLog);
+router.post('/workout-log', saveWorkoutLog);
 
 module.exports = router;

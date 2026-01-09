@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
@@ -98,9 +98,9 @@ const Welcome = () => {
               Log In
             </Button>
 
-            <a href="/forgot-password" className="forgot-password-link">
+            <Link to="/forgot-password" className="forgot-password-link">
               Forgot Password?
-            </a>
+            </Link>
           </form>
 
           <div className="login-divider">

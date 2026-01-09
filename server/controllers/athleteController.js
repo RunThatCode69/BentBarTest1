@@ -2,6 +2,7 @@ const Athlete = require('../models/Athlete');
 const Team = require('../models/Team');
 const WorkoutProgram = require('../models/WorkoutProgram');
 const Exercise = require('../models/Exercise');
+const WorkoutLog = require('../models/WorkoutLog');
 const { calculateOneRepMax, displayWeight } = require('../utils/calculateOneRepMax');
 
 /**
@@ -530,6 +531,187 @@ const getExercises = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Save workout log (athlete's recorded weights for a workout)
+ * @route   POST /api/athlete/workout-log
+ * @access  Private (Athlete only)
+ */
+const saveWorkoutLog = async (req, res) => {
+  try {
+    const { date, workoutProgramId, exercises, notes } = req.body;
+
+    if (!date || !exercises) {
+      return res.status(400).json({ message: 'Date and exercises are required' });
+    }
+
+    const athlete = await Athlete.findOne({ userId: req.user._id });
+
+    if (!athlete) {
+      return res.status(404).json({ message: 'Athlete profile not found' });
+    }
+
+    // Normalize date to midnight
+    const logDate = new Date(date);
+    logDate.setHours(0, 0, 0, 0);
+
+    // Find existing log or create new one
+    let workoutLog = await WorkoutLog.findOne({
+      athleteId: athlete._id,
+      date: logDate
+    });
+
+    if (workoutLog) {
+      // Update existing log
+      workoutLog.exercises = exercises;
+      workoutLog.workoutProgramId = workoutProgramId || null;
+      workoutLog.notes = notes || '';
+      workoutLog.isCompleted = exercises.some(e =>
+        e.sets && e.sets.some(s => s.completedWeight !== null || s.completedReps !== null)
+      );
+      if (workoutLog.isCompleted && !workoutLog.completedAt) {
+        workoutLog.completedAt = new Date();
+      }
+    } else {
+      // Create new log
+      workoutLog = new WorkoutLog({
+        athleteId: athlete._id,
+        date: logDate,
+        workoutProgramId: workoutProgramId || null,
+        exercises,
+        notes: notes || '',
+        isCompleted: exercises.some(e =>
+          e.sets && e.sets.some(s => s.completedWeight !== null || s.completedReps !== null)
+        )
+      });
+      if (workoutLog.isCompleted) {
+        workoutLog.completedAt = new Date();
+      }
+    }
+
+    await workoutLog.save();
+
+    // Also update athlete's maxes if any PRs were hit
+    for (const exercise of exercises) {
+      if (exercise.sets) {
+        for (const set of exercise.sets) {
+          if (set.completedWeight && set.completedReps) {
+            const estimated1RM = calculateOneRepMax(set.completedWeight, set.completedReps);
+
+            const existingMax = athlete.maxes.find(
+              m => m.exerciseName.toLowerCase() === exercise.exerciseName.toLowerCase()
+            );
+
+            if (!existingMax) {
+              athlete.maxes.push({
+                exerciseId: exercise.exerciseId || null,
+                exerciseName: exercise.exerciseName,
+                oneRepMax: estimated1RM,
+                lastUpdated: new Date()
+              });
+            } else if (estimated1RM > existingMax.oneRepMax) {
+              existingMax.oneRepMax = estimated1RM;
+              existingMax.lastUpdated = new Date();
+            }
+          }
+        }
+      }
+    }
+
+    await athlete.save();
+
+    res.json({
+      success: true,
+      workoutLog,
+      message: 'Workout log saved successfully'
+    });
+
+  } catch (error) {
+    console.error('Save workout log error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * @desc    Get workout log for a specific date
+ * @route   GET /api/athlete/workout-log/:date
+ * @access  Private (Athlete only)
+ */
+const getWorkoutLog = async (req, res) => {
+  try {
+    const { date } = req.params;
+
+    const athlete = await Athlete.findOne({ userId: req.user._id });
+
+    if (!athlete) {
+      return res.status(404).json({ message: 'Athlete profile not found' });
+    }
+
+    // Normalize date to midnight
+    const logDate = new Date(date);
+    logDate.setHours(0, 0, 0, 0);
+
+    const workoutLog = await WorkoutLog.findOne({
+      athleteId: athlete._id,
+      date: logDate
+    });
+
+    res.json({
+      success: true,
+      workoutLog: workoutLog || null
+    });
+
+  } catch (error) {
+    console.error('Get workout log error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * @desc    Get all workout logs in date range
+ * @route   GET /api/athlete/workout-logs
+ * @access  Private (Athlete only)
+ */
+const getWorkoutLogs = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    const athlete = await Athlete.findOne({ userId: req.user._id });
+
+    if (!athlete) {
+      return res.status(404).json({ message: 'Athlete profile not found' });
+    }
+
+    const query = { athleteId: athlete._id };
+
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        query.date.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.date.$lte = end;
+      }
+    }
+
+    const workoutLogs = await WorkoutLog.find(query)
+      .sort({ date: -1 })
+      .limit(100);
+
+    res.json({
+      success: true,
+      workoutLogs
+    });
+
+  } catch (error) {
+    console.error('Get workout logs error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getStats,
@@ -539,5 +721,8 @@ module.exports = {
   untrackMax,
   getWorkouts,
   getWorkoutByDate,
-  getExercises
+  getExercises,
+  saveWorkoutLog,
+  getWorkoutLog,
+  getWorkoutLogs
 };

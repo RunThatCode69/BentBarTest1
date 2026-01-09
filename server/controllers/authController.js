@@ -8,6 +8,8 @@ const { generateToken } = require('../utils/tokenUtils');
 const { validatePassword, validateEmail, validateRequiredFields } = require('../utils/validators');
 const { generateAccessCode } = require('../utils/generateAccessCode');
 const paymentService = require('../services/paymentService');
+const { generateResetToken, sendPasswordResetEmail, sendPasswordResetConfirmation } = require('../services/emailService');
+const crypto = require('crypto');
 
 /**
  * Set HTTP-only cookie with token
@@ -452,8 +454,33 @@ const forgotPassword = async (req, res) => {
       return res.json({ success: true, message: 'If an account exists, a password reset email has been sent' });
     }
 
-    // TODO: Generate reset token and send email
-    // For now, just return success message
+    // Generate reset token
+    const resetToken = generateResetToken();
+
+    // Hash the token for storage (we'll compare hashes later)
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Save to user with 1 hour expiration
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save();
+
+    // Get user's first name from their profile
+    let firstName = 'User';
+    if (user.role === 'coach') {
+      const profile = await Coach.findOne({ userId: user._id });
+      if (profile) firstName = profile.firstName;
+    } else if (user.role === 'athlete') {
+      const profile = await Athlete.findOne({ userId: user._id });
+      if (profile) firstName = profile.firstName;
+    } else if (user.role === 'trainer') {
+      const profile = await Trainer.findOne({ userId: user._id });
+      if (profile) firstName = profile.firstName;
+    }
+
+    // Send the email with the unhashed token (user clicks link with this)
+    await sendPasswordResetEmail(user.email, firstName, resetToken);
+
     res.json({ success: true, message: 'If an account exists, a password reset email has been sent' });
 
   } catch (error) {
@@ -487,8 +514,47 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Passwords do not match' });
     }
 
-    // TODO: Verify reset token and update password
-    res.json({ success: true, message: 'Password reset successfully' });
+    // Hash the token from URL to compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid token
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired reset token. Please request a new password reset.' });
+    }
+
+    // Hash new password
+    const hashedPassword = await hashPassword(password);
+
+    // Update password and clear reset token
+    user.password = hashedPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    // Get user's first name for confirmation email
+    let firstName = 'User';
+    if (user.role === 'coach') {
+      const profile = await Coach.findOne({ userId: user._id });
+      if (profile) firstName = profile.firstName;
+    } else if (user.role === 'athlete') {
+      const profile = await Athlete.findOne({ userId: user._id });
+      if (profile) firstName = profile.firstName;
+    } else if (user.role === 'trainer') {
+      const profile = await Trainer.findOne({ userId: user._id });
+      if (profile) firstName = profile.firstName;
+    }
+
+    // Send confirmation email (don't await - not critical)
+    sendPasswordResetConfirmation(user.email, firstName).catch(err => {
+      console.error('Failed to send password reset confirmation:', err);
+    });
+
+    res.json({ success: true, message: 'Password reset successfully. You can now log in with your new password.' });
 
   } catch (error) {
     console.error('Reset password error:', error);
