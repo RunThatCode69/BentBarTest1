@@ -59,11 +59,12 @@
   color: var(--color-warning, #f59e0b);
 }
 
-/* Calendar View */
-.calendar-view {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-6);
+/* Calendar Container */
+.calendar-container {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-gray-200);
+  overflow: hidden;
 }
 
 .calendar-section .card,

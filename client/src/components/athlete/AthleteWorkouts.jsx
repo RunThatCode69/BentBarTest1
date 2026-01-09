@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../common/Navbar';
-import Card from '../common/Card';
 import Calendar from '../common/Calendar';
 import WorkoutDayViewer from '../common/WorkoutDayViewer';
 import api from '../../services/api';
@@ -12,6 +11,7 @@ const AthleteWorkouts = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [view, setView] = useState('threeWeeks');
 
   // Day viewer modal state
   const [showDayViewer, setShowDayViewer] = useState(false);
@@ -40,16 +40,24 @@ const AthleteWorkouts = () => {
     }
   };
 
-  const getWorkoutDates = () => {
+  // Format workouts for Calendar component (same format as coach)
+  const getCalendarWorkouts = () => {
     return workouts
       .filter(w => w.exercises && w.exercises.length > 0)
-      .map(w => new Date(w.date));
+      .map(w => ({
+        date: w.date,
+        exercises: w.exercises
+      }));
   };
 
   const getWorkoutForDate = (date) => {
-    return workouts.find(
-      w => new Date(w.date).toDateString() === date.toDateString()
-    );
+    return workouts.find(w => {
+      const workoutDate = new Date(w.date);
+      workoutDate.setHours(0, 0, 0, 0);
+      const targetDate = new Date(date);
+      targetDate.setHours(0, 0, 0, 0);
+      return workoutDate.getTime() === targetDate.getTime();
+    });
   };
 
   const handleDateSelect = (date) => {
@@ -107,14 +115,14 @@ const AthleteWorkouts = () => {
 
         {error && <div className="error-banner">{error}</div>}
 
-        <div className="calendar-view">
-          <Card>
-            <Calendar
-              onDateSelect={handleDateSelect}
-              selectedDate={selectedDate}
-              highlightedDates={getWorkoutDates()}
-            />
-          </Card>
+        <div className="calendar-container">
+          <Calendar
+            selectedDate={selectedDate}
+            onDateSelect={handleDateSelect}
+            workouts={getCalendarWorkouts()}
+            view={view}
+            onViewChange={setView}
+          />
         </div>
       </div>
 
