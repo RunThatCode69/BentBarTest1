@@ -65,12 +65,41 @@ const CoachWorkouts = () => {
 
         if (urlTeam) {
           setSelectedTeam(urlTeam);
+
+          // If program is specified, use it
+          if (urlProgram) {
+            setSelectedProgram(urlProgram);
+          } else if (urlTeam !== 'unassigned') {
+            // Auto-select the program assigned to this team (if any)
+            const teamProgram = workoutsRes.data.workouts.find(w =>
+              w.assignedTeams?.some(t => {
+                const teamId = t._id || t;
+                return teamId === urlTeam || teamId?.toString() === urlTeam;
+              })
+            );
+            if (teamProgram) {
+              setSelectedProgram(teamProgram._id);
+            }
+          }
         } else if (fetchedTeams.length === 1) {
           // Auto-select team if coach only has one team
-          setSelectedTeam(fetchedTeams[0]._id);
+          const singleTeamId = fetchedTeams[0]._id;
+          setSelectedTeam(singleTeamId);
+
+          // Auto-select the program assigned to this team (if any)
+          const teamProgram = workoutsRes.data.workouts.find(w =>
+            w.assignedTeams?.some(t => {
+              const teamId = t._id || t;
+              return teamId === singleTeamId || teamId?.toString() === singleTeamId;
+            })
+          );
+          if (teamProgram) {
+            setSelectedProgram(teamProgram._id);
+          }
         }
 
-        if (urlProgram) {
+        // If urlProgram is specified but urlTeam is not, still set the program
+        if (urlProgram && !urlTeam) {
           setSelectedProgram(urlProgram);
         }
       } catch (err) {
