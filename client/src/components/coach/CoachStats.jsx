@@ -16,6 +16,11 @@ const CoachStats = () => {
     exerciseId: ''
   });
 
+  // Edit state for 1RMs
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState('');
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     const fetchTeams = async () => {
       try {
@@ -94,6 +99,64 @@ const CoachStats = () => {
     }
   };
 
+  // Start editing a 1RM value
+  const startEdit = (stat, index) => {
+    if (stat.type !== '1RM') return; // Only allow editing 1RMs
+    setEditingId(`${stat.athleteId}-${stat.exerciseName}-${index}`);
+    setEditValue(stat.value.toString());
+  };
+
+  // Cancel editing
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  // Save edited 1RM
+  const saveEdit = async (stat) => {
+    const newValue = parseFloat(editValue);
+    if (isNaN(newValue) || newValue <= 0) {
+      alert('Please enter a valid weight');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await api.put(`/coach/athletes/${stat.athleteId}/max`, {
+        exerciseName: stat.exerciseName,
+        exerciseId: stat.exerciseId,
+        oneRepMax: newValue
+      });
+
+      // Update local state
+      setStats(prev => prev.map((s, i) => {
+        if (s.athleteId === stat.athleteId &&
+            s.exerciseName === stat.exerciseName &&
+            s.type === '1RM') {
+          return { ...s, value: newValue, date: new Date().toISOString() };
+        }
+        return s;
+      }));
+
+      setEditingId(null);
+      setEditValue('');
+    } catch (err) {
+      console.error('Failed to update max:', err);
+      alert('Failed to update max');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Handle Enter key to save
+  const handleKeyDown = (e, stat) => {
+    if (e.key === 'Enter') {
+      saveEdit(stat);
+    } else if (e.key === 'Escape') {
+      cancelEdit();
+    }
+  };
+
   const teamOptions = [
     { value: '', label: 'All Teams' },
     ...teams.map(t => ({ value: t._id, label: t.teamName }))
@@ -167,25 +230,66 @@ const CoachStats = () => {
                 </tr>
               </thead>
               <tbody>
-                {stats.map((stat, index) => (
-                  <tr key={`${stat.athleteId}-${stat.exerciseName}-${index}`}>
-                    <td className="athlete-name">{stat.athleteName}</td>
-                    <td>{stat.teamName}</td>
-                    <td>{stat.exerciseName}</td>
-                    <td className="stat-value">
-                      {stat.value} lbs
-                      {stat.reps && <span className="reps"> x {stat.reps}</span>}
-                    </td>
-                    <td>
-                      <span className={`badge ${stat.type === '1RM' ? 'badge-primary' : 'badge-gray'}`}>
-                        {stat.type}
-                      </span>
-                    </td>
-                    <td className="stat-date">
-                      {new Date(stat.date).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
+                {stats.map((stat, index) => {
+                  const rowId = `${stat.athleteId}-${stat.exerciseName}-${index}`;
+                  const isEditing = editingId === rowId;
+
+                  return (
+                    <tr key={rowId}>
+                      <td className="athlete-name">{stat.athleteName}</td>
+                      <td>{stat.teamName}</td>
+                      <td>{stat.exerciseName}</td>
+                      <td className="stat-value">
+                        {isEditing ? (
+                          <div className="edit-value-container">
+                            <input
+                              type="number"
+                              className="edit-value-input"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onKeyDown={(e) => handleKeyDown(e, stat)}
+                              autoFocus
+                              disabled={saving}
+                            />
+                            <span className="edit-unit">lbs</span>
+                            <button
+                              className="edit-save-btn"
+                              onClick={() => saveEdit(stat)}
+                              disabled={saving}
+                            >
+                              {saving ? '...' : '✓'}
+                            </button>
+                            <button
+                              className="edit-cancel-btn"
+                              onClick={cancelEdit}
+                              disabled={saving}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <span
+                            className={stat.type === '1RM' ? 'editable-value' : ''}
+                            onClick={() => startEdit(stat, index)}
+                            title={stat.type === '1RM' ? 'Click to edit' : ''}
+                          >
+                            {stat.value} lbs
+                            {stat.reps && <span className="reps"> x {stat.reps}</span>}
+                            {stat.type === '1RM' && <span className="edit-hint">✎</span>}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <span className={`badge ${stat.type === '1RM' ? 'badge-primary' : 'badge-gray'}`}>
+                          {stat.type}
+                        </span>
+                      </td>
+                      <td className="stat-date">
+                        {new Date(stat.date).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

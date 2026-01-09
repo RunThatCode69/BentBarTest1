@@ -15,7 +15,8 @@ const {
   getAllStats,
   getDebugInfo,
   getAthleteWorkoutLogs,
-  getTeamWorkoutLogs
+  getTeamWorkoutLogs,
+  updateAthleteMax
 } = require('../controllers/coachController');
 
 // All routes require coach authentication
@@ -44,5 +45,8 @@ router.get('/teams/:teamId/workout-logs', getTeamWorkoutLogs);
 
 // Athlete workout logs (for coach to view)
 router.get('/athletes/:athleteId/workout-logs', getAthleteWorkoutLogs);
+
+// Update athlete max (1RM)
+router.put('/athletes/:athleteId/max', updateAthleteMax);
 
 module.exports = router;

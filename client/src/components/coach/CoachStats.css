@@ -91,6 +91,106 @@
   font-size: var(--font-size-sm);
 }
 
+/* Editable 1RM Values */
+.editable-value {
+  cursor: pointer;
+  position: relative;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.editable-value:hover {
+  background-color: var(--color-primary-light);
+}
+
+.edit-hint {
+  margin-left: var(--spacing-1);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-400);
+}
+
+.editable-value:hover .edit-hint {
+  opacity: 1;
+}
+
+.edit-value-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.edit-value-input {
+  width: 80px;
+  padding: var(--spacing-1) var(--spacing-2);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.edit-value-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.edit-unit {
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
+}
+
+.edit-save-btn,
+.edit-cancel-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.edit-save-btn {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.edit-save-btn:hover:not(:disabled) {
+  background-color: var(--color-success-dark, #16a34a);
+}
+
+.edit-cancel-btn {
+  background-color: var(--color-gray-300);
+  color: var(--color-gray-700);
+}
+
+.edit-cancel-btn:hover:not(:disabled) {
+  background-color: var(--color-gray-400);
+}
+
+.edit-save-btn:disabled,
+.edit-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Hide number input spinners */
+.edit-value-input::-webkit-outer-spin-button,
+.edit-value-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.edit-value-input[type=number] {
+  -moz-appearance: textfield;
+}
+
 @media (max-width: 768px) {
   .filters-bar {
     flex-direction: column;

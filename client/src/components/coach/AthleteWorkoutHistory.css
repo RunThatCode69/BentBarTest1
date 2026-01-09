@@ -91,6 +91,46 @@
   cursor: not-allowed;
 }
 
+/* Date Filters Section */
+.date-filters-section {
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.date-filters-row {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.date-filters-row .filter-group {
+  min-width: 100px;
+}
+
+.clear-date-btn {
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--color-gray-200);
+  color: var(--color-gray-700);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.clear-date-btn:hover {
+  background-color: var(--color-gray-300);
+}
+
+.filter-summary {
+  margin-top: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+}
+
 /* No History */
 .no-history {
   text-align: center;
@@ -326,6 +366,19 @@
   }
 
   .view-all-btn {
+    width: 100%;
+  }
+
+  .date-filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-filters-row .filter-group {
+    min-width: 100%;
+  }
+
+  .clear-date-btn {
     width: 100%;
   }
 }

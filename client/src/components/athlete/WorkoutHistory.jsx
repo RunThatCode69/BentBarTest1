@@ -10,10 +10,10 @@ const WorkoutHistory = () => {
   const [error, setError] = useState('');
   const [expandedLogs, setExpandedLogs] = useState({});
 
-  // Date filter state
+  // Date filter state - default to current month
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(''); // Empty means all months
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1); // Default to current month
   const [selectedDay, setSelectedDay] = useState(''); // Empty means all days
 
   // Generate year options (last 3 years)

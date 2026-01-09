@@ -15,6 +15,46 @@ const AthleteWorkoutHistory = () => {
   const [error, setError] = useState('');
   const [expandedLogs, setExpandedLogs] = useState({});
 
+  // Date filter state
+  const currentDate = new Date();
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1); // Default to current month
+  const [selectedDay, setSelectedDay] = useState('');
+
+  // Generate year options (last 3 years)
+  const yearOptions = [];
+  for (let y = currentDate.getFullYear(); y >= currentDate.getFullYear() - 2; y--) {
+    yearOptions.push(y);
+  }
+
+  // Month options
+  const monthOptions = [
+    { value: 1, label: 'January' },
+    { value: 2, label: 'February' },
+    { value: 3, label: 'March' },
+    { value: 4, label: 'April' },
+    { value: 5, label: 'May' },
+    { value: 6, label: 'June' },
+    { value: 7, label: 'July' },
+    { value: 8, label: 'August' },
+    { value: 9, label: 'September' },
+    { value: 10, label: 'October' },
+    { value: 11, label: 'November' },
+    { value: 12, label: 'December' }
+  ];
+
+  // Generate day options based on selected month/year
+  const getDaysInMonth = (year, month) => {
+    if (!month) return 31;
+    return new Date(year, month, 0).getDate();
+  };
+
+  const dayOptions = [];
+  const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
+  for (let d = 1; d <= daysInMonth; d++) {
+    dayOptions.push(d);
+  }
+
   useEffect(() => {
     fetchTeams();
   }, []);
@@ -61,17 +101,46 @@ const AthleteWorkoutHistory = () => {
     await fetchWorkoutLogs(athleteId);
   };
 
+  // Build date range based on filters
+  const getDateRange = () => {
+    let startDate, endDate;
+
+    if (selectedDay && selectedMonth) {
+      // Specific day selected
+      startDate = new Date(selectedYear, selectedMonth - 1, selectedDay);
+      endDate = new Date(selectedYear, selectedMonth - 1, selectedDay);
+    } else if (selectedMonth) {
+      // Specific month selected
+      startDate = new Date(selectedYear, selectedMonth - 1, 1);
+      endDate = new Date(selectedYear, selectedMonth, 0); // Last day of month
+    } else {
+      // Default to last 30 days of selected year
+      const today = new Date();
+      if (selectedYear === today.getFullYear()) {
+        // Current year - last 30 days
+        endDate = new Date();
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+      } else {
+        // Past year - last 30 days of that year
+        endDate = new Date(selectedYear, 11, 31);
+        startDate = new Date(selectedYear, 11, 1);
+      }
+    }
+
+    return {
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0]
+    };
+  };
+
   const fetchWorkoutLogs = async (athleteId) => {
     try {
       setLogsLoading(true);
-      // Get last 3 months
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 3);
+      const { startDate, endDate } = getDateRange();
 
       const response = await api.get(`/coach/athletes/${athleteId}/workout-logs`, {
-        params: {
-          startDate: startDate.toISOString().split('T')[0]
-        }
+        params: { startDate, endDate }
       });
       setWorkoutLogs(response.data.workoutLogs || []);
     } catch (err) {
@@ -88,14 +157,10 @@ const AthleteWorkoutHistory = () => {
     try {
       setLogsLoading(true);
       setSelectedAthlete('all');
-
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 1);
+      const { startDate, endDate } = getDateRange();
 
       const response = await api.get(`/coach/teams/${selectedTeam}/workout-logs`, {
-        params: {
-          startDate: startDate.toISOString().split('T')[0]
-        }
+        params: { startDate, endDate }
       });
       setWorkoutLogs(response.data.workoutLogs || []);
     } catch (err) {
@@ -104,6 +169,37 @@ const AthleteWorkoutHistory = () => {
     } finally {
       setLogsLoading(false);
     }
+  };
+
+  // Refetch when date filters change (only if athlete/team already selected)
+  useEffect(() => {
+    if (selectedAthlete === 'all' && selectedTeam) {
+      fetchTeamWorkoutLogs();
+    } else if (selectedAthlete && selectedAthlete !== 'all') {
+      fetchWorkoutLogs(selectedAthlete);
+    }
+  }, [selectedYear, selectedMonth, selectedDay]);
+
+  const handleYearChange = (year) => {
+    setSelectedYear(parseInt(year));
+    if (selectedDay > getDaysInMonth(parseInt(year), selectedMonth)) {
+      setSelectedDay('');
+    }
+  };
+
+  const handleMonthChange = (month) => {
+    setSelectedMonth(month ? parseInt(month) : '');
+    setSelectedDay('');
+  };
+
+  const handleDayChange = (day) => {
+    setSelectedDay(day ? parseInt(day) : '');
+  };
+
+  const clearDateFilters = () => {
+    setSelectedYear(currentDate.getFullYear());
+    setSelectedMonth(currentDate.getMonth() + 1);
+    setSelectedDay('');
   };
 
   const formatDate = (dateStr) => {
@@ -202,6 +298,59 @@ const AthleteWorkoutHistory = () => {
             >
               View All Team Logs
             </button>
+          </div>
+
+          {/* Date Filters */}
+          <div className="date-filters-section">
+            <div className="date-filters-row">
+              <div className="filter-group">
+                <label>Year</label>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => handleYearChange(e.target.value)}
+                >
+                  {yearOptions.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Month</label>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => handleMonthChange(e.target.value)}
+                >
+                  <option value="">All Months</option>
+                  {monthOptions.map(month => (
+                    <option key={month.value} value={month.value}>{month.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Day</label>
+                <select
+                  value={selectedDay}
+                  onChange={(e) => handleDayChange(e.target.value)}
+                  disabled={!selectedMonth}
+                >
+                  <option value="">All Days</option>
+                  {dayOptions.map(day => (
+                    <option key={day} value={day}>{day}</option>
+                  ))}
+                </select>
+              </div>
+
+              <button className="clear-date-btn" onClick={clearDateFilters}>
+                Reset Dates
+              </button>
+            </div>
+
+            <div className="filter-summary">
+              Showing: {selectedMonth ? monthOptions.find(m => m.value === selectedMonth)?.label : 'Last 30 days'}
+              {selectedDay ? ` ${selectedDay},` : ','} {selectedYear}
+            </div>
           </div>
         </Card>
 

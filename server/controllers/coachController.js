@@ -773,6 +773,75 @@ const getTeamWorkoutLogs = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Update an athlete's max (1RM)
+ * @route   PUT /api/coach/athletes/:athleteId/max
+ * @access  Private (Coach only)
+ */
+const updateAthleteMax = async (req, res) => {
+  try {
+    const { athleteId } = req.params;
+    const { exerciseName, exerciseId, oneRepMax } = req.body;
+
+    if (!exerciseName || oneRepMax === undefined) {
+      return res.status(400).json({ message: 'Exercise name and 1RM value are required' });
+    }
+
+    const coach = await Coach.findOne({ userId: req.user._id });
+    if (!coach) {
+      return res.status(404).json({ message: 'Coach profile not found' });
+    }
+
+    // Verify this athlete belongs to one of the coach's teams
+    const teams = await Team.find({ coachId: coach._id });
+    const teamIds = teams.map(t => t._id);
+
+    const athlete = await Athlete.findOne({
+      _id: athleteId,
+      teamId: { $in: teamIds }
+    });
+
+    if (!athlete) {
+      return res.status(404).json({ message: 'Athlete not found or not in your teams' });
+    }
+
+    // Find existing max or create new one
+    const existingMaxIndex = athlete.maxes.findIndex(
+      m => m.exerciseName.toLowerCase() === exerciseName.toLowerCase()
+    );
+
+    if (existingMaxIndex !== -1) {
+      // Update existing max
+      athlete.maxes[existingMaxIndex].oneRepMax = oneRepMax;
+      athlete.maxes[existingMaxIndex].lastUpdated = new Date();
+    } else {
+      // Add new max
+      athlete.maxes.push({
+        exerciseId: exerciseId || null,
+        exerciseName,
+        oneRepMax,
+        lastUpdated: new Date()
+      });
+    }
+
+    await athlete.save();
+
+    res.json({
+      success: true,
+      message: 'Athlete max updated successfully',
+      max: {
+        exerciseName,
+        oneRepMax,
+        lastUpdated: new Date()
+      }
+    });
+
+  } catch (error) {
+    console.error('Update athlete max error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getTeams,
@@ -786,5 +855,6 @@ module.exports = {
   getAllStats,
   getDebugInfo,
   getAthleteWorkoutLogs,
-  getTeamWorkoutLogs
+  getTeamWorkoutLogs,
+  updateAthleteMax
 };
