@@ -81,6 +81,17 @@ const Navbar = () => {
                 <span className="dropdown-role">{user?.role}</span>
               </div>
               <div className="dropdown-divider" />
+              <Link
+                to={`/${user?.role}/settings`}
+                className="dropdown-item"
+                onClick={() => setDropdownOpen(false)}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="8" cy="8" r="2" />
+                  <path d="M8 1v2M8 13v2M1 8h2M13 8h2M2.93 2.93l1.41 1.41M11.66 11.66l1.41 1.41M2.93 13.07l1.41-1.41M11.66 4.34l1.41-1.41" />
+                </svg>
+                Settings
+              </Link>
               <button className="dropdown-item" onClick={handleLogout}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                   <path d="M11 3a1 1 0 100 2h1v6h-1a1 1 0 100 2h2a1 1 0 001-1V4a1 1 0 00-1-1h-2z" />

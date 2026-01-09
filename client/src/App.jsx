@@ -27,6 +27,9 @@ import AthleteDashboard from './components/athlete/AthleteDashboard';
 import AthleteStats from './components/athlete/AthleteStats';
 import AthleteWorkouts from './components/athlete/AthleteWorkouts';
 
+// Common Components
+import Settings from './components/common/Settings';
+
 // Layout
 import Navbar from './components/common/Navbar';
 
@@ -130,6 +133,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/coach/settings"
+            element={
+              <ProtectedRoute allowedRoles={['coach']}>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Athlete Routes */}
           <Route
@@ -153,6 +164,24 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['athlete']}>
                 <AthleteWorkouts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/athlete/settings"
+            element={
+              <ProtectedRoute allowedRoles={['athlete']}>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Trainer Routes */}
+          <Route
+            path="/trainer/settings"
+            element={
+              <ProtectedRoute allowedRoles={['trainer']}>
+                <Settings />
               </ProtectedRoute>
             }
           />

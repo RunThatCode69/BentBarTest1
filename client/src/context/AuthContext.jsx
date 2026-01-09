@@ -126,6 +126,16 @@ export const AuthProvider = ({ children }) => {
     setProfile(null);
   }, []);
 
+  const refreshProfile = useCallback(async () => {
+    try {
+      const response = await api.get('/auth/me');
+      setUser(response.data.user);
+      setProfile(response.data.profile);
+    } catch (err) {
+      console.error('Failed to refresh profile:', err);
+    }
+  }, []);
+
   const clearError = () => setError(null);
 
   const value = {
@@ -138,6 +148,7 @@ export const AuthProvider = ({ children }) => {
     registerCoach,
     registerAthlete,
     registerTrainer,
+    refreshProfile,
     clearError
   };
 
