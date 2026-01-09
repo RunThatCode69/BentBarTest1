@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import '../../styles/components.css';
 
 const Button = ({
@@ -10,6 +11,7 @@ const Button = ({
   disabled = false,
   loading = false,
   onClick,
+  href,
   className = '',
   ...props
 }) => {
@@ -22,6 +24,24 @@ const Button = ({
     .filter(Boolean)
     .join(' ');
 
+  const content = loading ? (
+    <>
+      <span className="spinner spinner-sm" style={{ marginRight: '8px' }} />
+      Loading...
+    </>
+  ) : (
+    children
+  );
+
+  // If href is provided, render as a Link
+  if (href && !disabled && !loading) {
+    return (
+      <Link to={href} className={classes} {...props}>
+        {content}
+      </Link>
+    );
+  }
+
   return (
     <button
       type={type}
@@ -30,14 +50,7 @@ const Button = ({
       onClick={onClick}
       {...props}
     >
-      {loading ? (
-        <>
-          <span className="spinner spinner-sm" style={{ marginRight: '8px' }} />
-          Loading...
-        </>
-      ) : (
-        children
-      )}
+      {content}
     </button>
   );
 };

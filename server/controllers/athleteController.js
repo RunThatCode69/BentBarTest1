@@ -118,21 +118,40 @@ const getStats = async (req, res) => {
     const workoutLogs = await WorkoutLog.find({ athleteId: athlete._id })
       .sort({ date: -1 });
 
-    // Count completed workouts
-    const workoutsCompleted = workoutLogs.filter(log => log.isCompleted).length;
+    // Helper function to check if a workout log has any completed sets
+    const hasCompletedSets = (log) => {
+      if (!log.exercises || !Array.isArray(log.exercises)) return false;
+      return log.exercises.some(exercise => {
+        if (!exercise.sets || !Array.isArray(exercise.sets)) return false;
+        return exercise.sets.some(set => {
+          const hasWeight = typeof set.completedWeight === 'number' && set.completedWeight > 0;
+          const hasReps = typeof set.completedReps === 'number' && set.completedReps > 0;
+          return hasWeight || hasReps;
+        });
+      });
+    };
+
+    // Count completed workouts (either isCompleted flag or has actual logged sets)
+    const workoutsCompleted = workoutLogs.filter(log => log.isCompleted || hasCompletedSets(log)).length;
 
     // Calculate total sets and volume from all workout logs
     let totalSets = 0;
     let totalVolume = 0;
 
     workoutLogs.forEach(log => {
-      if (log.exercises) {
+      if (log.exercises && Array.isArray(log.exercises)) {
         log.exercises.forEach(exercise => {
-          if (exercise.sets) {
+          if (exercise.sets && Array.isArray(exercise.sets)) {
             exercise.sets.forEach(set => {
-              if (set.completedWeight !== null && set.completedReps !== null) {
+              // Check if set has actual completed data (not null, not undefined, and is a number)
+              const hasWeight = typeof set.completedWeight === 'number' && set.completedWeight > 0;
+              const hasReps = typeof set.completedReps === 'number' && set.completedReps > 0;
+
+              if (hasWeight || hasReps) {
                 totalSets++;
-                totalVolume += (set.completedWeight || 0) * (set.completedReps || 0);
+                const weight = set.completedWeight || 0;
+                const reps = set.completedReps || 0;
+                totalVolume += weight * reps;
               }
             });
           }
@@ -145,9 +164,9 @@ const getStats = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Get unique dates of completed workouts, sorted descending
+    // Get unique dates of workouts that have completed sets, sorted descending
     const completedDates = workoutLogs
-      .filter(log => log.isCompleted)
+      .filter(log => log.isCompleted || hasCompletedSets(log))
       .map(log => {
         const d = new Date(log.date);
         d.setHours(0, 0, 0, 0);
