@@ -221,74 +221,98 @@ const AthleteStats = () => {
           <Card>
             <h2>One Rep Maxes</h2>
 
-            {/* Exercise Dropdown */}
-            <div className="exercise-selector">
-              <select
-                value={selectedExercise}
-                onChange={handleExerciseSelect}
-                className="exercise-dropdown"
-              >
-                <option value="">Select an exercise...</option>
-                {exercises.map(ex => {
-                  const hasMax = getMaxForExercise(ex.name);
-                  return (
-                    <option key={ex._id} value={ex.name}>
-                      {ex.name} {hasMax ? `(${hasMax} lbs)` : ''}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
+            {/* Dropdown on left, Max entry on right */}
+            <div className="max-entry-row">
+              {/* Exercise Dropdown - Left */}
+              <div className="exercise-selector">
+                <select
+                  value={selectedExercise}
+                  onChange={handleExerciseSelect}
+                  className="exercise-dropdown"
+                >
+                  <option value="">Select an exercise...</option>
+                  {exercises.map(ex => {
+                    const hasMax = getMaxForExercise(ex.name);
+                    return (
+                      <option key={ex._id} value={ex.name}>
+                        {ex.name} {hasMax ? `(${hasMax} lbs)` : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
 
-            {/* Selected Exercise Display/Edit */}
-            {selectedExercise && (
-              <div className="selected-max-display">
-                <div className="selected-exercise-name">{selectedExercise}</div>
-                {editingMax === selectedExercise ? (
-                  <div className="max-edit-inline">
-                    <input
-                      type="number"
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, selectedExercise)}
-                      placeholder="Enter 1RM"
-                      className="max-input"
-                      autoFocus
-                    />
-                    <span className="max-unit">lbs</span>
-                    <button
-                      className="save-max-btn"
-                      onClick={() => handleSaveMax(selectedExercise)}
-                      disabled={savingMax}
-                    >
-                      {savingMax ? '...' : 'Save'}
-                    </button>
-                    <button
-                      className="cancel-max-btn"
-                      onClick={handleCancelEdit}
-                    >
-                      Cancel
-                    </button>
-                  </div>
+              {/* Max Display/Edit - Right */}
+              <div className="max-entry-box">
+                {selectedExercise ? (
+                  editingMax === selectedExercise ? (
+                    <div className="max-edit-inline">
+                      <input
+                        type="number"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, selectedExercise)}
+                        placeholder="Enter 1RM"
+                        className="max-input"
+                        autoFocus
+                      />
+                      <span className="max-unit">lbs</span>
+                      <button
+                        className="save-max-btn"
+                        onClick={() => handleSaveMax(selectedExercise)}
+                        disabled={savingMax}
+                      >
+                        {savingMax ? '...' : 'Save'}
+                      </button>
+                      <button
+                        className="cancel-max-btn"
+                        onClick={handleCancelEdit}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="max-value-display">
+                      {getMaxForExercise(selectedExercise) ? (
+                        <>
+                          <span className="max-value">{getMaxForExercise(selectedExercise)} lbs</span>
+                          <button
+                            className="edit-max-btn"
+                            onClick={() => handleStartEdit(selectedExercise)}
+                          >
+                            Edit
+                          </button>
+                        </>
+                      ) : (
+                        <div className="max-edit-inline">
+                          <input
+                            type="number"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(e, selectedExercise)}
+                            placeholder="Enter 1RM"
+                            className="max-input"
+                            autoFocus
+                          />
+                          <span className="max-unit">lbs</span>
+                          <button
+                            className="save-max-btn"
+                            onClick={() => handleSaveMax(selectedExercise)}
+                            disabled={savingMax}
+                          >
+                            {savingMax ? '...' : 'Save'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )
                 ) : (
-                  <div className="max-value-display">
-                    {getMaxForExercise(selectedExercise) ? (
-                      <>
-                        <span className="max-value">{getMaxForExercise(selectedExercise)} lbs</span>
-                        <button
-                          className="edit-max-btn"
-                          onClick={() => handleStartEdit(selectedExercise)}
-                        >
-                          Edit
-                        </button>
-                      </>
-                    ) : (
-                      <span className="no-max-message">No max recorded - enter one above</span>
-                    )}
+                  <div className="max-placeholder">
+                    <span>Select an exercise to view or enter max</span>
                   </div>
                 )}
               </div>
-            )}
+            </div>
 
             {/* All Recorded Maxes */}
             {stats?.oneRepMaxes && Object.keys(stats.oneRepMaxes).length > 0 && (
