@@ -438,27 +438,31 @@ const WorkoutDayViewer = ({
                         {editingExercise.setConfigs.map((config, configIndex) => (
                           <div key={configIndex} className="edit-set-config-row">
                             <Input
-                              label={configIndex === 0 ? "Sets" : ""}
+                              label="Sets"
+                              className={configIndex === 0 ? '' : 'hide-label-desktop'}
                               type="number"
                               value={config.sets}
                               onChange={(e) => handleEditSetConfigChange(configIndex, 'sets', e.target.value)}
                               placeholder="3"
                             />
                             <Input
-                              label={configIndex === 0 ? "Reps" : ""}
+                              label="Reps"
+                              className={configIndex === 0 ? '' : 'hide-label-desktop'}
                               value={config.reps}
                               onChange={(e) => handleEditSetConfigChange(configIndex, 'reps', e.target.value)}
                               placeholder="5"
                             />
                             <Input
-                              label={configIndex === 0 ? "%" : ""}
+                              label="%"
+                              className={configIndex === 0 ? '' : 'hide-label-desktop'}
                               type="number"
                               value={config.percentage}
                               onChange={(e) => handleEditSetConfigChange(configIndex, 'percentage', e.target.value)}
                               placeholder="75"
                             />
                             <Input
-                              label={configIndex === 0 ? "lbs" : ""}
+                              label="lbs"
+                              className={configIndex === 0 ? '' : 'hide-label-desktop'}
                               type="number"
                               value={config.weight}
                               onChange={(e) => handleEditSetConfigChange(configIndex, 'weight', e.target.value)}

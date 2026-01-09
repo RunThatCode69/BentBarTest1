@@ -12,6 +12,11 @@ const CoachDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Team name editing state
+  const [editingTeamId, setEditingTeamId] = useState(null);
+  const [editingTeamName, setEditingTeamName] = useState('');
+  const [savingTeamName, setSavingTeamName] = useState(false);
+
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -26,6 +31,53 @@ const CoachDashboard = () => {
 
     fetchDashboard();
   }, []);
+
+  // Start editing a team name
+  const handleStartEditTeam = (team) => {
+    setEditingTeamId(team.id);
+    setEditingTeamName(team.teamName);
+  };
+
+  // Cancel editing
+  const handleCancelEditTeam = () => {
+    setEditingTeamId(null);
+    setEditingTeamName('');
+  };
+
+  // Save team name
+  const handleSaveTeamName = async (teamId) => {
+    if (!editingTeamName.trim()) return;
+
+    setSavingTeamName(true);
+    try {
+      await api.put(`/coach/teams/${teamId}`, { teamName: editingTeamName.trim() });
+
+      // Update local state
+      setDashboardData(prev => ({
+        ...prev,
+        teams: prev.teams.map(t =>
+          t.id === teamId ? { ...t, teamName: editingTeamName.trim() } : t
+        )
+      }));
+
+      setEditingTeamId(null);
+      setEditingTeamName('');
+    } catch (err) {
+      console.error('Failed to update team name:', err);
+      alert('Failed to update team name. Please try again.');
+    } finally {
+      setSavingTeamName(false);
+    }
+  };
+
+  // Handle Enter key to save
+  const handleTeamNameKeyDown = (e, teamId) => {
+    if (e.key === 'Enter') {
+      handleSaveTeamName(teamId);
+    } else if (e.key === 'Escape') {
+      handleCancelEditTeam();
+    }
+  };
 
   if (loading) {
     return (
@@ -58,7 +110,43 @@ const CoachDashboard = () => {
         <div className="team-info">
           {dashboardData.teams.map(team => (
             <div key={team.id} className="team-badge">
-              <span className="team-name">{team.teamName}</span>
+              {editingTeamId === team.id ? (
+                <div className="team-name-edit">
+                  <input
+                    type="text"
+                    value={editingTeamName}
+                    onChange={(e) => setEditingTeamName(e.target.value)}
+                    onKeyDown={(e) => handleTeamNameKeyDown(e, team.id)}
+                    className="team-name-input"
+                    autoFocus
+                  />
+                  <div className="team-name-edit-actions">
+                    <button
+                      className="team-edit-btn save"
+                      onClick={() => handleSaveTeamName(team.id)}
+                      disabled={savingTeamName}
+                    >
+                      ✓
+                    </button>
+                    <button
+                      className="team-edit-btn cancel"
+                      onClick={handleCancelEditTeam}
+                      disabled={savingTeamName}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <span
+                  className="team-name editable"
+                  onClick={() => handleStartEditTeam(team)}
+                  title="Click to edit team name"
+                >
+                  {team.teamName}
+                  <span className="edit-icon">✎</span>
+                </span>
+              )}
               <span className="athlete-count">{team.athleteCount} athletes</span>
               <span className="access-code">Code: {team.accessCode}</span>
             </div>

@@ -526,6 +526,13 @@
   }
 }
 
+/* Hide labels on desktop for rows after the first */
+@media (min-width: 481px) {
+  .hide-label-desktop .form-label {
+    display: none;
+  }
+}
+
 @media (max-width: 480px) {
   .exercise-inputs {
     grid-template-columns: 1fr 1fr;
@@ -549,5 +556,10 @@
 
   .viewer-exercise-actions {
     flex-direction: row;
+  }
+
+  /* On mobile, always show labels for all rows */
+  .hide-label-desktop .form-label {
+    display: block;
   }
 }

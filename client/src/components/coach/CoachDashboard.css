@@ -65,6 +65,91 @@
   color: var(--color-gray-900);
 }
 
+/* Editable team name */
+.team-name.editable {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.team-name.editable:hover {
+  color: var(--color-primary);
+}
+
+.team-name .edit-icon {
+  font-size: var(--font-size-xs);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.team-name.editable:hover .edit-icon {
+  opacity: 1;
+}
+
+/* Team name edit mode */
+.team-name-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.team-name-input {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--spacing-1) var(--spacing-2);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  outline: none;
+  width: 100%;
+  min-width: 120px;
+}
+
+.team-name-input:focus {
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.team-name-edit-actions {
+  display: flex;
+  gap: var(--spacing-1);
+}
+
+.team-edit-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all var(--transition-fast);
+}
+
+.team-edit-btn.save {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.team-edit-btn.save:hover {
+  background-color: var(--color-success-dark, #16a34a);
+}
+
+.team-edit-btn.cancel {
+  background-color: var(--color-gray-200);
+  color: var(--color-gray-600);
+}
+
+.team-edit-btn.cancel:hover {
+  background-color: var(--color-gray-300);
+}
+
+.team-edit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .athlete-count {
   font-size: var(--font-size-sm);
   color: var(--color-gray-500);
