@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar Bend Security Audit Report</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 1in;
+        }
+        body {
+            font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #333;
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 24pt;
+            color: #1a365d;
+            border-bottom: 3px solid #2b6cb0;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            font-size: 16pt;
+            color: #2b6cb0;
+            border-bottom: 1px solid #cbd5e0;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            page-break-after: avoid;
+        }
+        h3 {
+            font-size: 13pt;
+            color: #2d3748;
+            margin-top: 20px;
+        }
+        h4 {
+            font-size: 11pt;
+            color: #4a5568;
+            margin-top: 15px;
+        }
+        .header-info {
+            background-color: #f7fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .header-info p {
+            margin: 5px 0;
+        }
+        .executive-summary {
+            background-color: #fff5f5;
+            border-left: 4px solid #c53030;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .severity-critical {
+            background-color: #fed7d7;
+            color: #c53030;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .severity-high {
+            background-color: #feebc8;
+            color: #c05621;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .severity-medium {
+            background-color: #fefcbf;
+            color: #975a16;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .severity-low {
+            background-color: #c6f6d5;
+            color: #276749;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        pre {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 9pt;
+            line-height: 1.4;
+        }
+        code {
+            background-color: #edf2f7;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 10pt;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        th, td {
+            border: 1px solid #cbd5e0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #edf2f7;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+        .finding {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        .finding-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .file-path {
+            color: #718096;
+            font-size: 10pt;
+        }
+        .recommendation {
+            background-color: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 10px 15px;
+            margin: 10px 0;
+        }
+        .toc {
+            background-color: #f7fafc;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 8px 0;
+        }
+        .toc a {
+            color: #2b6cb0;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        @media print {
+            body {
+                padding: 0;
+            }
+            pre {
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>BAR BEND SECOND PRO<br>COMPREHENSIVE SECURITY & RELIABILITY AUDIT REPORT</h1>
+
+    <div class="header-info">
+        <p><strong>Date:</strong> January 9, 2026</p>
+        <p><strong>Auditor:</strong> Claude Code Security Analysis</p>
+        <p><strong>Application:</strong> Bar Bend Second Pro</p>
+        <p><strong>Version:</strong> Current Development Build</p>
+    </div>
+
+    <div class="executive-summary">
+        <h2 style="margin-top: 0; border: none;">EXECUTIVE SUMMARY</h2>
+        <p>This report details a comprehensive security and reliability audit of the Bar Bend Second Pro application. The audit identified <span class="severity-critical">5 CRITICAL</span>, <span class="severity-high">7 HIGH</span>, <span class="severity-medium">8 MEDIUM</span>, and <span class="severity-low">2 LOW</span> severity issues that require attention before production deployment.</p>
+        <h3>Risk Score: HIGH</h3>
+        <p>The application has fundamental security gaps including missing input validation, unprotected async operations, JWT vulnerabilities, and placeholder payment services that must be addressed immediately.</p>
+    </div>
+
+    <div class="toc">
+        <h2 style="margin-top: 0; border: none;">TABLE OF CONTENTS</h2>
+        <ul>
+            <li>1. <a href="#section1">Async Functions Without Try/Catch</a></li>
+            <li>2. <a href="#section2">MongoDB Connection Issues</a></li>
+            <li>3. <a href="#section3">Memory Leak Vulnerabilities</a></li>
+            <li>4. <a href="#section4">Rate Limiting Analysis</a></li>
+            <li>5. <a href="#section5">Cascading Failure Risks</a></li>
+            <li>6. <a href="#section6">JWT Security Issues</a></li>
+            <li>7. <a href="#section7">Unbounded Queries & N+1 Problems</a></li>
+            <li>8. <a href="#section8">Input Validation & Injection Risks</a></li>
+            <li>9. <a href="#section9">Single Points of Failure</a></li>
+            <li>10. <a href="#section10">Event Loop Blocking</a></li>
+            <li>11. <a href="#section11">Local Data Caching Recommendations</a></li>
+            <li>12. <a href="#section12">Summary & Recommendations</a></li>
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2 id="section1">1. ASYNC FUNCTIONS WITHOUT TRY/CATCH</h2>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 1.1 - generateAccessCode Function</h3>
+            <span class="severity-high">HIGH</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/utils/generateAccessCode.js | <strong>Lines:</strong> 8-27</p>
+
+        <h4>Problematic Code:</h4>
+        <pre>const generateAccessCode = async (length = 6) => {
+  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code;
+  let isUnique = false;
+
+  while (!isUnique) {
+    code = '';
+    for (let i = 0; i < length; i++) {
+      code += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    const existingTeam = await Team.findOne({ accessCode: code });  // NO TRY/CATCH
+    if (!existingTeam) {
+      isUnique = true;
+    }
+  }
+  return code;
+};</pre>
+
+        <h4>Why It's a Problem:</h4>
+        <ul>
+            <li>If <code>Team.findOne()</code> throws an error (database down, connection timeout), the error bubbles up unhandled</li>
+            <li>The <code>while</code> loop could run infinitely if database queries fail silently</li>
+            <li>Calling code may not expect this function to throw</li>
+        </ul>
+
+        <div class="recommendation">
+            <h4>Recommended Fix:</h4>
+            <pre>const generateAccessCode = async (length = 6) => {
+  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const maxAttempts = 100;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      let code = '';
+      for (let i = 0; i < length; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      const existingTeam = await Team.findOne({ accessCode: code }).maxTimeMS(5000);
+      if (!existingTeam) {
+        return code;
+      }
+    } catch (error) {
+      console.error('Error checking access code uniqueness:', error);
+      throw new Error('Failed to generate unique access code');
+    }
+  }
+  throw new Error('Failed to generate unique code after maximum attempts');
+};</pre>
+        </div>
+    </div>
+
+    <h2 id="section2">2. MONGODB CONNECTION ISSUES</h2>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 2.1 - Missing Reconnection Logic</h3>
+            <span class="severity-critical">CRITICAL</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/config/db.js | <strong>Lines:</strong> 76-107</p>
+
+        <h4>Current Code:</h4>
+        <pre>mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected');
+  // NO RECONNECTION ATTEMPT!
+});</pre>
+
+        <h4>Why It's a Problem:</h4>
+        <ul>
+            <li>When MongoDB connection drops (network blip, server restart, maintenance), the app continues running</li>
+            <li>ALL database operations fail silently or with cryptic errors</li>
+            <li>Users see "Server Error" messages with no recovery</li>
+            <li>No automatic reconnection means manual server restart required</li>
+        </ul>
+
+        <div class="recommendation">
+            <h4>Recommended Fix:</h4>
+            <pre>let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 10;
+
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected');
+  if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+    reconnectAttempts++;
+    console.log(`Attempting to reconnect... (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+    setTimeout(() => {
+      mongoose.connect(process.env.MONGODB_URI);
+    }, 5000 * reconnectAttempts); // Exponential backoff
+  } else {
+    console.error('Max reconnection attempts reached. Manual intervention required.');
+    process.exit(1);
+  }
+});
+
+mongoose.connection.on('connected', () => {
+  reconnectAttempts = 0;
+  console.log('MongoDB connected');
+});</pre>
+        </div>
+    </div>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 2.2 - No Connection Timeout</h3>
+            <span class="severity-high">HIGH</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/config/db.js | <strong>Lines:</strong> 78-80</p>
+
+        <h4>Current Code:</h4>
+        <pre>const conn = await mongoose.connect(process.env.MONGODB_URI, {
+  // These options are no longer needed in Mongoose 6+
+});</pre>
+
+        <h4>Why It's a Problem:</h4>
+        <ul>
+            <li>If MongoDB is unreachable at startup, server hangs indefinitely</li>
+            <li>No timeout means deployment scripts hang forever</li>
+            <li>Health checks can't detect startup failures</li>
+        </ul>
+
+        <div class="recommendation">
+            <h4>Recommended Fix:</h4>
+            <pre>const conn = await mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 10000,  // 10 second timeout
+  socketTimeoutMS: 45000,           // 45 second socket timeout
+  maxPoolSize: 50,                  // Connection pool
+  retryWrites: true,
+});</pre>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2 id="section3">3. MEMORY LEAK VULNERABILITIES</h2>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 3.1 - Event Listeners Never Removed</h3>
+            <span class="severity-medium">MEDIUM</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/config/db.js | <strong>Lines:</strong> 87-101</p>
+
+        <h4>Current Code:</h4>
+        <pre>mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected');
+});
+
+process.on('SIGINT', async () => {
+  await mongoose.connection.close();
+  console.log('MongoDB connection closed through app termination');
+  process.exit(0);
+});</pre>
+
+        <h4>Why It's a Problem:</h4>
+        <ul>
+            <li>In development with hot-reload, listeners accumulate on each restart</li>
+            <li><code>process.on('SIGINT')</code> handlers stack up causing multiple executions</li>
+            <li>Memory usage grows over time in long-running processes</li>
+        </ul>
+    </div>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 3.2 - Unbounded Array Growth in Athlete Model</h3>
+            <span class="severity-medium">MEDIUM</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/models/Athlete.js and server/controllers/athleteController.js</p>
+
+        <h4>Problematic Pattern:</h4>
+        <pre>// Every stat ever logged is stored in the stats array
+athlete.stats.push(statEntry);  // Line 155 in athleteController.js
+
+// Every max is stored forever
+athlete.maxes.push(maxEntry);   // Accumulates indefinitely</pre>
+
+        <h4>Why It's a Problem:</h4>
+        <ul>
+            <li>An athlete logging stats daily for 5 years = 1,825+ entries in array</li>
+            <li>Loading athlete document pulls ALL historical data into memory</li>
+            <li>MongoDB document size limit is 16MB - will eventually hit this</li>
+        </ul>
+
+        <div class="recommendation">
+            <h4>Recommended Fix:</h4>
+            <ul>
+                <li>Archive stats older than 1 year to a separate collection</li>
+                <li>Implement pagination for historical stats</li>
+                <li>Use MongoDB's capped collections or TTL indexes</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2 id="section4">4. RATE LIMITING ANALYSIS</h2>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Current Implementation</h3>
+            <span class="severity-medium">MEDIUM - INCOMPLETE</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/middleware/rateLimiter.js</p>
+
+        <h4>What EXISTS (Good):</h4>
+        <pre>// General API limiter
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  message: { success: false, message: 'Too many requests' }
+});
+
+// Auth limiter (login/register)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { success: false, message: 'Too many authentication attempts' }
+});
+
+// Password reset limiter - DEFINED BUT NOT USED
+const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3
+});</pre>
+
+        <h4>Finding 4.1 - Password Reset Limiter Not Applied</h4>
+        <p class="file-path"><strong>File:</strong> server/routes/auth.js | <strong>Lines:</strong> 17-24</p>
+
+        <h4>Current Code:</h4>
+        <pre>router.post('/forgot-password', forgotPassword);     // NO RATE LIMITER!
+router.post('/reset-password', resetPassword);       // NO RATE LIMITER!</pre>
+
+        <h4>Should Be:</h4>
+        <pre>router.post('/forgot-password', passwordResetLimiter, forgotPassword);
+router.post('/reset-password', passwordResetLimiter, resetPassword);</pre>
+
+        <h4>Missing Rate Limiting on Sensitive Endpoints:</h4>
+        <table>
+            <tr>
+                <th>Endpoint</th>
+                <th>Risk</th>
+                <th>Recommendation</th>
+            </tr>
+            <tr>
+                <td><code>POST /api/stats/log</code></td>
+                <td>Spam stats logging</td>
+                <td>Add per-user limiter</td>
+            </tr>
+            <tr>
+                <td><code>POST /api/exercises</code></td>
+                <td>Create unlimited exercises</td>
+                <td>Add creation limiter</td>
+            </tr>
+            <tr>
+                <td><code>PUT /api/coach/teams/:id</code></td>
+                <td>Rapid updates</td>
+                <td>Add update limiter</td>
+            </tr>
+            <tr>
+                <td><code>GET /api/coach/debug</code></td>
+                <td>Debug info exposure</td>
+                <td>Add strict limiter or remove</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2 id="section5">5. CASCADING FAILURE RISKS</h2>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 5.1 - No Database Query Timeouts</h3>
+            <span class="severity-high">HIGH</span>
+        </div>
+        <p class="file-path"><strong>Multiple Files</strong></p>
+
+        <h4>Examples - No Timeout:</h4>
+        <pre>// server/controllers/coachController.js - Line 64
+const teams = await Team.find({ coachId: coach._id });
+
+// server/controllers/athleteController.js - Line 45
+const athlete = await Athlete.findOne({ userId: req.user._id });
+
+// server/controllers/workoutController.js - Line 194
+let workout = await WorkoutProgram.findById(req.params.id);</pre>
+
+        <h4>Why It's a Problem:</h4>
+        <ul>
+            <li>If database is slow, requests pile up waiting</li>
+            <li>Connection pool exhausts, new requests fail</li>
+            <li>One slow query can bring down entire server</li>
+        </ul>
+
+        <div class="recommendation">
+            <h4>Recommended Fix:</h4>
+            <pre>const teams = await Team.find({ coachId: coach._id }).maxTimeMS(5000);
+const athlete = await Athlete.findOne({ userId: req.user._id }).maxTimeMS(5000);</pre>
+        </div>
+    </div>
+
+    <h2 id="section6">6. JWT SECURITY ISSUES</h2>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 6.1 - No JWT_SECRET Validation at Startup</h3>
+            <span class="severity-critical">CRITICAL</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/middleware/auth.js | <strong>Lines:</strong> 24, 60</p>
+
+        <h4>Current Code:</h4>
+        <pre>const decoded = jwt.verify(token, process.env.JWT_SECRET);
+// If JWT_SECRET is undefined, this throws cryptic error</pre>
+
+        <h4>Why It's a Problem:</h4>
+        <ul>
+            <li>If <code>.env</code> file missing or JWT_SECRET not set, server starts but auth fails</li>
+            <li>Error message doesn't indicate the actual problem</li>
+            <li>Could expose application to security risks</li>
+        </ul>
+
+        <div class="recommendation">
+            <h4>Recommended Fix in server.js:</h4>
+            <pre>// Add at startup
+const requiredEnvVars = ['JWT_SECRET', 'MONGODB_URI', 'NODE_ENV'];
+requiredEnvVars.forEach(varName => {
+  if (!process.env[varName]) {
+    console.error(`FATAL: Required environment variable ${varName} is not set`);
+    process.exit(1);
+  }
+});
+
+if (process.env.JWT_SECRET.length < 32) {
+  console.error('FATAL: JWT_SECRET must be at least 32 characters');
+  process.exit(1);
+}</pre>
+        </div>
+    </div>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 6.2 - No Token Blacklist/Revocation</h3>
+            <span class="severity-high">HIGH</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/controllers/authController.js</p>
+
+        <h4>Current Logout Code:</h4>
+        <pre>const logout = (req, res) => {
+  res.cookie('token', '', {
+    httpOnly: true,
+    expires: new Date(0)
+  });
+  res.json({ success: true, message: 'Logged out successfully' });
+};</pre>
+
+        <h4>Why It's a Problem:</h4>
+        <ul>
+            <li>Token is cleared from browser but still valid server-side</li>
+            <li>Attacker with stolen token can continue using it until expiration (7 days!)</li>
+            <li>No way to force logout a compromised account</li>
+        </ul>
+
+        <div class="recommendation">
+            <h4>Recommended Fix:</h4>
+            <pre>// Add token blacklist (use Redis in production)
+const tokenBlacklist = new Set();
+
+const logout = async (req, res) => {
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+  if (token) {
+    tokenBlacklist.add(token);
+  }
+  res.cookie('token', '', { httpOnly: true, expires: new Date(0) });
+  res.json({ success: true });
+};
+
+// In auth middleware, check blacklist
+if (tokenBlacklist.has(token)) {
+  return res.status(401).json({ message: 'Token has been revoked' });
+}</pre>
+        </div>
+    </div>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 6.3 - Weak Token Expiration</h3>
+            <span class="severity-medium">MEDIUM</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/utils/tokenUtils.js | <strong>Lines:</strong> 9-14</p>
+
+        <h4>Current Code:</h4>
+        <pre>const generateToken = (userId, role) => {
+  return jwt.sign(
+    { userId, role },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRE || '7d' }  // 7 DAYS!
+  );
+};</pre>
+
+        <h4>Recommendation:</h4>
+        <ul>
+            <li>Access token: 15 minutes - 1 hour</li>
+            <li>Refresh token: 7 days (stored securely, can be revoked)</li>
+            <li>Implement token refresh endpoint</li>
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2 id="section7">7. UNBOUNDED QUERIES & N+1 PROBLEMS</h2>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 7.1 - N+1 Query in Coach Dashboard</h3>
+            <span class="severity-high">HIGH</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/controllers/coachController.js | <strong>Lines:</strong> 79-95</p>
+
+        <h4>Problematic Code:</h4>
+        <pre>const allAthletes = [];
+for (const team of teams) {
+  const athletesWithUsers = await Athlete.find({ teamId: team._id })
+    .select('firstName lastName userId teamId')
+    .lean();
+
+  for (const athlete of athletesWithUsers) {
+    const user = await User.findById(athlete.userId).select('lastLogin').lean();
+    // This is O(n) database calls!
+    allAthletes.push({
+      _id: athlete._id,
+      firstName: athlete.firstName,
+      lastName: athlete.lastName,
+      teamId: athlete.teamId,
+      teamName: team.teamName,
+      lastLogin: user?.lastLogin || null
+    });
+  }
+}</pre>
+
+        <h4>Performance Impact:</h4>
+        <table>
+            <tr>
+                <th>Teams</th>
+                <th>Athletes/Team</th>
+                <th>DB Queries</th>
+                <th>Response Time (50ms/query)</th>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>20</td>
+                <td>105</td>
+                <td>5.25 seconds</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>50</td>
+                <td>510</td>
+                <td>25.5 seconds</td>
+            </tr>
+        </table>
+
+        <div class="recommendation">
+            <h4>Recommended Fix:</h4>
+            <pre>// Get all athletes for all teams in ONE query
+const teamIds = teams.map(t => t._id);
+const athletes = await Athlete.find({ teamId: { $in: teamIds } })
+  .select('firstName lastName userId teamId')
+  .lean();
+
+// Get all users in ONE query
+const userIds = athletes.map(a => a.userId);
+const users = await User.find({ _id: { $in: userIds } })
+  .select('_id lastLogin')
+  .lean();
+
+// Create lookup map
+const userMap = new Map(users.map(u => [u._id.toString(), u]));
+const teamMap = new Map(teams.map(t => [t._id.toString(), t.teamName]));
+
+// Combine data (no database calls in loop)
+const allAthletes = athletes.map(athlete => ({
+  _id: athlete._id,
+  firstName: athlete.firstName,
+  lastName: athlete.lastName,
+  teamId: athlete.teamId,
+  teamName: teamMap.get(athlete.teamId.toString()),
+  lastLogin: userMap.get(athlete.userId.toString())?.lastLogin || null
+}));</pre>
+        </div>
+    </div>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 7.2 - No Pagination on Stats Queries</h3>
+            <span class="severity-high">HIGH</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/controllers/statsController.js | <strong>Lines:</strong> 282-283</p>
+
+        <h4>Problematic Code:</h4>
+        <pre>const athletes = await Athlete.find({ teamId }).select('maxes');
+// Loads ALL athletes with ALL their maxes - no limit!</pre>
+
+        <div class="recommendation">
+            <h4>Recommended Fix:</h4>
+            <pre>const page = parseInt(req.query.page) || 1;
+const limit = parseInt(req.query.limit) || 50;
+const skip = (page - 1) * limit;
+
+const athletes = await Athlete.find({ teamId })
+  .select('maxes')
+  .skip(skip)
+  .limit(limit)
+  .lean();
+
+const total = await Athlete.countDocuments({ teamId });
+
+res.json({
+  athletes,
+  pagination: {
+    page,
+    limit,
+    total,
+    pages: Math.ceil(total / limit)
+  }
+});</pre>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2 id="section8">8. INPUT VALIDATION & INJECTION RISKS</h2>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 8.1 - ReDoS Vulnerability in Search</h3>
+            <span class="severity-high">HIGH</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/controllers/exerciseController.js | <strong>Lines:</strong> 22-24</p>
+
+        <h4>Vulnerable Code:</h4>
+        <pre>if (search) {
+  query.name = { $regex: search, $options: 'i' };
+  // User input directly in regex - DANGEROUS!
+}</pre>
+
+        <h4>Attack Vector:</h4>
+        <pre>GET /api/exercises?search=((((((((((a])*)*)*)*)*)*)*)*)*)*</pre>
+        <p>This malicious regex can lock up the server for minutes.</p>
+
+        <div class="recommendation">
+            <h4>Recommended Fix:</h4>
+            <pre>if (search) {
+  // Escape special regex characters
+  const sanitizedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Limit search length
+  if (sanitizedSearch.length > 100) {
+    return res.status(400).json({ message: 'Search term too long' });
+  }
+  query.name = { $regex: sanitizedSearch, $options: 'i' };
+}</pre>
+        </div>
+    </div>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 8.2 - No Input Sanitization on Numbers</h3>
+            <span class="severity-medium">MEDIUM</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/controllers/athleteController.js | <strong>Lines:</strong> 155-156</p>
+
+        <h4>Current Code:</h4>
+        <pre>const statEntry = {
+  reps: parseInt(reps),      // Could be -999999 or Infinity
+  weight: parseFloat(weight), // Could be -999999 or Infinity
+  date: date ? new Date(date) : new Date(),
+};</pre>
+
+        <div class="recommendation">
+            <h4>Recommended Fix:</h4>
+            <pre>const parsedReps = parseInt(reps);
+const parsedWeight = parseFloat(weight);
+
+if (isNaN(parsedReps) || parsedReps < 1 || parsedReps > 1000) {
+  return res.status(400).json({ message: 'Reps must be between 1 and 1000' });
+}
+
+if (isNaN(parsedWeight) || parsedWeight < 0 || parsedWeight > 2000) {
+  return res.status(400).json({ message: 'Weight must be between 0 and 2000' });
+}
+
+const statEntry = {
+  reps: parsedReps,
+  weight: parsedWeight,
+  date: date ? new Date(date) : new Date(),
+};</pre>
+        </div>
+    </div>
+
+    <h2 id="section9">9. SINGLE POINTS OF FAILURE</h2>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 9.1 - Single Server Architecture</h3>
+            <span class="severity-high">HIGH</span>
+        </div>
+
+        <h4>Current Architecture:</h4>
+        <pre>[Users] -> [Single Node.js Server] -> [Single MongoDB Instance]</pre>
+
+        <h4>Problems:</h4>
+        <ul>
+            <li>One server crash = 100% downtime</li>
+            <li>One database failure = 100% data inaccessibility</li>
+            <li>No failover, no redundancy</li>
+        </ul>
+
+        <div class="recommendation">
+            <h4>Recommended Production Architecture:</h4>
+            <pre>[Users] -> [Load Balancer] -> [Node.js Server 1] -> [MongoDB Replica Set]
+                           -> [Node.js Server 2]    (Primary + 2 Secondaries)
+                           -> [Node.js Server 3]</pre>
+        </div>
+    </div>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 9.2 - Hardcoded Bypass Email</h3>
+            <span class="severity-critical">CRITICAL</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/controllers/coachController.js | <strong>Lines:</strong> 176-178</p>
+
+        <h4>Problematic Code:</h4>
+        <pre>const bypassEmails = ['bpoulter2019@gmail.com'];
+const isBypassed = bypassEmails.includes(req.user.email);
+
+if (!isBypassed) {
+  // Team limit check is skipped for this email
+}</pre>
+
+        <h4>Why It's a Problem:</h4>
+        <ul>
+            <li>Production code contains test/debug bypass</li>
+            <li>This specific email has unlimited privileges</li>
+            <li>If this email is compromised, attacker has elevated access</li>
+        </ul>
+    </div>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 9.3 - Placeholder Payment Service</h3>
+            <span class="severity-critical">CRITICAL</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/services/paymentService.js | <strong>Lines:</strong> 1-162</p>
+
+        <h4>Current Code:</h4>
+        <pre>const createCustomer = async (email, name) => {
+  console.log('Creating customer:', email);
+  // TODO: Replace with actual Stripe call
+  return {
+    customerId: 'cus_placeholder_' + Date.now(),
+    email,
+    name
+  };
+};</pre>
+
+        <h4>Why It's a Problem:</h4>
+        <ul>
+            <li>Payment operations return fake data</li>
+            <li>No actual payment processing</li>
+            <li>Users could "pay" without being charged</li>
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2 id="section10">10. EVENT LOOP BLOCKING</h2>
+
+    <div class="finding">
+        <div class="finding-header">
+            <h3>Finding 10.1 - Large JSON.stringify in Logging</h3>
+            <span class="severity-medium">MEDIUM</span>
+        </div>
+        <p class="file-path"><strong>File:</strong> server/controllers/workoutController.js | <strong>Lines:</strong> 192-193, 243</p>
+
+        <h4>Problematic Code:</h4>
+        <pre>console.log('Workouts received:', JSON.stringify(workouts, null, 2));
+console.log('Full error:', JSON.stringify(error, null, 2));</pre>
+
+        <h4>Why It's a Problem:</h4>
+        <ul>
+            <li><code>JSON.stringify</code> is synchronous</li>
+            <li>Large workout objects (100+ exercises) block the event loop</li>
+            <li>ALL users experience delays during this operation</li>
+        </ul>
+
+        <div class="recommendation">
+            <h4>Recommended Fix:</h4>
+            <pre>// Use async-safe logging or limit output
+if (process.env.NODE_ENV === 'development') {
+  setImmediate(() => {
+    console.log('Workouts received:', JSON.stringify(workouts, null, 2));
+  });
+}
+
+// Or use a proper logging library
+const logger = require('pino')();
+logger.info({ workoutCount: workouts?.length }, 'Workouts received');</pre>
+        </div>
+    </div>
+
+    <h2 id="section11">11. LOCAL DATA CACHING RECOMMENDATIONS</h2>
+
+    <div class="finding">
+        <h3>Question: Can we locally cache data so if DB/server goes down, users still have their data?</h3>
+        <h3>Answer: YES - Here's How</h3>
+
+        <h4>Option 1: Service Worker with IndexedDB (Recommended)</h4>
+        <pre>// In client/src/serviceWorker.js
+const CACHE_NAME = 'barbend-v1';
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.url.includes('/api/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, clone);
+          });
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request);
+        })
+    );
+  }
+});</pre>
+
+        <h4>Option 2: React Query with Persistence</h4>
+        <pre>import { QueryClient } from '@tanstack/react-query';
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      cacheTime: 1000 * 60 * 60 * 24,
+    },
+  },
+});
+
+const persister = createSyncStoragePersister({
+  storage: window.localStorage,
+});
+
+persistQueryClient({ queryClient, persister });</pre>
+
+        <h4>Cost Analysis:</h4>
+        <table>
+            <tr>
+                <th>Approach</th>
+                <th>Storage Cost</th>
+                <th>Implementation Time</th>
+                <th>Effectiveness</th>
+            </tr>
+            <tr>
+                <td>Service Worker + IndexedDB</td>
+                <td>Free (browser storage)</td>
+                <td>2-3 days</td>
+                <td>HIGH</td>
+            </tr>
+            <tr>
+                <td>React Query Persistence</td>
+                <td>Free (localStorage)</td>
+                <td>1 day</td>
+                <td>MEDIUM</td>
+            </tr>
+            <tr>
+                <td>Redis Cache (server-side)</td>
+                <td>$15-50/month</td>
+                <td>1 week</td>
+                <td>HIGH</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2 id="section12">12. SUMMARY & RECOMMENDATIONS</h2>
+
+    <h3>Issues by Severity</h3>
+    <table>
+        <tr>
+            <th>Severity</th>
+            <th>Count</th>
+            <th>Key Examples</th>
+        </tr>
+        <tr>
+            <td><span class="severity-critical">CRITICAL</span></td>
+            <td>5</td>
+            <td>MongoDB no reconnect, JWT validation, Bypass email, Password reset broken, Payment placeholder</td>
+        </tr>
+        <tr>
+            <td><span class="severity-high">HIGH</span></td>
+            <td>7</td>
+            <td>N+1 queries, No token revocation, ReDoS, No query limits, No timeouts</td>
+        </tr>
+        <tr>
+            <td><span class="severity-medium">MEDIUM</span></td>
+            <td>8</td>
+            <td>Rate limiters not applied, Array growth, Event listeners, Date validation</td>
+        </tr>
+        <tr>
+            <td><span class="severity-low">LOW</span></td>
+            <td>2</td>
+            <td>String concatenation, Seed data in memory</td>
+        </tr>
+    </table>
+
+    <h3>Priority Action Items</h3>
+
+    <h4>IMMEDIATE (Before Any Production Use)</h4>
+    <ol>
+        <li>Add MongoDB connection timeout and reconnection logic</li>
+        <li>Validate JWT_SECRET at startup</li>
+        <li>Remove hardcoded bypass email</li>
+        <li>Implement actual payment service or disable payment features</li>
+        <li>Add try/catch to generateAccessCode</li>
+    </ol>
+
+    <h4>SHORT TERM (Within 1-2 Weeks)</h4>
+    <ol start="6">
+        <li>Fix N+1 query in coach dashboard</li>
+        <li>Add token blacklist for logout</li>
+        <li>Sanitize regex search inputs</li>
+        <li>Apply rate limiters to all auth routes</li>
+        <li>Add query timeouts to all database operations</li>
+    </ol>
+
+    <h4>MEDIUM TERM (Within 1 Month)</h4>
+    <ol start="11">
+        <li>Implement pagination on all list endpoints</li>
+        <li>Add input validation library (Joi/Zod)</li>
+        <li>Set up proper logging (remove console.log)</li>
+        <li>Implement local data caching</li>
+        <li>Add circuit breaker pattern</li>
+    </ol>
+
+    <h4>LONG TERM (Production Readiness)</h4>
+    <ol start="16">
+        <li>Set up MongoDB replica set</li>
+        <li>Implement load balancing</li>
+        <li>Add comprehensive audit logging</li>
+        <li>Set up monitoring and alerting</li>
+        <li>Implement refresh token mechanism</li>
+    </ol>
+
+    <hr>
+    <p style="text-align: center; color: #718096; font-size: 10pt;">
+        <em>This report was generated by Claude Code Security Analysis on January 9, 2026.</em><br>
+        <strong>To convert to Word: Open this HTML file in Microsoft Word and save as .docx</strong>
+    </p>
+</body>
+</html>

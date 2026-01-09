@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+// Track if event listeners have been registered (prevents accumulation on hot reload)
+let listenersRegistered = false;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 10;
+
 // Default exercises to seed automatically
 const defaultExercises = [
   // Upper Body
@@ -76,7 +81,10 @@ const seedExercises = async () => {
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      // These options are no longer needed in Mongoose 6+ but included for compatibility
+      serverSelectionTimeoutMS: 10000,  // 10 second timeout for initial connection
+      socketTimeoutMS: 45000,           // 45 second socket timeout
+      maxPoolSize: 50,                  // Connection pool size
+      retryWrites: true,
     });
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
@@ -84,21 +92,61 @@ const connectDB = async () => {
     // Auto-seed exercises if none exist
     await seedExercises();
 
-    // Handle connection events
-    mongoose.connection.on('error', (err) => {
-      console.error('MongoDB connection error:', err);
-    });
+    // Only register event listeners once (prevents accumulation on hot reload)
+    if (!listenersRegistered) {
+      listenersRegistered = true;
 
-    mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB disconnected');
-    });
+      // Handle connection errors
+      mongoose.connection.on('error', (err) => {
+        console.error('MongoDB connection error:', err);
+      });
 
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      await mongoose.connection.close();
-      console.log('MongoDB connection closed through app termination');
-      process.exit(0);
-    });
+      // Handle disconnection with automatic reconnection
+      mongoose.connection.on('disconnected', () => {
+        console.log('MongoDB disconnected');
+
+        // Attempt to reconnect with exponential backoff
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          reconnectAttempts++;
+          const delay = Math.min(5000 * reconnectAttempts, 30000); // Max 30 seconds
+          console.log(`Attempting to reconnect in ${delay/1000}s... (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+
+          setTimeout(async () => {
+            try {
+              await mongoose.connect(process.env.MONGODB_URI, {
+                serverSelectionTimeoutMS: 10000,
+                socketTimeoutMS: 45000,
+                maxPoolSize: 50,
+                retryWrites: true,
+              });
+            } catch (err) {
+              console.error('Reconnection attempt failed:', err.message);
+            }
+          }, delay);
+        } else {
+          console.error('Max reconnection attempts reached. Manual intervention required.');
+        }
+      });
+
+      // Reset reconnect counter on successful connection
+      mongoose.connection.on('connected', () => {
+        if (reconnectAttempts > 0) {
+          console.log('MongoDB reconnected successfully');
+        }
+        reconnectAttempts = 0;
+      });
+
+      // Graceful shutdown - only register once
+      process.once('SIGINT', async () => {
+        try {
+          await mongoose.connection.close();
+          console.log('MongoDB connection closed through app termination');
+        } catch (err) {
+          console.error('Error closing MongoDB connection:', err);
+        }
+        process.exit(0);
+      });
+    }
 
   } catch (error) {
     console.error('Error connecting to MongoDB:', error.message);

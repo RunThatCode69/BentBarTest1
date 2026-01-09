@@ -11,6 +11,9 @@ const { generateAccessCode } = require('../utils/generateAccessCode');
  */
 const getDashboard = async (req, res) => {
   try {
+    // Add timeout to all queries (5 seconds)
+    const QUERY_TIMEOUT = 5000;
+
     const coach = await Coach.findOne({ userId: req.user._id })
       .populate({
         path: 'teams.teamId',
@@ -18,7 +21,8 @@ const getDashboard = async (req, res) => {
           path: 'athletes',
           select: 'firstName lastName sport stats maxes'
         }
-      });
+      })
+      .maxTimeMS(QUERY_TIMEOUT);
 
     if (!coach) {
       return res.status(404).json({ message: 'Coach profile not found' });
@@ -29,7 +33,8 @@ const getDashboard = async (req, res) => {
       .populate({
         path: 'athletes',
         select: 'firstName lastName sport stats maxes'
-      });
+      })
+      .maxTimeMS(QUERY_TIMEOUT);
 
     // Get upcoming workouts (next 7 days)
     const today = new Date();
@@ -42,13 +47,13 @@ const getDashboard = async (req, res) => {
       assignedTeams: { $in: teamIds },
       isPublished: true,
       'workouts.date': { $gte: today, $lte: nextWeek }
-    }).sort({ 'workouts.date': 1 });
+    }).sort({ 'workouts.date': 1 }).maxTimeMS(QUERY_TIMEOUT);
 
     // Get all workout programs for this coach (for Team Workouts panel)
     const allWorkoutPrograms = await WorkoutProgram.find({
       createdBy: coach._id,
       createdByModel: 'Coach'
-    }).select('programName _id assignedTeams createdAt').sort({ programName: 1 });
+    }).select('programName _id assignedTeams createdAt').sort({ programName: 1 }).maxTimeMS(QUERY_TIMEOUT);
 
     // Collect athlete stats for the rolling display
     const athleteStats = [];
@@ -74,25 +79,35 @@ const getDashboard = async (req, res) => {
     athleteStats.sort(() => Math.random() - 0.5);
 
     // Get all athletes with their user data for Athlete Center
+    // FIXED: Use batch queries instead of N+1 queries
     const User = require('../models/User');
-    const allAthletes = [];
-    for (const team of teams) {
-      const athletesWithUsers = await Athlete.find({ teamId: team._id })
-        .select('firstName lastName userId teamId')
-        .lean();
 
-      for (const athlete of athletesWithUsers) {
-        const user = await User.findById(athlete.userId).select('lastLogin').lean();
-        allAthletes.push({
-          _id: athlete._id,
-          firstName: athlete.firstName,
-          lastName: athlete.lastName,
-          teamId: athlete.teamId,
-          teamName: team.teamName,
-          lastLogin: user?.lastLogin || null
-        });
-      }
-    }
+    // Get all athletes for all teams in ONE query
+    const athletes = await Athlete.find({ teamId: { $in: teamIds } })
+      .select('firstName lastName userId teamId')
+      .lean()
+      .maxTimeMS(QUERY_TIMEOUT);
+
+    // Get all users in ONE query
+    const userIds = athletes.map(a => a.userId).filter(Boolean);
+    const users = await User.find({ _id: { $in: userIds } })
+      .select('_id lastLogin')
+      .lean()
+      .maxTimeMS(QUERY_TIMEOUT);
+
+    // Create lookup maps for O(1) access
+    const userMap = new Map(users.map(u => [u._id.toString(), u]));
+    const teamMap = new Map(teams.map(t => [t._id.toString(), t.teamName]));
+
+    // Combine data (no database calls in loop)
+    const allAthletes = athletes.map(athlete => ({
+      _id: athlete._id,
+      firstName: athlete.firstName,
+      lastName: athlete.lastName,
+      teamId: athlete.teamId,
+      teamName: teamMap.get(athlete.teamId?.toString()) || 'Unknown Team',
+      lastLogin: userMap.get(athlete.userId?.toString())?.lastLogin || null
+    }));
 
     res.json({
       success: true,

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
 const { isCoach, isAthlete } = require('../middleware/roleCheck');
+const { statsLimiter } = require('../middleware/rateLimiter');
 const {
   getTeamStats,
   getAthleteStats,
@@ -18,8 +19,8 @@ router.get('/team/:teamId', isCoach, getTeamStats);
 router.get('/exercises/:teamId', isCoach, getExerciseLeaderboard);
 router.get('/available-exercises/:teamId', isCoach, getAvailableExercises);
 
-// Athlete routes
-router.post('/log', isAthlete, logStat);
+// Athlete routes - with rate limiting to prevent spam
+router.post('/log', statsLimiter, isAthlete, logStat);
 
 // Shared routes (with authorization in controller)
 router.get('/athlete/:athleteId', getAthleteStats);

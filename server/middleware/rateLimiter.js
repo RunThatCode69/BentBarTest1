@@ -28,4 +28,22 @@ const passwordResetLimiter = rateLimit({
   legacyHeaders: false
 });
 
-module.exports = { apiLimiter, authLimiter, passwordResetLimiter };
+// Stats logging limiter - prevent spam stat entries
+const statsLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // 30 stat logs per minute max
+  message: { message: 'Too many stat entries, please slow down' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Creation limiter - for creating new resources (exercises, workouts, teams)
+const createLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 50, // 50 creations per hour
+  message: { message: 'Too many items created, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+module.exports = { apiLimiter, authLimiter, passwordResetLimiter, statsLimiter, createLimiter };

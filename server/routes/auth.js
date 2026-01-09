@@ -20,7 +20,7 @@ router.post('/register/trainer', authLimiter, registerTrainer);
 router.post('/register/athlete', authLimiter, registerAthlete);
 router.post('/login', authLimiter, login);
 router.post('/forgot-password', passwordResetLimiter, forgotPassword);
-router.post('/reset-password', resetPassword);
+router.post('/reset-password', passwordResetLimiter, resetPassword);
 router.post('/validate-access-code', validateAccessCode);
 
 // Protected routes
