@@ -19,6 +19,7 @@ const Navbar = () => {
       return [
         { path: '/coach/dashboard', label: 'Dashboard' },
         { path: '/coach/workouts', label: 'Workouts' },
+        { path: '/coach/athlete-history', label: 'Athlete Logs' },
         { path: '/coach/stats', label: 'Stats' }
       ];
     }
@@ -26,6 +27,7 @@ const Navbar = () => {
       return [
         { path: '/athlete/dashboard', label: 'Dashboard' },
         { path: '/athlete/workouts', label: 'Workouts' },
+        { path: '/athlete/history', label: 'History' },
         { path: '/athlete/stats', label: 'My Stats' }
       ];
     }

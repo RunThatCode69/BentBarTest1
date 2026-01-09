@@ -13,7 +13,9 @@ const {
   getAccessCode,
   regenerateAccessCode,
   getAllStats,
-  getDebugInfo
+  getDebugInfo,
+  getAthleteWorkoutLogs,
+  getTeamWorkoutLogs
 } = require('../controllers/coachController');
 
 // All routes require coach authentication
@@ -38,5 +40,9 @@ router.put('/teams/:teamId/program', assignProgramToTeam);
 router.get('/teams/:teamId/athletes', getTeamAthletes);
 router.get('/teams/:teamId/access-code', getAccessCode);
 router.post('/teams/:teamId/regenerate-code', regenerateAccessCode);
+router.get('/teams/:teamId/workout-logs', getTeamWorkoutLogs);
+
+// Athlete workout logs (for coach to view)
+router.get('/athletes/:athleteId/workout-logs', getAthleteWorkoutLogs);
 
 module.exports = router;

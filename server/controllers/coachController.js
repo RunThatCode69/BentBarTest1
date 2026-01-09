@@ -2,6 +2,7 @@ const Coach = require('../models/Coach');
 const Team = require('../models/Team');
 const Athlete = require('../models/Athlete');
 const WorkoutProgram = require('../models/WorkoutProgram');
+const WorkoutLog = require('../models/WorkoutLog');
 const { generateAccessCode } = require('../utils/generateAccessCode');
 
 /**
@@ -632,6 +633,146 @@ const assignProgramToTeam = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get workout logs for an athlete (coach viewing)
+ * @route   GET /api/coach/athletes/:athleteId/workout-logs
+ * @access  Private (Coach only)
+ */
+const getAthleteWorkoutLogs = async (req, res) => {
+  try {
+    const { athleteId } = req.params;
+    const { startDate, endDate } = req.query;
+
+    const coach = await Coach.findOne({ userId: req.user._id });
+    if (!coach) {
+      return res.status(404).json({ message: 'Coach profile not found' });
+    }
+
+    // Verify this athlete belongs to one of the coach's teams
+    const teams = await Team.find({ coachId: coach._id });
+    const teamIds = teams.map(t => t._id);
+
+    const athlete = await Athlete.findOne({
+      _id: athleteId,
+      teamId: { $in: teamIds }
+    });
+
+    if (!athlete) {
+      return res.status(404).json({ message: 'Athlete not found or not in your teams' });
+    }
+
+    const query = { athleteId: athlete._id };
+
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        query.date.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.date.$lte = end;
+      }
+    }
+
+    const workoutLogs = await WorkoutLog.find(query)
+      .sort({ date: -1 })
+      .limit(100);
+
+    res.json({
+      success: true,
+      athlete: {
+        id: athlete._id,
+        firstName: athlete.firstName,
+        lastName: athlete.lastName
+      },
+      workoutLogs
+    });
+
+  } catch (error) {
+    console.error('Get athlete workout logs error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * @desc    Get all workout logs for a team
+ * @route   GET /api/coach/teams/:teamId/workout-logs
+ * @access  Private (Coach only)
+ */
+const getTeamWorkoutLogs = async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const { startDate, endDate } = req.query;
+
+    const coach = await Coach.findOne({ userId: req.user._id });
+    if (!coach) {
+      return res.status(404).json({ message: 'Coach profile not found' });
+    }
+
+    // Verify this team belongs to the coach
+    const team = await Team.findOne({
+      _id: teamId,
+      coachId: coach._id
+    });
+
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Get all athletes on this team
+    const athletes = await Athlete.find({ teamId: team._id })
+      .select('_id firstName lastName');
+
+    const athleteIds = athletes.map(a => a._id);
+
+    const query = { athleteId: { $in: athleteIds } };
+
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        query.date.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.date.$lte = end;
+      }
+    }
+
+    const workoutLogs = await WorkoutLog.find(query)
+      .sort({ date: -1 })
+      .limit(200);
+
+    // Create a map for athlete names
+    const athleteMap = new Map(athletes.map(a => [a._id.toString(), `${a.firstName} ${a.lastName}`]));
+
+    // Enhance logs with athlete names
+    const enhancedLogs = workoutLogs.map(log => ({
+      ...log.toObject(),
+      athleteName: athleteMap.get(log.athleteId.toString()) || 'Unknown'
+    }));
+
+    res.json({
+      success: true,
+      team: {
+        id: team._id,
+        teamName: team.teamName
+      },
+      athletes: athletes.map(a => ({ id: a._id, name: `${a.firstName} ${a.lastName}` })),
+      workoutLogs: enhancedLogs
+    });
+
+  } catch (error) {
+    console.error('Get team workout logs error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getTeams,
@@ -643,5 +784,7 @@ module.exports = {
   getAccessCode,
   regenerateAccessCode,
   getAllStats,
-  getDebugInfo
+  getDebugInfo,
+  getAthleteWorkoutLogs,
+  getTeamWorkoutLogs
 };

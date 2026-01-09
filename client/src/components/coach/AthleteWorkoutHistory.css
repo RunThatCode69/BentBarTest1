@@ -1,0 +1,359 @@
+.athlete-workout-history-page {
+  min-height: 100vh;
+  background-color: var(--color-gray-50);
+}
+
+.athlete-workout-history-page .page-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--spacing-6);
+}
+
+.athlete-workout-history-page .page-header {
+  margin-bottom: var(--spacing-6);
+}
+
+.athlete-workout-history-page .page-header h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.athlete-workout-history-page .subtitle {
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+/* Filters */
+.filters-card {
+  margin-bottom: var(--spacing-6);
+}
+
+.filters-row {
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 200px;
+}
+
+.filter-group label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+}
+
+.filter-group select {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  background-color: var(--color-white);
+  cursor: pointer;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.filter-group select:disabled {
+  background-color: var(--color-gray-100);
+  cursor: not-allowed;
+}
+
+.view-all-btn {
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.view-all-btn:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.view-all-btn:disabled {
+  background-color: var(--color-gray-300);
+  cursor: not-allowed;
+}
+
+/* No History */
+.no-history {
+  text-align: center;
+  padding: var(--spacing-12);
+}
+
+.no-history-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: var(--spacing-4);
+}
+
+.no-history h3 {
+  color: var(--color-gray-700);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.no-history p {
+  color: var(--color-gray-500);
+  margin: 0;
+}
+
+/* History List */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.history-card {
+  overflow: hidden;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-4);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  border-radius: var(--radius-lg);
+}
+
+.history-header:hover {
+  background-color: var(--color-gray-50);
+}
+
+.history-header.expanded {
+  background-color: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.history-date-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.history-date {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+  font-size: var(--font-size-lg);
+}
+
+.history-athlete {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.history-stats {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}
+
+.history-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.completed-badge {
+  font-size: var(--font-size-xs);
+  color: var(--color-success);
+  background-color: var(--color-success-light);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.expand-icon {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-400);
+  transition: transform var(--transition-fast);
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+/* Exercises section */
+.history-exercises {
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.history-exercise {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.history-exercise .exercise-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.history-exercise .exercise-number {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: 50%;
+}
+
+.history-exercise .exercise-name {
+  flex: 1;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-800);
+}
+
+.history-exercise .exercise-completion {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}
+
+/* Sets table */
+.history-exercise .sets-table {
+  padding: var(--spacing-3);
+}
+
+.history-exercise .sets-header {
+  display: grid;
+  grid-template-columns: 50px 1fr 1fr 1fr;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2);
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.history-exercise .set-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 1fr 1fr;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2);
+  border-bottom: 1px solid var(--color-gray-100);
+  align-items: center;
+}
+
+.history-exercise .set-row:last-child {
+  border-bottom: none;
+}
+
+.history-exercise .set-row.no-data {
+  opacity: 0.5;
+}
+
+.history-exercise .set-col {
+  text-align: center;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-700);
+}
+
+.history-exercise .weight-col,
+.history-exercise .reps-col {
+  text-align: center;
+  color: var(--color-gray-800);
+}
+
+.history-exercise .est-col {
+  text-align: center;
+}
+
+.history-exercise .est-1rm-value {
+  color: var(--color-warning);
+  font-weight: var(--font-weight-medium);
+  font-style: italic;
+  font-size: var(--font-size-sm);
+}
+
+.history-exercise .est-empty {
+  color: var(--color-gray-400);
+}
+
+/* Notes */
+.workout-notes {
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    min-width: 100%;
+  }
+
+  .view-all-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .athlete-workout-history-page .page-content {
+    padding: var(--spacing-4);
+  }
+
+  .history-header {
+    padding: var(--spacing-3);
+  }
+
+  .history-date {
+    font-size: var(--font-size-base);
+  }
+
+  .history-exercises {
+    padding: var(--spacing-3);
+  }
+
+  .history-exercise .sets-header,
+  .history-exercise .set-row {
+    grid-template-columns: 40px 1fr 1fr 80px;
+    font-size: var(--font-size-xs);
+  }
+
+  .history-exercise .est-1rm-value {
+    font-size: 11px;
+  }
+}

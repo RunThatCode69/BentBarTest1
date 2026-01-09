@@ -180,6 +180,14 @@ const WorkoutLogModal = ({
     return exercise.weight || null;
   };
 
+  // Calculate estimated 1RM using Brzycki formula
+  const calculateEstimated1RM = (weight, reps) => {
+    if (!weight || !reps || reps <= 0 || reps > 12) return null;
+    // Brzycki formula: 1RM = weight / (1.0278 - (0.0278 * reps))
+    const estimated = weight / (1.0278 - (0.0278 * reps));
+    return Math.round(estimated);
+  };
+
   const handleSetChange = (exerciseIndex, setIndex, field, value) => {
     setLogData(prev => {
       const newData = [...prev];
@@ -317,36 +325,47 @@ const WorkoutLogModal = ({
                           <span className="target-col">Target</span>
                           <span className="input-col">Weight (lbs)</span>
                           <span className="input-col">Reps</span>
+                          <span className="est-col">Est. 1RM</span>
                         </div>
 
-                        {exercise.sets.map((set, setIndex) => (
-                          <div key={setIndex} className="set-row">
-                            <span className="set-col set-number">{set.setNumber}</span>
-                            <span className="target-col">
-                              {set.prescribedWeight ? `${set.prescribedWeight} lbs` : ''}
-                              {set.prescribedPercentage ? ` @${set.prescribedPercentage}%` : ''}
-                              {' x '}{set.prescribedReps}
-                            </span>
-                            <div className="input-col">
-                              <input
-                                type="number"
-                                className="log-input"
-                                placeholder={set.prescribedWeight || '—'}
-                                value={set.completedWeight ?? ''}
-                                onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'completedWeight', e.target.value)}
-                              />
+                        {exercise.sets.map((set, setIndex) => {
+                          const est1RM = calculateEstimated1RM(set.completedWeight, set.completedReps);
+                          return (
+                            <div key={setIndex} className="set-row">
+                              <span className="set-col set-number">{set.setNumber}</span>
+                              <span className="target-col">
+                                {set.prescribedWeight ? `${set.prescribedWeight} lbs` : ''}
+                                {set.prescribedPercentage ? ` @${set.prescribedPercentage}%` : ''}
+                                {' x '}{set.prescribedReps}
+                              </span>
+                              <div className="input-col">
+                                <input
+                                  type="number"
+                                  className="log-input"
+                                  placeholder={set.prescribedWeight || '—'}
+                                  value={set.completedWeight ?? ''}
+                                  onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'completedWeight', e.target.value)}
+                                />
+                              </div>
+                              <div className="input-col">
+                                <input
+                                  type="number"
+                                  className="log-input"
+                                  placeholder={set.prescribedReps || '—'}
+                                  value={set.completedReps ?? ''}
+                                  onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'completedReps', e.target.value)}
+                                />
+                              </div>
+                              <span className="est-col">
+                                {est1RM ? (
+                                  <span className="est-1rm-value">~{est1RM} lbs</span>
+                                ) : (
+                                  <span className="est-1rm-empty">—</span>
+                                )}
+                              </span>
                             </div>
-                            <div className="input-col">
-                              <input
-                                type="number"
-                                className="log-input"
-                                placeholder={set.prescribedReps || '—'}
-                                value={set.completedReps ?? ''}
-                                onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'completedReps', e.target.value)}
-                              />
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>

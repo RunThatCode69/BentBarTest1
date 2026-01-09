@@ -24,10 +24,12 @@ import CoachStats from './components/coach/CoachStats';
 import CoachWorkouts from './components/coach/CoachWorkouts';
 import CreateWorkout from './components/coach/CreateWorkout';
 import EditWorkout from './components/coach/EditWorkout';
+import AthleteWorkoutHistory from './components/coach/AthleteWorkoutHistory';
 
 import AthleteDashboard from './components/athlete/AthleteDashboard';
 import AthleteStats from './components/athlete/AthleteStats';
 import AthleteWorkouts from './components/athlete/AthleteWorkouts';
+import WorkoutHistory from './components/athlete/WorkoutHistory';
 
 // Common Components
 import Settings from './components/common/Settings';
@@ -138,6 +140,14 @@ function App() {
             }
           />
           <Route
+            path="/coach/athlete-history"
+            element={
+              <ProtectedRoute allowedRoles={['coach']}>
+                <AthleteWorkoutHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/coach/settings"
             element={
               <ProtectedRoute allowedRoles={['coach']}>
@@ -168,6 +178,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['athlete']}>
                 <AthleteWorkouts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/athlete/history"
+            element={
+              <ProtectedRoute allowedRoles={['athlete']}>
+                <WorkoutHistory />
               </ProtectedRoute>
             }
           />
