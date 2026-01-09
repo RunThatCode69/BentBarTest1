@@ -8,6 +8,7 @@ const {
   createTeam,
   getTeam,
   updateTeam,
+  assignProgramToTeam,
   getTeamAthletes,
   getAccessCode,
   regenerateAccessCode,
@@ -33,6 +34,7 @@ router.get('/teams', getTeams);
 router.post('/teams', createTeam);
 router.get('/teams/:teamId', getTeam);
 router.put('/teams/:teamId', updateTeam);
+router.put('/teams/:teamId/program', assignProgramToTeam);
 router.get('/teams/:teamId/athletes', getTeamAthletes);
 router.get('/teams/:teamId/access-code', getAccessCode);
 router.post('/teams/:teamId/regenerate-code', regenerateAccessCode);

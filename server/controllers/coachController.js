@@ -109,6 +109,14 @@ const getDashboard = async (req, res) => {
       lastLogin: userMap.get(athlete.userId?.toString())?.lastLogin || null
     }));
 
+    // Find assigned program for each team
+    const getAssignedProgram = (teamId) => {
+      const program = allWorkoutPrograms.find(p =>
+        p.assignedTeams.some(t => t.toString() === teamId.toString())
+      );
+      return program ? { id: program._id, name: program.programName } : null;
+    };
+
     res.json({
       success: true,
       coach: {
@@ -122,7 +130,8 @@ const getDashboard = async (req, res) => {
         teamName: team.teamName,
         sport: team.sport,
         athleteCount: team.athletes.length,
-        accessCode: team.accessCode
+        accessCode: team.accessCode,
+        assignedProgram: getAssignedProgram(team._id)
       })),
       athleteStats: athleteStats.slice(0, 20), // Limit to 20 for display
       upcomingWorkouts: upcomingWorkouts.slice(0, 3), // Next 3 days
@@ -560,12 +569,77 @@ const getDebugInfo = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Assign or remove program from team
+ * @route   PUT /api/coach/teams/:teamId/program
+ * @access  Private (Coach only)
+ */
+const assignProgramToTeam = async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const { programId } = req.body;
+
+    const coach = await Coach.findOne({ userId: req.user._id });
+    if (!coach) {
+      return res.status(404).json({ message: 'Coach profile not found' });
+    }
+
+    // Verify team belongs to this coach
+    const team = await Team.findOne({ _id: teamId, coachId: coach._id });
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // First, remove this team from all programs it's assigned to
+    await WorkoutProgram.updateMany(
+      { createdBy: coach._id, createdByModel: 'Coach', assignedTeams: teamId },
+      { $pull: { assignedTeams: teamId } }
+    );
+
+    // If a new program is specified, assign the team to it
+    if (programId) {
+      const program = await WorkoutProgram.findOne({
+        _id: programId,
+        createdBy: coach._id,
+        createdByModel: 'Coach'
+      });
+
+      if (!program) {
+        return res.status(404).json({ message: 'Program not found' });
+      }
+
+      // Add team to this program
+      if (!program.assignedTeams.includes(teamId)) {
+        program.assignedTeams.push(teamId);
+        await program.save();
+      }
+
+      res.json({
+        success: true,
+        message: 'Program assigned successfully',
+        assignedProgram: { id: program._id, name: program.programName }
+      });
+    } else {
+      res.json({
+        success: true,
+        message: 'Program removed successfully',
+        assignedProgram: null
+      });
+    }
+
+  } catch (error) {
+    console.error('Assign program error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getTeams,
   createTeam,
   getTeam,
   updateTeam,
+  assignProgramToTeam,
   getTeamAthletes,
   getAccessCode,
   regenerateAccessCode,
