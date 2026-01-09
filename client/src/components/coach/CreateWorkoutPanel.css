@@ -56,18 +56,47 @@
   color: var(--color-gray-800);
 }
 
-.program-team {
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-500);
-}
-
 .program-actions {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
 }
 
-.view-program-btn,
+/* Assignment Badge */
+.assignment-badge {
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.assignment-badge.assigned {
+  background-color: var(--color-success-light, #dcfce7);
+  border-color: var(--color-success, #22c55e);
+  color: var(--color-success, #22c55e);
+}
+
+.assignment-badge.assigned:hover {
+  background-color: var(--color-success, #22c55e);
+  color: white;
+}
+
+.assignment-badge.unassigned {
+  background-color: var(--color-warning-light, #fff8e6);
+  border-color: var(--color-warning, #f59e0b);
+  color: var(--color-warning, #f59e0b);
+}
+
+.assignment-badge.unassigned:hover {
+  background-color: var(--color-warning, #f59e0b);
+  color: white;
+}
+
+/* Delete Button */
 .delete-program-btn {
   width: 28px;
   height: 28px;
@@ -83,29 +112,13 @@
   opacity: 0;
 }
 
-.program-item:hover .view-program-btn,
 .program-item:hover .delete-program-btn {
   opacity: 1;
-}
-
-.view-program-btn:hover {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
 }
 
 .delete-program-btn:hover {
   background-color: var(--color-error-light);
   color: var(--color-error);
-}
-
-.program-arrow {
-  color: var(--color-gray-400);
-  transition: transform var(--transition-fast);
-}
-
-.program-item:hover .program-arrow {
-  color: var(--color-primary);
-  transform: translateX(4px);
 }
 
 .no-programs {
@@ -128,76 +141,45 @@
   margin-top: var(--spacing-2);
 }
 
-/* Assignment Popup Styles */
-.assignment-popup {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
+/* Team Selection Styles */
+.team-select-list p {
+  margin: 0 0 var(--spacing-3) 0;
 }
 
-.assignment-program-name {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-gray-900);
-  margin: 0;
-}
-
-.assignment-hint {
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-500);
-  margin: 0;
-}
-
-.team-assignment-list {
+.team-options {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
-  margin-top: var(--spacing-2);
 }
 
-.team-assignment-item {
+.team-option-btn {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-1);
   padding: var(--spacing-3);
   background-color: var(--color-gray-50);
-  border-radius: var(--radius-md);
   border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
+  text-align: left;
+  width: 100%;
 }
 
-.team-assignment-item:hover {
-  border-color: var(--color-primary);
+.team-option-btn:hover {
   background-color: var(--color-primary-light);
+  border-color: var(--color-primary);
 }
 
-.team-assignment-item.assigned {
-  background-color: var(--color-success-light, #dcfce7);
-  border-color: var(--color-success, #22c55e);
-}
-
-.team-assignment-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--color-success, #22c55e);
-  cursor: pointer;
-}
-
-.team-assignment-name {
-  flex: 1;
+.team-option-name {
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-800);
 }
 
-.team-assignment-status {
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-500);
-}
-
-.team-assignment-status.assigned {
-  color: var(--color-success, #22c55e);
-  font-weight: var(--font-weight-medium);
+.team-option-warning {
+  font-size: var(--font-size-xs);
+  color: var(--color-warning, #f59e0b);
 }
 
 @media (max-width: 768px) {
@@ -207,5 +189,10 @@
 
   .program-item {
     padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  .assignment-badge {
+    font-size: 10px;
+    padding: 2px 6px;
   }
 }
