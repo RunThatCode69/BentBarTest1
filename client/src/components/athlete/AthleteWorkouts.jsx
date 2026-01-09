@@ -24,7 +24,7 @@ const AthleteWorkouts = () => {
     try {
       setLoading(true);
       const response = await api.get('/athlete/workouts');
-      setWorkouts(response.data);
+      setWorkouts(response.data.workouts || []);
     } catch (err) {
       setError('Failed to load workouts');
       console.error(err);

@@ -120,22 +120,16 @@ const AthleteDashboard = () => {
 
         {error && <div className="error-banner">{error}</div>}
 
-        {/* Team Info Card */}
+        {/* Team Badge */}
         {team ? (
-          <div className="team-info-card">
-            <span className="team-icon">👥</span>
-            <div className="team-details">
-              <span className="team-name">{team.teamName}</span>
-              {team.sport && <span className="team-sport">{team.sport}</span>}
-            </div>
+          <div className="team-badge">
+            <span className="team-badge-icon">👥</span>
+            <span className="team-badge-name">{team.teamName}</span>
           </div>
         ) : (
-          <div className="team-info-card no-team">
-            <span className="team-icon">⚠️</span>
-            <div className="team-details">
-              <span className="team-name">No Team Assigned</span>
-              <span className="team-sport">Contact your coach to join a team</span>
-            </div>
+          <div className="team-badge no-team">
+            <span className="team-badge-icon">⚠️</span>
+            <span className="team-badge-name">No Team</span>
           </div>
         )}
 

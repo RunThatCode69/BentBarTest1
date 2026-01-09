@@ -33,45 +33,35 @@
   margin-bottom: var(--spacing-4);
 }
 
-/* Team Info Card */
-.team-info-card {
-  display: flex;
+/* Team Badge */
+.team-badge {
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-4);
-  background-color: var(--color-white);
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-lg);
-  margin-bottom: var(--spacing-6);
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--color-primary-light);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--spacing-4);
 }
 
-.team-info-card.no-team {
+.team-badge.no-team {
   background-color: var(--color-warning-light, #fff8e6);
   border-color: var(--color-warning, #f59e0b);
 }
 
-.team-icon {
-  font-size: 28px;
+.team-badge-icon {
+  font-size: 16px;
 }
 
-.team-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.team-name {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-gray-900);
-}
-
-.team-info-card.no-team .team-name {
-  color: var(--color-warning, #f59e0b);
-}
-
-.team-sport {
+.team-badge-name {
   font-size: var(--font-size-sm);
-  color: var(--color-gray-600);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+}
+
+.team-badge.no-team .team-badge-name {
+  color: var(--color-warning, #f59e0b);
 }
 
 .dashboard-grid {
