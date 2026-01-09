@@ -16,7 +16,12 @@ const {
   getDebugInfo,
   getAthleteWorkoutLogs,
   getTeamWorkoutLogs,
-  updateAthleteMax
+  updateAthleteMax,
+  addCoachToTeam,
+  removeCoachFromTeam,
+  getTeamCoaches,
+  leaveTeam,
+  removeAthleteFromTeam
 } = require('../controllers/coachController');
 
 // All routes require coach authentication
@@ -39,9 +44,16 @@ router.get('/teams/:teamId', getTeam);
 router.put('/teams/:teamId', updateTeam);
 router.put('/teams/:teamId/program', assignProgramToTeam);
 router.get('/teams/:teamId/athletes', getTeamAthletes);
+router.delete('/teams/:teamId/athletes/:athleteId', removeAthleteFromTeam);
 router.get('/teams/:teamId/access-code', getAccessCode);
 router.post('/teams/:teamId/regenerate-code', regenerateAccessCode);
 router.get('/teams/:teamId/workout-logs', getTeamWorkoutLogs);
+
+// Team coaches management
+router.get('/teams/:teamId/coaches', getTeamCoaches);
+router.post('/teams/:teamId/coaches', addCoachToTeam);
+router.delete('/teams/:teamId/coaches/:coachIdToRemove', removeCoachFromTeam);
+router.post('/teams/:teamId/leave', leaveTeam);
 
 // Athlete workout logs (for coach to view)
 router.get('/athletes/:athleteId/workout-logs', getAthleteWorkoutLogs);

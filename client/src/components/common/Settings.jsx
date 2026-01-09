@@ -27,10 +27,25 @@ const Settings = () => {
   const [savingEmail, setSavingEmail] = useState(false);
   const [pendingEmail, setPendingEmail] = useState(null);
 
+  // Team management state (coaches only)
+  const [teams, setTeams] = useState([]);
+  const [selectedTeamId, setSelectedTeamId] = useState('');
+  const [teamCoaches, setTeamCoaches] = useState([]);
+  const [teamAthletes, setTeamAthletes] = useState([]);
+  const [isTeamOwner, setIsTeamOwner] = useState(false);
+  const [loadingTeamData, setLoadingTeamData] = useState(false);
+  const [newCoachEmail, setNewCoachEmail] = useState('');
+  const [addingCoach, setAddingCoach] = useState(false);
+  const [removingCoachId, setRemovingCoachId] = useState(null);
+  const [removingAthleteId, setRemovingAthleteId] = useState(null);
+
   useEffect(() => {
     fetchSettings();
     checkPendingEmailChange();
-  }, []);
+    if (user?.role === 'coach') {
+      fetchTeams();
+    }
+  }, [user?.role]);
 
   const fetchSettings = async () => {
     try {
@@ -182,6 +197,117 @@ const Settings = () => {
     setError('');
   };
 
+  // Team management functions (coaches only)
+  const fetchTeams = async () => {
+    try {
+      const response = await api.get('/coach/teams');
+      setTeams(response.data.teams || []);
+    } catch (err) {
+      console.error('Fetch teams error:', err);
+    }
+  };
+
+  const fetchTeamData = async (teamId) => {
+    if (!teamId) {
+      setTeamCoaches([]);
+      setTeamAthletes([]);
+      setIsTeamOwner(false);
+      return;
+    }
+
+    setLoadingTeamData(true);
+    try {
+      const [coachesRes, athletesRes] = await Promise.all([
+        api.get(`/coach/teams/${teamId}/coaches`),
+        api.get(`/coach/teams/${teamId}/athletes`)
+      ]);
+
+      setTeamCoaches(coachesRes.data.coaches || []);
+      setTeamAthletes(athletesRes.data.athletes || []);
+      setIsTeamOwner(coachesRes.data.isOwner || false);
+    } catch (err) {
+      console.error('Fetch team data error:', err);
+      setError('Failed to load team data');
+    } finally {
+      setLoadingTeamData(false);
+    }
+  };
+
+  const handleTeamSelect = (e) => {
+    const teamId = e.target.value;
+    setSelectedTeamId(teamId);
+    setError('');
+    setSuccess('');
+    fetchTeamData(teamId);
+  };
+
+  const handleAddCoach = async () => {
+    if (!newCoachEmail.trim()) {
+      setError('Please enter a coach email');
+      return;
+    }
+
+    setAddingCoach(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await api.post(`/coach/teams/${selectedTeamId}/coaches`, {
+        email: newCoachEmail.trim()
+      });
+      setSuccess(response.data.message || 'Coach added successfully');
+      setNewCoachEmail('');
+      fetchTeamData(selectedTeamId);
+    } catch (err) {
+      console.error('Add coach error:', err);
+      setError(err.response?.data?.message || 'Failed to add coach');
+    } finally {
+      setAddingCoach(false);
+    }
+  };
+
+  const handleRemoveCoach = async (coachIdToRemove) => {
+    if (!window.confirm('Are you sure you want to remove this coach from the team?')) {
+      return;
+    }
+
+    setRemovingCoachId(coachIdToRemove);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await api.delete(`/coach/teams/${selectedTeamId}/coaches/${coachIdToRemove}`);
+      setSuccess(response.data.message || 'Coach removed successfully');
+      fetchTeamData(selectedTeamId);
+    } catch (err) {
+      console.error('Remove coach error:', err);
+      setError(err.response?.data?.message || 'Failed to remove coach');
+    } finally {
+      setRemovingCoachId(null);
+    }
+  };
+
+  const handleRemoveAthlete = async (athleteId, athleteName) => {
+    if (!window.confirm(`Are you sure you want to remove ${athleteName} from the team? Their workout data will be preserved.`)) {
+      return;
+    }
+
+    setRemovingAthleteId(athleteId);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await api.delete(`/coach/teams/${selectedTeamId}/athletes/${athleteId}`);
+      setSuccess(response.data.message || 'Athlete removed successfully');
+      fetchTeamData(selectedTeamId);
+    } catch (err) {
+      console.error('Remove athlete error:', err);
+      setError(err.response?.data?.message || 'Failed to remove athlete');
+    } finally {
+      setRemovingAthleteId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="settings-page">
@@ -322,6 +448,137 @@ const Settings = () => {
                     + Add Payment Method
                   </Button>
                 </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Team Management Section - Coaches Only */}
+          {user?.role === 'coach' && (
+            <Card>
+              <div className="settings-section-header">
+                <h2>Team Management</h2>
+              </div>
+
+              <div className="team-management-section">
+                {/* Team Selector */}
+                <div className="form-group">
+                  <label>Select Team</label>
+                  <select
+                    value={selectedTeamId}
+                    onChange={handleTeamSelect}
+                    className="team-select"
+                  >
+                    <option value="">-- Select a team --</option>
+                    {teams.map(team => (
+                      <option key={team._id} value={team._id}>
+                        {team.teamName} ({team.schoolName})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedTeamId && (
+                  <>
+                    {loadingTeamData ? (
+                      <div className="team-loading">Loading team data...</div>
+                    ) : (
+                      <>
+                        {/* Owner Badge */}
+                        {isTeamOwner && (
+                          <div className="owner-badge">
+                            You are the owner of this team
+                          </div>
+                        )}
+
+                        {/* Coaches Section */}
+                        <div className="team-subsection">
+                          <h3>Coaches ({teamCoaches.length}/5)</h3>
+                          <div className="team-members-list">
+                            {teamCoaches.map(coach => (
+                              <div key={coach._id} className="team-member-item">
+                                <div className="member-info">
+                                  <span className="member-name">
+                                    {coach.firstName} {coach.lastName}
+                                  </span>
+                                  <span className={`member-role ${coach.role}`}>
+                                    {coach.role === 'owner' ? 'Owner' : 'Assistant'}
+                                  </span>
+                                </div>
+                                {isTeamOwner && coach.role !== 'owner' && (
+                                  <button
+                                    className="remove-member-btn"
+                                    onClick={() => handleRemoveCoach(coach._id)}
+                                    disabled={removingCoachId === coach._id}
+                                  >
+                                    {removingCoachId === coach._id ? 'Removing...' : 'Remove'}
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Add Coach Form - Owner Only */}
+                          {isTeamOwner && teamCoaches.length < 5 && (
+                            <div className="add-member-form">
+                              <input
+                                type="email"
+                                value={newCoachEmail}
+                                onChange={(e) => setNewCoachEmail(e.target.value)}
+                                placeholder="Enter coach email"
+                                className="add-member-input"
+                              />
+                              <Button
+                                variant="primary"
+                                onClick={handleAddCoach}
+                                disabled={addingCoach}
+                              >
+                                {addingCoach ? 'Adding...' : 'Add Coach'}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Athletes Section */}
+                        <div className="team-subsection">
+                          <h3>Athletes ({teamAthletes.length})</h3>
+                          {teamAthletes.length === 0 ? (
+                            <p className="no-members">No athletes on this team yet.</p>
+                          ) : (
+                            <div className="team-members-list athletes-list">
+                              {teamAthletes.map(athlete => (
+                                <div key={athlete._id} className="team-member-item">
+                                  <div className="member-info">
+                                    <span className="member-name">
+                                      {athlete.firstName} {athlete.lastName}
+                                    </span>
+                                  </div>
+                                  {isTeamOwner && (
+                                    <button
+                                      className="remove-member-btn"
+                                      onClick={() => handleRemoveAthlete(athlete._id, `${athlete.firstName} ${athlete.lastName}`)}
+                                      disabled={removingAthleteId === athlete._id}
+                                    >
+                                      {removingAthleteId === athlete._id ? 'Removing...' : 'Remove'}
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {isTeamOwner && (
+                            <p className="athlete-note">
+                              Removing an athlete from the team will preserve their workout data.
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+
+                {!selectedTeamId && teams.length === 0 && (
+                  <p className="no-teams-message">You don't have any teams yet.</p>
+                )}
               </div>
             </Card>
           )}

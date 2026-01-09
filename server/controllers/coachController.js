@@ -29,8 +29,8 @@ const getDashboard = async (req, res) => {
       return res.status(404).json({ message: 'Coach profile not found' });
     }
 
-    // Get all teams with athletes
-    const teams = await Team.find({ coachId: coach._id })
+    // Get all teams with athletes (where this coach is a member)
+    const teams = await Team.find({ 'coaches.coachId': coach._id })
       .populate({
         path: 'athletes',
         select: 'firstName lastName sport stats maxes'
@@ -164,7 +164,7 @@ const getTeams = async (req, res) => {
       return res.status(404).json({ message: 'Coach profile not found' });
     }
 
-    const teams = await Team.find({ coachId: coach._id })
+    const teams = await Team.find({ 'coaches.coachId': coach._id })
       .populate('athletes', 'firstName lastName sport');
 
     res.json({
@@ -199,7 +199,7 @@ const createTeam = async (req, res) => {
 
     // Check if coach has paid for enough teams
     // Admin/test accounts get elevated limits (not infinite to avoid system issues)
-    const adminEmails = ['bpoulter2019@gmail.com'];
+    const adminEmails = ['bpoulter2019@gmail.com', 'brucebarbell@gmail.com'];
     const isAdmin = adminEmails.includes(req.user.email);
     const ADMIN_TEAM_LIMIT = 100;
 
@@ -221,7 +221,7 @@ const createTeam = async (req, res) => {
       teamName,
       sport: sport.toLowerCase(),
       schoolName: coach.schoolName,
-      coachId: coach._id,
+      coaches: [{ coachId: coach._id, role: 'owner', addedAt: new Date() }],
       accessCode
     });
 
@@ -260,16 +260,20 @@ const getTeam = async (req, res) => {
 
     const team = await Team.findOne({
       _id: req.params.teamId,
-      coachId: coach._id
+      'coaches.coachId': coach._id
     }).populate('athletes', 'firstName lastName sport stats maxes');
 
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
 
+    // Add coach role info to response
+    const coachEntry = team.coaches.find(c => c.coachId.toString() === coach._id.toString());
+
     res.json({
       success: true,
-      team
+      team,
+      coachRole: coachEntry?.role || 'assistant'
     });
 
   } catch (error) {
@@ -295,11 +299,16 @@ const updateTeam = async (req, res) => {
 
     const team = await Team.findOne({
       _id: req.params.teamId,
-      coachId: coach._id
+      'coaches.coachId': coach._id
     });
 
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Only owner can update team settings
+    if (!team.isOwner(coach._id)) {
+      return res.status(403).json({ message: 'Only the team owner can update team settings' });
     }
 
     if (teamName) team.teamName = teamName;
@@ -333,7 +342,7 @@ const getTeamAthletes = async (req, res) => {
 
     const team = await Team.findOne({
       _id: req.params.teamId,
-      coachId: coach._id
+      'coaches.coachId': coach._id
     });
 
     if (!team) {
@@ -369,7 +378,7 @@ const getAccessCode = async (req, res) => {
 
     const team = await Team.findOne({
       _id: req.params.teamId,
-      coachId: coach._id
+      'coaches.coachId': coach._id
     });
 
     if (!team) {
@@ -402,11 +411,16 @@ const regenerateAccessCode = async (req, res) => {
 
     const team = await Team.findOne({
       _id: req.params.teamId,
-      coachId: coach._id
+      'coaches.coachId': coach._id
     });
 
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Only owner can regenerate access code
+    if (!team.isOwner(coach._id)) {
+      return res.status(403).json({ message: 'Only the team owner can regenerate the access code' });
     }
 
     const newAccessCode = await generateAccessCode();
@@ -445,14 +459,14 @@ const getAllStats = async (req, res) => {
 
     if (teamId) {
       // Verify team belongs to coach
-      const team = await Team.findOne({ _id: teamId, coachId: coach._id });
+      const team = await Team.findOne({ _id: teamId, 'coaches.coachId': coach._id });
       if (!team) {
         return res.status(404).json({ message: 'Team not found' });
       }
       query.teamId = teamId;
     } else {
       // Get all teams for coach
-      const teams = await Team.find({ coachId: coach._id });
+      const teams = await Team.find({ 'coaches.coachId': coach._id });
       query.teamId = { $in: teams.map(t => t._id) };
     }
 
@@ -585,9 +599,14 @@ const assignProgramToTeam = async (req, res) => {
     }
 
     // Verify team belongs to this coach
-    const team = await Team.findOne({ _id: teamId, coachId: coach._id });
+    const team = await Team.findOne({ _id: teamId, 'coaches.coachId': coach._id });
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Only owner can assign/remove programs
+    if (!team.isOwner(coach._id)) {
+      return res.status(403).json({ message: 'Only the team owner can assign programs' });
     }
 
     // First, remove this team from all programs it's assigned to
@@ -649,7 +668,7 @@ const getAthleteWorkoutLogs = async (req, res) => {
     }
 
     // Verify this athlete belongs to one of the coach's teams
-    const teams = await Team.find({ coachId: coach._id });
+    const teams = await Team.find({ 'coaches.coachId': coach._id });
     const teamIds = teams.map(t => t._id);
 
     const athlete = await Athlete.findOne({
@@ -715,7 +734,7 @@ const getTeamWorkoutLogs = async (req, res) => {
     // Verify this team belongs to the coach
     const team = await Team.findOne({
       _id: teamId,
-      coachId: coach._id
+      'coaches.coachId': coach._id
     });
 
     if (!team) {
@@ -793,7 +812,7 @@ const updateAthleteMax = async (req, res) => {
     }
 
     // Verify this athlete belongs to one of the coach's teams
-    const teams = await Team.find({ coachId: coach._id });
+    const teams = await Team.find({ 'coaches.coachId': coach._id });
     const teamIds = teams.map(t => t._id);
 
     const athlete = await Athlete.findOne({
@@ -842,6 +861,300 @@ const updateAthleteMax = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Add a coach to a team (by email)
+ * @route   POST /api/coach/teams/:teamId/coaches
+ * @access  Private (Coach only - owner)
+ */
+const addCoachToTeam = async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Coach email is required' });
+    }
+
+    const coach = await Coach.findOne({ userId: req.user._id });
+    if (!coach) {
+      return res.status(404).json({ message: 'Coach profile not found' });
+    }
+
+    const team = await Team.findOne({
+      _id: teamId,
+      'coaches.coachId': coach._id
+    });
+
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Only owner can add coaches
+    if (!team.isOwner(coach._id)) {
+      return res.status(403).json({ message: 'Only the team owner can add coaches' });
+    }
+
+    // Check if team already has 5 coaches
+    if (team.coaches.length >= 5) {
+      return res.status(400).json({ message: 'Team already has the maximum of 5 coaches' });
+    }
+
+    // Find the coach to add by their user email
+    const User = require('../models/User');
+    const userToAdd = await User.findOne({ email: email.toLowerCase(), role: 'coach' });
+
+    if (!userToAdd) {
+      return res.status(404).json({ message: 'No coach account found with that email' });
+    }
+
+    const coachToAdd = await Coach.findOne({ userId: userToAdd._id });
+
+    if (!coachToAdd) {
+      return res.status(404).json({ message: 'Coach profile not found for that email' });
+    }
+
+    // Check if coach is already on the team
+    if (team.hasCoach(coachToAdd._id)) {
+      return res.status(400).json({ message: 'This coach is already on the team' });
+    }
+
+    // Add the coach to the team
+    team.coaches.push({
+      coachId: coachToAdd._id,
+      role: 'assistant',
+      addedAt: new Date()
+    });
+    await team.save();
+
+    // Add team to the new coach's teams array
+    if (!coachToAdd.teams.some(t => t.teamId.toString() === teamId)) {
+      coachToAdd.teams.push({ teamId: team._id, sport: team.sport });
+      await coachToAdd.save();
+    }
+
+    res.json({
+      success: true,
+      message: `${coachToAdd.firstName} ${coachToAdd.lastName} has been added to the team`,
+      coach: {
+        id: coachToAdd._id,
+        name: `${coachToAdd.firstName} ${coachToAdd.lastName}`,
+        role: 'assistant'
+      }
+    });
+
+  } catch (error) {
+    console.error('Add coach to team error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * @desc    Remove a coach from a team
+ * @route   DELETE /api/coach/teams/:teamId/coaches/:coachIdToRemove
+ * @access  Private (Coach only - owner)
+ */
+const removeCoachFromTeam = async (req, res) => {
+  try {
+    const { teamId, coachIdToRemove } = req.params;
+
+    const coach = await Coach.findOne({ userId: req.user._id });
+    if (!coach) {
+      return res.status(404).json({ message: 'Coach profile not found' });
+    }
+
+    const team = await Team.findOne({
+      _id: teamId,
+      'coaches.coachId': coach._id
+    });
+
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Only owner can remove coaches
+    if (!team.isOwner(coach._id)) {
+      return res.status(403).json({ message: 'Only the team owner can remove coaches' });
+    }
+
+    // Cannot remove the owner
+    const coachEntry = team.coaches.find(c => c.coachId.toString() === coachIdToRemove);
+    if (!coachEntry) {
+      return res.status(404).json({ message: 'Coach not found on this team' });
+    }
+
+    if (coachEntry.role === 'owner') {
+      return res.status(400).json({ message: 'Cannot remove the team owner' });
+    }
+
+    // Remove the coach from the team
+    team.coaches = team.coaches.filter(c => c.coachId.toString() !== coachIdToRemove);
+    await team.save();
+
+    // Remove team from the removed coach's teams array
+    const removedCoach = await Coach.findById(coachIdToRemove);
+    if (removedCoach) {
+      removedCoach.teams = removedCoach.teams.filter(t => t.teamId.toString() !== teamId);
+      await removedCoach.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Coach has been removed from the team'
+    });
+
+  } catch (error) {
+    console.error('Remove coach from team error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * @desc    Get all coaches on a team
+ * @route   GET /api/coach/teams/:teamId/coaches
+ * @access  Private (Coach only)
+ */
+const getTeamCoaches = async (req, res) => {
+  try {
+    const { teamId } = req.params;
+
+    const coach = await Coach.findOne({ userId: req.user._id });
+    if (!coach) {
+      return res.status(404).json({ message: 'Coach profile not found' });
+    }
+
+    const team = await Team.findOne({
+      _id: teamId,
+      'coaches.coachId': coach._id
+    }).populate('coaches.coachId', 'firstName lastName');
+
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    const coaches = team.coaches.map(c => ({
+      id: c.coachId._id,
+      firstName: c.coachId.firstName,
+      lastName: c.coachId.lastName,
+      role: c.role,
+      addedAt: c.addedAt
+    }));
+
+    res.json({
+      success: true,
+      coaches,
+      isOwner: team.isOwner(coach._id)
+    });
+
+  } catch (error) {
+    console.error('Get team coaches error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * @desc    Leave a team (for assistant coaches)
+ * @route   POST /api/coach/teams/:teamId/leave
+ * @access  Private (Coach only - assistant)
+ */
+const leaveTeam = async (req, res) => {
+  try {
+    const { teamId } = req.params;
+
+    const coach = await Coach.findOne({ userId: req.user._id });
+    if (!coach) {
+      return res.status(404).json({ message: 'Coach profile not found' });
+    }
+
+    const team = await Team.findOne({
+      _id: teamId,
+      'coaches.coachId': coach._id
+    });
+
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Owner cannot leave - must transfer ownership first or delete team
+    if (team.isOwner(coach._id)) {
+      return res.status(400).json({ message: 'Team owner cannot leave. Transfer ownership or delete the team.' });
+    }
+
+    // Remove coach from team
+    team.coaches = team.coaches.filter(c => c.coachId.toString() !== coach._id.toString());
+    await team.save();
+
+    // Remove team from coach's teams array
+    coach.teams = coach.teams.filter(t => t.teamId.toString() !== teamId);
+    await coach.save();
+
+    res.json({
+      success: true,
+      message: 'You have left the team'
+    });
+
+  } catch (error) {
+    console.error('Leave team error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * @desc    Remove an athlete from a team (does NOT delete their data)
+ * @route   DELETE /api/coach/teams/:teamId/athletes/:athleteId
+ * @access  Private (Coach only - owner)
+ */
+const removeAthleteFromTeam = async (req, res) => {
+  try {
+    const { teamId, athleteId } = req.params;
+
+    const coach = await Coach.findOne({ userId: req.user._id });
+    if (!coach) {
+      return res.status(404).json({ message: 'Coach profile not found' });
+    }
+
+    const team = await Team.findOne({
+      _id: teamId,
+      'coaches.coachId': coach._id
+    });
+
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Only owner can remove athletes
+    if (!team.isOwner(coach._id)) {
+      return res.status(403).json({ message: 'Only the team owner can remove athletes' });
+    }
+
+    // Find the athlete
+    const athlete = await Athlete.findOne({
+      _id: athleteId,
+      teamId: team._id
+    });
+
+    if (!athlete) {
+      return res.status(404).json({ message: 'Athlete not found on this team' });
+    }
+
+    // Remove athlete from team's athletes array
+    team.athletes = team.athletes.filter(a => a.toString() !== athleteId);
+    await team.save();
+
+    // Clear athlete's teamId (but keep all their data - workout logs, stats, maxes)
+    athlete.teamId = null;
+    await athlete.save();
+
+    res.json({
+      success: true,
+      message: `${athlete.firstName} ${athlete.lastName} has been removed from the team. Their workout data has been preserved.`
+    });
+
+  } catch (error) {
+    console.error('Remove athlete from team error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getTeams,
@@ -856,5 +1169,10 @@ module.exports = {
   getDebugInfo,
   getAthleteWorkoutLogs,
   getTeamWorkoutLogs,
-  updateAthleteMax
+  updateAthleteMax,
+  addCoachToTeam,
+  removeCoachFromTeam,
+  getTeamCoaches,
+  leaveTeam,
+  removeAthleteFromTeam
 };
