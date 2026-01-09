@@ -10,6 +10,7 @@ const AthleteDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [todayWorkout, setTodayWorkout] = useState(null);
+  const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [completedExercises, setCompletedExercises] = useState([]);
@@ -41,6 +42,7 @@ const AthleteDashboard = () => {
         oneRepMaxes
       });
       setTodayWorkout(dashboardRes.data.todayWorkout);
+      setTeam(dashboardRes.data.team);
     } catch (err) {
       setError('Failed to load dashboard data');
       console.error(err);
@@ -117,6 +119,25 @@ const AthleteDashboard = () => {
         </div>
 
         {error && <div className="error-banner">{error}</div>}
+
+        {/* Team Info Card */}
+        {team ? (
+          <div className="team-info-card">
+            <span className="team-icon">👥</span>
+            <div className="team-details">
+              <span className="team-name">{team.teamName}</span>
+              {team.sport && <span className="team-sport">{team.sport}</span>}
+            </div>
+          </div>
+        ) : (
+          <div className="team-info-card no-team">
+            <span className="team-icon">⚠️</span>
+            <div className="team-details">
+              <span className="team-name">No Team Assigned</span>
+              <span className="team-sport">Contact your coach to join a team</span>
+            </div>
+          </div>
+        )}
 
         <div className="dashboard-grid">
           {/* Top Half - Stats Section */}
