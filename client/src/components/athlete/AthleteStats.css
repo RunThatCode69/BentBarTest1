@@ -227,18 +227,56 @@
   font-style: italic;
 }
 
-/* Recorded Maxes Section */
-.recorded-maxes {
+/* Tracked Maxes Section */
+.tracked-maxes-section {
   margin-top: var(--spacing-4);
   padding-top: var(--spacing-4);
   border-top: 1px solid var(--color-gray-200);
 }
 
-.recorded-maxes h3 {
+.tracked-maxes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-3);
+}
+
+.tracked-maxes-header h3 {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--color-gray-700);
-  margin-bottom: var(--spacing-3);
+  margin: 0;
+}
+
+.track-max-btn {
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.track-max-btn:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.no-tracked {
+  text-align: center;
+  padding: var(--spacing-6);
+}
+
+.no-tracked p {
+  color: var(--color-gray-500);
+  margin-bottom: var(--spacing-2);
+}
+
+.no-tracked .hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-400);
 }
 
 .maxes-display-grid {
@@ -269,6 +307,13 @@
   background-color: var(--color-primary-light);
 }
 
+.max-item-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
 .max-display-item .exercise-name {
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-700);
@@ -279,6 +324,137 @@
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   font-size: var(--font-size-base);
+}
+
+.untrack-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--color-gray-400);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 18px;
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.untrack-btn:hover {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
+/* Track Max Modal */
+.track-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--spacing-4);
+}
+
+.track-modal {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.track-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.track-modal-header h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+}
+
+.close-modal-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--color-gray-500);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 24px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.close-modal-btn:hover {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.track-modal-subtitle {
+  padding: var(--spacing-3) var(--spacing-4);
+  margin: 0;
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+  background-color: var(--color-gray-50);
+}
+
+.trackable-maxes-list {
+  overflow-y: auto;
+  padding: var(--spacing-2);
+  max-height: 300px;
+}
+
+.trackable-max-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  margin-bottom: var(--spacing-2);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.trackable-max-item:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.trackable-max-item:last-child {
+  margin-bottom: 0;
+}
+
+.trackable-name {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+}
+
+.trackable-value {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
 }
 
 .no-maxes {

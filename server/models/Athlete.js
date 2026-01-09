@@ -83,6 +83,10 @@ const athleteSchema = new mongoose.Schema({
   },
   stats: [statSchema],
   maxes: [maxSchema],
+  trackedMaxes: [{
+    type: String,  // exercise names that are tracked for display
+    trim: true
+  }],
   trainerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Trainer',

@@ -116,6 +116,7 @@ const getStats = async (req, res) => {
     res.json({
       success: true,
       maxes: athlete.maxes,
+      trackedMaxes: athlete.trackedMaxes || [],
       stats: athlete.stats.slice(-50), // Last 50 entries
       athlete: {
         id: athlete._id,
@@ -247,6 +248,95 @@ const updateMax = async (req, res) => {
 
   } catch (error) {
     console.error('Update max error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * @desc    Add a max to tracked display
+ * @route   POST /api/athlete/stats/tracked
+ * @access  Private (Athlete only)
+ */
+const trackMax = async (req, res) => {
+  try {
+    const { exerciseName } = req.body;
+
+    if (!exerciseName) {
+      return res.status(400).json({ message: 'Exercise name is required' });
+    }
+
+    const athlete = await Athlete.findOne({ userId: req.user._id });
+
+    if (!athlete) {
+      return res.status(404).json({ message: 'Athlete profile not found' });
+    }
+
+    // Check if already tracking 20 maxes
+    if (athlete.trackedMaxes && athlete.trackedMaxes.length >= 20) {
+      return res.status(400).json({ message: 'Maximum of 20 tracked maxes allowed' });
+    }
+
+    // Check if already tracked
+    if (athlete.trackedMaxes && athlete.trackedMaxes.includes(exerciseName)) {
+      return res.status(400).json({ message: 'This max is already being tracked' });
+    }
+
+    // Check if the athlete has a max for this exercise
+    const hasMax = athlete.maxes.find(
+      m => m.exerciseName.toLowerCase() === exerciseName.toLowerCase()
+    );
+    if (!hasMax) {
+      return res.status(400).json({ message: 'You must have a recorded max to track it' });
+    }
+
+    // Add to tracked
+    if (!athlete.trackedMaxes) {
+      athlete.trackedMaxes = [];
+    }
+    athlete.trackedMaxes.push(exerciseName);
+    await athlete.save();
+
+    res.json({
+      success: true,
+      trackedMaxes: athlete.trackedMaxes,
+      message: 'Max is now being tracked'
+    });
+
+  } catch (error) {
+    console.error('Track max error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * @desc    Remove a max from tracked display
+ * @route   DELETE /api/athlete/stats/tracked/:exerciseName
+ * @access  Private (Athlete only)
+ */
+const untrackMax = async (req, res) => {
+  try {
+    const { exerciseName } = req.params;
+
+    const athlete = await Athlete.findOne({ userId: req.user._id });
+
+    if (!athlete) {
+      return res.status(404).json({ message: 'Athlete profile not found' });
+    }
+
+    // Remove from tracked
+    athlete.trackedMaxes = (athlete.trackedMaxes || []).filter(
+      name => name.toLowerCase() !== exerciseName.toLowerCase()
+    );
+    await athlete.save();
+
+    res.json({
+      success: true,
+      trackedMaxes: athlete.trackedMaxes,
+      message: 'Max removed from tracking'
+    });
+
+  } catch (error) {
+    console.error('Untrack max error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -445,6 +535,8 @@ module.exports = {
   getStats,
   logStat,
   updateMax,
+  trackMax,
+  untrackMax,
   getWorkouts,
   getWorkoutByDate,
   getExercises

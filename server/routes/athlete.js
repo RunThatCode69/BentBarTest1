@@ -7,6 +7,8 @@ const {
   getStats,
   logStat,
   updateMax,
+  trackMax,
+  untrackMax,
   getWorkouts,
   getWorkoutByDate,
   getExercises
@@ -23,6 +25,8 @@ router.get('/dashboard', getDashboard);
 router.get('/stats', getStats);
 router.post('/stats', logStat);
 router.put('/stats/max', updateMax);
+router.post('/stats/tracked', trackMax);
+router.delete('/stats/tracked/:exerciseName', untrackMax);
 
 // Workouts
 router.get('/workouts', getWorkouts);

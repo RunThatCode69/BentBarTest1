@@ -17,6 +17,8 @@ const AthleteStats = () => {
   const [editingMax, setEditingMax] = useState(null); // exercise name being edited
   const [editValue, setEditValue] = useState('');
   const [savingMax, setSavingMax] = useState(false);
+  const [trackedMaxes, setTrackedMaxes] = useState([]);
+  const [showTrackModal, setShowTrackModal] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -43,6 +45,9 @@ const AthleteStats = () => {
         ...statsRes.data,
         oneRepMaxes
       });
+
+      // Set tracked maxes from API response
+      setTrackedMaxes(statsRes.data.trackedMaxes || []);
 
       // Merge custom exercises with defaults
       const customExercises = exercisesRes.data?.customExercises || [];
@@ -140,6 +145,37 @@ const AthleteStats = () => {
     } else if (e.key === 'Escape') {
       handleCancelEdit();
     }
+  };
+
+  // Track a max to display in the grid
+  const handleTrackMax = async (exerciseName) => {
+    try {
+      const response = await api.post('/athlete/stats/tracked', { exerciseName });
+      setTrackedMaxes(response.data.trackedMaxes);
+      setShowTrackModal(false);
+    } catch (err) {
+      console.error('Track max error:', err);
+      setError(err.response?.data?.message || 'Failed to track max');
+    }
+  };
+
+  // Untrack a max (remove from display grid)
+  const handleUntrackMax = async (exerciseName) => {
+    try {
+      const response = await api.delete(`/athlete/stats/tracked/${encodeURIComponent(exerciseName)}`);
+      setTrackedMaxes(response.data.trackedMaxes);
+    } catch (err) {
+      console.error('Untrack max error:', err);
+      setError(err.response?.data?.message || 'Failed to untrack max');
+    }
+  };
+
+  // Get maxes that can be tracked (have a value but aren't tracked yet)
+  const getTrackableMaxes = () => {
+    if (!stats?.oneRepMaxes) return [];
+    return Object.keys(stats.oneRepMaxes).filter(
+      name => !trackedMaxes.includes(name)
+    );
   };
 
   const formatDate = (dateStr) => {
@@ -307,32 +343,91 @@ const AthleteStats = () => {
               </div>
             </div>
 
-            {/* All Recorded Maxes */}
-            {stats?.oneRepMaxes && Object.keys(stats.oneRepMaxes).length > 0 && (
-              <div className="recorded-maxes">
-                <h3>Your Recorded Maxes</h3>
-                <div className="maxes-display-grid">
-                  {Object.entries(stats.oneRepMaxes).map(([exercise, value]) => (
-                    <div
-                      key={exercise}
-                      className={`max-display-item ${selectedExercise === exercise ? 'selected' : ''}`}
-                      onClick={() => {
-                        setSelectedExercise(exercise);
-                        setEditingMax(null);
-                      }}
-                    >
-                      <span className="exercise-name">{exercise}</span>
-                      <span className="exercise-max">{value} lbs</span>
-                    </div>
-                  ))}
-                </div>
+            {/* Tracked Maxes Section */}
+            <div className="tracked-maxes-section">
+              <div className="tracked-maxes-header">
+                <h3>Your Tracked Maxes</h3>
+                {trackedMaxes.length < 20 && getTrackableMaxes().length > 0 && (
+                  <button
+                    className="track-max-btn"
+                    onClick={() => setShowTrackModal(true)}
+                  >
+                    + Track a Max
+                  </button>
+                )}
               </div>
-            )}
 
-            {(!stats?.oneRepMaxes || Object.keys(stats.oneRepMaxes).length === 0) && !selectedExercise && (
-              <div className="no-maxes">
-                <p>No one rep maxes recorded yet.</p>
-                <p className="hint">Select an exercise above to add your first max!</p>
+              {trackedMaxes.length > 0 ? (
+                <div className="maxes-display-grid">
+                  {trackedMaxes.map((exerciseName) => {
+                    const maxValue = stats?.oneRepMaxes?.[exerciseName];
+                    if (!maxValue) return null;
+                    return (
+                      <div
+                        key={exerciseName}
+                        className={`max-display-item ${selectedExercise === exerciseName ? 'selected' : ''}`}
+                        onClick={() => {
+                          setSelectedExercise(exerciseName);
+                          setEditingMax(null);
+                        }}
+                      >
+                        <div className="max-item-content">
+                          <span className="exercise-name">{exerciseName}</span>
+                          <span className="exercise-max">{maxValue} lbs</span>
+                        </div>
+                        <button
+                          className="untrack-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUntrackMax(exerciseName);
+                          }}
+                          title="Stop tracking"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="no-tracked">
+                  {stats?.oneRepMaxes && Object.keys(stats.oneRepMaxes).length > 0 ? (
+                    <>
+                      <p>No maxes being tracked yet.</p>
+                      <p className="hint">Click "+ Track a Max" to display your maxes here!</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>No one rep maxes recorded yet.</p>
+                      <p className="hint">Select an exercise above to add your first max!</p>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Track Max Modal */}
+            {showTrackModal && (
+              <div className="track-modal-overlay" onClick={() => setShowTrackModal(false)}>
+                <div className="track-modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="track-modal-header">
+                    <h3>Track a Max</h3>
+                    <button className="close-modal-btn" onClick={() => setShowTrackModal(false)}>×</button>
+                  </div>
+                  <p className="track-modal-subtitle">Select a max to display ({trackedMaxes.length}/20)</p>
+                  <div className="trackable-maxes-list">
+                    {getTrackableMaxes().map((exerciseName) => (
+                      <button
+                        key={exerciseName}
+                        className="trackable-max-item"
+                        onClick={() => handleTrackMax(exerciseName)}
+                      >
+                        <span className="trackable-name">{exerciseName}</span>
+                        <span className="trackable-value">{stats.oneRepMaxes[exerciseName]} lbs</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </Card>
