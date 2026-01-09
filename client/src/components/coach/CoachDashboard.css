@@ -60,38 +60,47 @@
   gap: var(--spacing-1);
 }
 
+.team-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
 .team-name {
   font-weight: var(--font-weight-semibold);
   color: var(--color-gray-900);
 }
 
-/* Editable team name */
-.team-name.editable {
-  cursor: pointer;
+/* Edit icon button - always visible */
+.team-edit-icon-btn {
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-1);
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-sm);
+  color: var(--color-gray-500);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
-.team-name.editable:hover {
+.team-edit-icon-btn:hover {
+  background-color: var(--color-primary-light);
+  border-color: var(--color-primary);
   color: var(--color-primary);
 }
 
-.team-name .edit-icon {
-  font-size: var(--font-size-xs);
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.team-name.editable:hover .edit-icon {
-  opacity: 1;
-}
-
-/* Team name edit mode */
+/* Team name edit mode - inline row */
 .team-name-edit {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
+  align-items: center;
+  gap: var(--spacing-1);
+  width: 100%;
 }
 
 .team-name-input {
@@ -101,17 +110,12 @@
   border: 1px solid var(--color-primary);
   border-radius: var(--radius-sm);
   outline: none;
-  width: 100%;
-  min-width: 120px;
+  flex: 1;
+  min-width: 80px;
 }
 
 .team-name-input:focus {
   box-shadow: 0 0 0 2px var(--color-primary-light);
-}
-
-.team-name-edit-actions {
-  display: flex;
-  gap: var(--spacing-1);
 }
 
 .team-edit-btn {
@@ -125,6 +129,7 @@
   cursor: pointer;
   font-size: 12px;
   transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .team-edit-btn.save {

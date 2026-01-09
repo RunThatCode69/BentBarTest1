@@ -110,17 +110,17 @@ const CoachDashboard = () => {
         <div className="team-info">
           {dashboardData.teams.map(team => (
             <div key={team.id} className="team-badge">
-              {editingTeamId === team.id ? (
-                <div className="team-name-edit">
-                  <input
-                    type="text"
-                    value={editingTeamName}
-                    onChange={(e) => setEditingTeamName(e.target.value)}
-                    onKeyDown={(e) => handleTeamNameKeyDown(e, team.id)}
-                    className="team-name-input"
-                    autoFocus
-                  />
-                  <div className="team-name-edit-actions">
+              <div className="team-name-row">
+                {editingTeamId === team.id ? (
+                  <div className="team-name-edit">
+                    <input
+                      type="text"
+                      value={editingTeamName}
+                      onChange={(e) => setEditingTeamName(e.target.value)}
+                      onKeyDown={(e) => handleTeamNameKeyDown(e, team.id)}
+                      className="team-name-input"
+                      autoFocus
+                    />
                     <button
                       className="team-edit-btn save"
                       onClick={() => handleSaveTeamName(team.id)}
@@ -136,17 +136,19 @@ const CoachDashboard = () => {
                       ✕
                     </button>
                   </div>
-                </div>
-              ) : (
-                <span
-                  className="team-name editable"
-                  onClick={() => handleStartEditTeam(team)}
-                  title="Click to edit team name"
-                >
-                  {team.teamName}
-                  <span className="edit-icon">✎</span>
-                </span>
-              )}
+                ) : (
+                  <>
+                    <span className="team-name">{team.teamName}</span>
+                    <button
+                      className="team-edit-icon-btn"
+                      onClick={() => handleStartEditTeam(team)}
+                      title="Edit team name"
+                    >
+                      ✎
+                    </button>
+                  </>
+                )}
+              </div>
               <span className="athlete-count">{team.athleteCount} athletes</span>
               <span className="access-code">Code: {team.accessCode}</span>
             </div>
