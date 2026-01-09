@@ -8,6 +8,23 @@ import Button from '../common/Button';
 import Modal from '../common/Modal';
 import './CoachDashboard.css';
 
+const SPORTS_OPTIONS = [
+  { value: 'football', label: 'Football' },
+  { value: 'basketball', label: 'Basketball' },
+  { value: 'soccer', label: 'Soccer' },
+  { value: 'baseball', label: 'Baseball' },
+  { value: 'softball', label: 'Softball' },
+  { value: 'volleyball', label: 'Volleyball' },
+  { value: 'track', label: 'Track & Field' },
+  { value: 'swimming', label: 'Swimming' },
+  { value: 'wrestling', label: 'Wrestling' },
+  { value: 'tennis', label: 'Tennis' },
+  { value: 'golf', label: 'Golf' },
+  { value: 'lacrosse', label: 'Lacrosse' },
+  { value: 'hockey', label: 'Hockey' },
+  { value: 'other', label: 'Other' }
+];
+
 const CoachDashboard = () => {
   const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState(null);
@@ -289,14 +306,19 @@ const CoachDashboard = () => {
           </div>
           <div className="form-group">
             <label htmlFor="teamSport">Sport</label>
-            <input
+            <select
               id="teamSport"
-              type="text"
               value={newTeamSport}
               onChange={(e) => setNewTeamSport(e.target.value)}
-              placeholder="e.g., Football"
               className="form-input"
-            />
+            >
+              <option value="">Select a sport</option>
+              {SPORTS_OPTIONS.map(sport => (
+                <option key={sport.value} value={sport.value}>
+                  {sport.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </Modal>

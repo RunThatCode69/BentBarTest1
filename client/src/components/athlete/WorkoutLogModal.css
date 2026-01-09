@@ -76,6 +76,16 @@
   border-radius: var(--radius-sm);
 }
 
+.sets-completed.none-done {
+  color: var(--color-gray-500);
+  background-color: var(--color-gray-100);
+}
+
+.sets-completed.all-done {
+  color: var(--color-white);
+  background-color: var(--color-success);
+}
+
 .expand-icon {
   font-size: var(--font-size-xs);
   color: var(--color-gray-400);

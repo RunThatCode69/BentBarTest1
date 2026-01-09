@@ -11,6 +11,7 @@ const AthleteDashboard = () => {
   const [stats, setStats] = useState(null);
   const [todayWorkout, setTodayWorkout] = useState(null);
   const [team, setTeam] = useState(null);
+  const [athleteName, setAthleteName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [completedExercises, setCompletedExercises] = useState([]);
@@ -43,6 +44,7 @@ const AthleteDashboard = () => {
       });
       setTodayWorkout(dashboardRes.data.todayWorkout);
       setTeam(dashboardRes.data.team);
+      setAthleteName(dashboardRes.data.athlete?.firstName || '');
     } catch (err) {
       setError('Failed to load dashboard data');
       console.error(err);
@@ -114,7 +116,7 @@ const AthleteDashboard = () => {
       <Navbar />
       <div className="dashboard-content">
         <div className="dashboard-header">
-          <h1>Welcome back, {user?.firstName || 'Athlete'}!</h1>
+          <h1>Welcome back, {athleteName || user?.firstName || 'Athlete'}!</h1>
           <p className="subtitle">Track your progress and crush today's workout</p>
         </div>
 

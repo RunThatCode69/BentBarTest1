@@ -298,9 +298,9 @@ const WorkoutLogModal = ({
                         </div>
                       </div>
                       <div className="exercise-header-right">
-                        {completedSets > 0 && (
-                          <span className="sets-completed">{completedSets}/{exercise.sets.length}</span>
-                        )}
+                        <span className={`sets-completed ${completedSets === exercise.sets.length ? 'all-done' : completedSets > 0 ? '' : 'none-done'}`}>
+                          {completedSets}/{exercise.sets.length}
+                        </span>
                         {exercise.youtubeUrl && (
                           <a
                             href={exercise.youtubeUrl}
