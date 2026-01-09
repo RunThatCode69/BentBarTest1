@@ -19,8 +19,17 @@ const Settings = () => {
   const [lastName, setLastName] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
 
+  // Email change state
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [emailStep, setEmailStep] = useState('input'); // 'input' or 'verify'
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState(null);
+
   useEffect(() => {
     fetchSettings();
+    checkPendingEmailChange();
   }, []);
 
   const fetchSettings = async () => {
@@ -74,6 +83,102 @@ const Settings = () => {
     setFirstName(settings.firstName);
     setLastName(settings.lastName);
     setEditingProfile(false);
+    setError('');
+  };
+
+  // Check for pending email change on load
+  const checkPendingEmailChange = async () => {
+    try {
+      const response = await api.get('/settings/email/pending');
+      if (response.data.hasPending) {
+        setPendingEmail(response.data.pendingEmail);
+        setEmailStep('verify');
+        setEditingEmail(true);
+      }
+    } catch (err) {
+      // Ignore errors - just means no pending change
+    }
+  };
+
+  // Request email change - sends code to current email
+  const handleRequestEmailChange = async () => {
+    setError('');
+    setSuccess('');
+
+    if (!newEmail || !newEmail.trim()) {
+      setError('Please enter a new email address');
+      return;
+    }
+
+    setSavingEmail(true);
+    try {
+      await api.post('/settings/email/request-change', {
+        newEmail: newEmail.trim()
+      });
+      setPendingEmail(newEmail.trim());
+      setEmailStep('verify');
+      setSuccess('Verification code sent to your current email address');
+    } catch (err) {
+      console.error('Request email change error:', err);
+      setError(err.response?.data?.message || 'Failed to request email change');
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  // Verify the code and complete email change
+  const handleVerifyEmailChange = async () => {
+    setError('');
+    setSuccess('');
+
+    if (!verificationCode || verificationCode.trim().length !== 8) {
+      setError('Please enter the 8-digit verification code');
+      return;
+    }
+
+    setSavingEmail(true);
+    try {
+      const response = await api.post('/settings/email/verify', {
+        code: verificationCode.trim()
+      });
+
+      // Update local state
+      setSettings(prev => ({
+        ...prev,
+        email: response.data.newEmail
+      }));
+
+      setSuccess('Email updated successfully!');
+      setEditingEmail(false);
+      setEmailStep('input');
+      setNewEmail('');
+      setVerificationCode('');
+      setPendingEmail(null);
+
+      // Refresh profile
+      if (refreshProfile) {
+        await refreshProfile();
+      }
+    } catch (err) {
+      console.error('Verify email change error:', err);
+      setError(err.response?.data?.message || 'Failed to verify code');
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  // Cancel pending email change
+  const handleCancelEmailChange = async () => {
+    try {
+      await api.delete('/settings/email/cancel');
+    } catch (err) {
+      // Ignore errors
+    }
+    setEditingEmail(false);
+    setEmailStep('input');
+    setNewEmail('');
+    setVerificationCode('');
+    setPendingEmail(null);
     setError('');
   };
 
@@ -221,14 +326,123 @@ const Settings = () => {
             </Card>
           )}
 
-          {/* Account Section */}
+          {/* Account Section - Email Change */}
           <Card>
             <div className="settings-section-header">
-              <h2>Account</h2>
+              <h2>Email Address</h2>
+              {!editingEmail && (
+                <button
+                  className="edit-btn"
+                  onClick={() => setEditingEmail(true)}
+                >
+                  Change Email
+                </button>
+              )}
+            </div>
+
+            {editingEmail ? (
+              <div className="email-change-form">
+                {emailStep === 'input' ? (
+                  <>
+                    <p className="email-change-info">
+                      Current email: <strong>{settings?.email}</strong>
+                    </p>
+                    <div className="form-group">
+                      <label>New Email Address</label>
+                      <input
+                        type="email"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        placeholder="Enter new email address"
+                      />
+                    </div>
+                    <p className="email-change-note">
+                      A verification code will be sent to your current email address.
+                    </p>
+                    <div className="form-actions">
+                      <Button
+                        variant="primary"
+                        onClick={handleRequestEmailChange}
+                        disabled={savingEmail}
+                      >
+                        {savingEmail ? 'Sending...' : 'Send Verification Code'}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        onClick={handleCancelEmailChange}
+                        disabled={savingEmail}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="email-change-info">
+                      Changing to: <strong>{pendingEmail}</strong>
+                    </p>
+                    <p className="email-change-note">
+                      Enter the 8-digit code sent to <strong>{settings?.email}</strong>
+                    </p>
+                    <div className="form-group">
+                      <label>Verification Code</label>
+                      <input
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                        placeholder="Enter 8-digit code"
+                        maxLength={8}
+                        className="verification-code-input"
+                      />
+                    </div>
+                    <div className="form-actions">
+                      <Button
+                        variant="primary"
+                        onClick={handleVerifyEmailChange}
+                        disabled={savingEmail}
+                      >
+                        {savingEmail ? 'Verifying...' : 'Verify & Update Email'}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        onClick={handleCancelEmailChange}
+                        disabled={savingEmail}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                    <button
+                      className="resend-code-btn"
+                      onClick={() => {
+                        setEmailStep('input');
+                        setNewEmail(pendingEmail);
+                        setVerificationCode('');
+                      }}
+                      disabled={savingEmail}
+                    >
+                      Didn't receive the code? Try again
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="email-display">
+                <div className="profile-field">
+                  <span className="field-label">Current Email</span>
+                  <span className="field-value">{settings?.email}</span>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* Account Info Section */}
+          <Card>
+            <div className="settings-section-header">
+              <h2>Password</h2>
             </div>
             <div className="account-info">
               <p className="account-note">
-                Need to change your email or password? Contact support for assistance.
+                Need to change your password? Contact support for assistance.
               </p>
             </div>
           </Card>

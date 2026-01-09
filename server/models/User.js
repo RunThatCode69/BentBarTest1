@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
   },
   passwordResetToken: String,
   passwordResetExpires: Date,
+  // Email change verification
+  emailChangeCode: String,
+  emailChangeCodeExpires: Date,
+  pendingEmail: String,
   lastLogin: Date,
   isActive: {
     type: Boolean,

@@ -7,7 +7,11 @@ const {
   getPaymentMethods,
   addPaymentMethod,
   removePaymentMethod,
-  setDefaultPaymentMethod
+  setDefaultPaymentMethod,
+  requestEmailChange,
+  verifyEmailChange,
+  cancelEmailChange,
+  getPendingEmailChange
 } = require('../controllers/settingsController');
 
 // All routes require authentication
@@ -18,6 +22,12 @@ router.get('/', getSettings);
 
 // Update profile (name)
 router.put('/profile', updateProfile);
+
+// Email change
+router.get('/email/pending', getPendingEmailChange);
+router.post('/email/request-change', requestEmailChange);
+router.post('/email/verify', verifyEmailChange);
+router.delete('/email/cancel', cancelEmailChange);
 
 // Payment methods (coaches only)
 router.get('/payment-methods', getPaymentMethods);
