@@ -25,6 +25,76 @@
   margin: 0;
 }
 
+/* Date Filter */
+.date-filter-card {
+  margin-bottom: var(--spacing-6);
+}
+
+.date-filter-row {
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.date-filter-row .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 120px;
+}
+
+.date-filter-row .filter-group label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+}
+
+.date-filter-row .filter-group select {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  background-color: var(--color-white);
+  cursor: pointer;
+}
+
+.date-filter-row .filter-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.date-filter-row .filter-group select:disabled {
+  background-color: var(--color-gray-100);
+  cursor: not-allowed;
+  color: var(--color-gray-400);
+}
+
+.clear-filter-btn {
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--color-gray-200);
+  color: var(--color-gray-700);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.clear-filter-btn:hover {
+  background-color: var(--color-gray-300);
+}
+
+.filter-summary {
+  margin-top: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-gray-100);
+}
+
 .no-history {
   text-align: center;
   padding: var(--spacing-12);
@@ -244,6 +314,19 @@
 @media (max-width: 640px) {
   .workout-history-page .page-content {
     padding: var(--spacing-4);
+  }
+
+  .date-filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-filter-row .filter-group {
+    min-width: 100%;
+  }
+
+  .clear-filter-btn {
+    width: 100%;
   }
 
   .history-header {
