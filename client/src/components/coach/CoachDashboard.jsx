@@ -170,64 +170,57 @@ const CoachDashboard = () => {
           <h1>Welcome, {dashboardData.coach.firstName}!</h1>
           <p className="subtitle">{dashboardData.coach.schoolName}</p>
         </div>
-        <div className="team-info">
-          {dashboardData.teams.map(team => (
-            <div key={team.id} className="team-badge">
-              <div className="team-name-row">
-                {editingTeamId === team.id ? (
-                  <div className="team-name-edit">
-                    <input
-                      type="text"
-                      value={editingTeamName}
-                      onChange={(e) => setEditingTeamName(e.target.value)}
-                      onKeyDown={(e) => handleTeamNameKeyDown(e, team.id)}
-                      className="team-name-input"
-                      autoFocus
-                    />
-                    <button
-                      className="team-edit-btn save"
-                      onClick={() => handleSaveTeamName(team.id)}
-                      disabled={savingTeamName}
-                    >
-                      ✓
-                    </button>
-                    <button
-                      className="team-edit-btn cancel"
-                      onClick={handleCancelEditTeam}
-                      disabled={savingTeamName}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <span className="team-name">{team.teamName}</span>
-                    <button
-                      className="team-edit-icon-btn"
-                      onClick={() => handleStartEditTeam(team)}
-                      title="Edit team name"
-                    >
-                      ✎
-                    </button>
-                  </>
-                )}
-              </div>
-              <span className="athlete-count">{team.athleteCount} athletes</span>
-              <span className="access-code">Code: {team.accessCode}</span>
+        <Button variant="primary" size="sm" onClick={handleOpenAddTeam}>
+          + Add Team
+        </Button>
+      </div>
+
+      <div className="team-info-section">
+        {dashboardData.teams.map(team => (
+          <div key={team.id} className="team-badge">
+            <div className="team-name-row">
+              {editingTeamId === team.id ? (
+                <div className="team-name-edit">
+                  <input
+                    type="text"
+                    value={editingTeamName}
+                    onChange={(e) => setEditingTeamName(e.target.value)}
+                    onKeyDown={(e) => handleTeamNameKeyDown(e, team.id)}
+                    className="team-name-input"
+                    autoFocus
+                  />
+                  <button
+                    className="team-edit-btn save"
+                    onClick={() => handleSaveTeamName(team.id)}
+                    disabled={savingTeamName}
+                  >
+                    ✓
+                  </button>
+                  <button
+                    className="team-edit-btn cancel"
+                    onClick={handleCancelEditTeam}
+                    disabled={savingTeamName}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <span className="team-name">{team.teamName}</span>
+                  <button
+                    className="team-edit-icon-btn"
+                    onClick={() => handleStartEditTeam(team)}
+                    title="Edit team name"
+                  >
+                    ✎
+                  </button>
+                </>
+              )}
             </div>
-          ))}
-          <button
-            className="add-team-btn"
-            onClick={handleOpenAddTeam}
-            title="Add new team"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            <span>Add Team</span>
-          </button>
-        </div>
+            <span className="athlete-count">{team.athleteCount} athletes</span>
+            <span className="access-code">Code: {team.accessCode}</span>
+          </div>
+        ))}
       </div>
 
       <div className="dashboard-grid">
