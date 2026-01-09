@@ -22,12 +22,25 @@ const AthleteDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [statsRes, workoutRes] = await Promise.all([
+      const [statsRes, dashboardRes] = await Promise.all([
         api.get('/athlete/stats'),
-        api.get('/athlete/today-workout')
+        api.get('/athlete/dashboard')
       ]);
-      setStats(statsRes.data);
-      setTodayWorkout(workoutRes.data);
+
+      // Transform maxes array to oneRepMaxes object for compatibility
+      const maxesArray = statsRes.data.maxes || [];
+      const oneRepMaxes = {};
+      maxesArray.forEach(max => {
+        if (max.exerciseName && max.oneRepMax) {
+          oneRepMaxes[max.exerciseName] = max.oneRepMax;
+        }
+      });
+
+      setStats({
+        ...statsRes.data,
+        oneRepMaxes
+      });
+      setTodayWorkout(dashboardRes.data.todayWorkout);
     } catch (err) {
       setError('Failed to load dashboard data');
       console.error(err);

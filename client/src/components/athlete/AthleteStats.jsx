@@ -24,8 +24,21 @@ const AthleteStats = () => {
     try {
       setLoading(true);
       const response = await api.get('/athlete/stats');
-      setStats(response.data);
-      setNewMaxes(response.data.oneRepMaxes || {});
+
+      // Transform maxes array to oneRepMaxes object for compatibility
+      const maxesArray = response.data.maxes || [];
+      const oneRepMaxes = {};
+      maxesArray.forEach(max => {
+        if (max.exerciseName && max.oneRepMax) {
+          oneRepMaxes[max.exerciseName] = max.oneRepMax;
+        }
+      });
+
+      setStats({
+        ...response.data,
+        oneRepMaxes
+      });
+      setNewMaxes(oneRepMaxes);
     } catch (err) {
       setError('Failed to load stats');
       console.error(err);
