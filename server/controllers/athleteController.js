@@ -195,6 +195,40 @@ const getStats = async (req, res) => {
       }
     }
 
+    // Build recent activity from workout logs
+    const recentActivity = [];
+    const recentLogs = workoutLogs.slice(0, 10); // Last 10 workout logs
+
+    recentLogs.forEach(log => {
+      if (hasCompletedSets(log)) {
+        // Count exercises and sets in this workout
+        let exerciseCount = 0;
+        let setCount = 0;
+
+        log.exercises.forEach(exercise => {
+          if (exercise.sets && Array.isArray(exercise.sets)) {
+            const completedSetsInExercise = exercise.sets.filter(set => {
+              const hasWeight = typeof set.completedWeight === 'number' && set.completedWeight > 0;
+              const hasReps = typeof set.completedReps === 'number' && set.completedReps > 0;
+              return hasWeight || hasReps;
+            }).length;
+
+            if (completedSetsInExercise > 0) {
+              exerciseCount++;
+              setCount += completedSetsInExercise;
+            }
+          }
+        });
+
+        recentActivity.push({
+          type: 'workout',
+          title: 'Completed Workout',
+          details: `${exerciseCount} exercise${exerciseCount !== 1 ? 's' : ''}, ${setCount} set${setCount !== 1 ? 's' : ''}`,
+          date: log.date
+        });
+      }
+    });
+
     res.json({
       success: true,
       maxes: athlete.maxes,
@@ -204,6 +238,7 @@ const getStats = async (req, res) => {
       totalSets,
       totalVolume: Math.round(totalVolume),
       currentStreak,
+      recentActivity,
       athlete: {
         id: athlete._id,
         firstName: athlete.firstName,

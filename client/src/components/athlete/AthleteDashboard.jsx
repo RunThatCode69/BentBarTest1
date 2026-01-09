@@ -14,8 +14,7 @@ const AthleteDashboard = () => {
   const [athleteName, setAthleteName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [completedExercises, setCompletedExercises] = useState([]);
-  const [exerciseResults, setExerciseResults] = useState({});
+  const [completedExercises] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -66,39 +65,6 @@ const AthleteDashboard = () => {
     return null;
   };
 
-  const handleExerciseComplete = async (exerciseIndex, result) => {
-    try {
-      await api.post('/athlete/log-exercise', {
-        date: new Date().toISOString(),
-        exerciseId: todayWorkout.exercises[exerciseIndex].exerciseId,
-        exerciseName: todayWorkout.exercises[exerciseIndex].exerciseName,
-        setsCompleted: result.sets,
-        repsCompleted: result.reps,
-        weightUsed: result.weight,
-        notes: result.notes
-      });
-
-      setCompletedExercises(prev => [...prev, exerciseIndex]);
-    } catch (err) {
-      console.error('Failed to log exercise:', err);
-    }
-  };
-
-  const handleResultChange = (exerciseIndex, field, value) => {
-    setExerciseResults(prev => ({
-      ...prev,
-      [exerciseIndex]: {
-        ...prev[exerciseIndex],
-        [field]: value
-      }
-    }));
-  };
-
-  const formatOneRM = (exerciseName) => {
-    if (!stats?.oneRepMaxes) return 'N/A';
-    const value = stats.oneRepMaxes[exerciseName];
-    return value ? `${value} lbs` : 'N/A';
-  };
 
   if (loading) {
     return (
@@ -181,13 +147,14 @@ const AthleteDashboard = () => {
               </div>
 
               {stats?.oneRepMaxes && Object.keys(stats.oneRepMaxes).length > 0 && (
-                <div className="one-rm-section">
+                <div className="one-rm-scroll-section">
                   <h3>One Rep Maxes</h3>
-                  <div className="one-rm-grid">
+                  <div className="one-rm-scroll-container">
                     {Object.entries(stats.oneRepMaxes).map(([exercise, value]) => (
-                      <div key={exercise} className="one-rm-item">
-                        <span className="exercise-name">{exercise}</span>
-                        <span className="exercise-value">{value} lbs</span>
+                      <div key={exercise} className="one-rm-scroll-item">
+                        <span className="one-rm-value">{value}</span>
+                        <span className="one-rm-unit">lbs</span>
+                        <span className="one-rm-name">{exercise}</span>
                       </div>
                     ))}
                   </div>
@@ -214,90 +181,48 @@ const AthleteDashboard = () => {
                 </div>
               ) : (
                 <div className="workout-content">
-                  <div className="exercises-list">
+                  <div className="exercises-grid">
                     {todayWorkout.exercises.map((exercise, index) => {
                       const isCompleted = completedExercises.includes(index);
                       const calculatedWeight = calculateWeight(exercise);
-                      const result = exerciseResults[index] || {
-                        sets: exercise.sets,
-                        reps: exercise.reps,
-                        weight: calculatedWeight
-                      };
 
                       return (
                         <div
                           key={index}
-                          className={`exercise-item ${isCompleted ? 'completed' : ''}`}
+                          className={`exercise-card ${isCompleted ? 'completed' : ''}`}
                         >
-                          <div className="exercise-header">
+                          <div className="exercise-card-header">
                             <span className="exercise-number">{index + 1}</span>
-                            <div className="exercise-info">
-                              <span className="exercise-name">{exercise.exerciseName}</span>
-                              <span className="exercise-prescription">
-                                {exercise.sets} x {exercise.reps}
-                                {exercise.percentage && ` @ ${exercise.percentage}%`}
-                                {calculatedWeight && ` (${calculatedWeight} lbs)`}
-                              </span>
-                            </div>
+                            <span className="exercise-name">{exercise.exerciseName}</span>
                             {exercise.youtubeUrl && (
                               <a
                                 href={exercise.youtubeUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="video-link"
+                                className="video-link-small"
+                                title="Watch Demo"
                               >
-                                📹 Demo
+                                📹
                               </a>
                             )}
                           </div>
-
-                          {exercise.notes && (
-                            <p className="exercise-notes">{exercise.notes}</p>
-                          )}
-
-                          {!isCompleted && (
-                            <div className="exercise-log">
-                              <div className="log-inputs">
-                                <div className="log-field">
-                                  <label>Sets</label>
-                                  <input
-                                    type="number"
-                                    value={result.sets}
-                                    onChange={(e) => handleResultChange(index, 'sets', e.target.value)}
-                                    min="0"
-                                  />
-                                </div>
-                                <div className="log-field">
-                                  <label>Reps</label>
-                                  <input
-                                    type="text"
-                                    value={result.reps}
-                                    onChange={(e) => handleResultChange(index, 'reps', e.target.value)}
-                                  />
-                                </div>
-                                <div className="log-field">
-                                  <label>Weight</label>
-                                  <input
-                                    type="number"
-                                    value={result.weight || ''}
-                                    onChange={(e) => handleResultChange(index, 'weight', e.target.value)}
-                                    placeholder="lbs"
-                                  />
-                                </div>
-                              </div>
-                              <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={() => handleExerciseComplete(index, result)}
-                              >
-                                Complete
-                              </Button>
+                          <div className="exercise-card-body">
+                            <div className="exercise-prescription-large">
+                              <span className="sets-reps">{exercise.sets} x {exercise.reps}</span>
+                              {exercise.percentage && (
+                                <span className="percentage">@ {exercise.percentage}%</span>
+                              )}
+                              {calculatedWeight && (
+                                <span className="weight">{calculatedWeight} lbs</span>
+                              )}
                             </div>
-                          )}
-
+                            {exercise.notes && (
+                              <p className="exercise-notes-small">{exercise.notes}</p>
+                            )}
+                          </div>
                           {isCompleted && (
-                            <div className="completed-badge">
-                              ✓ Completed
+                            <div className="exercise-card-completed">
+                              ✓ Done
                             </div>
                           )}
                         </div>
