@@ -17,6 +17,47 @@ const Input = ({
 }) => {
   const inputClass = `form-input ${error ? 'is-error' : ''} ${className}`;
 
+  // For number inputs, filter out non-numeric characters
+  const handleChange = (e) => {
+    if (type === 'number') {
+      // Allow only digits, decimal point, and minus sign
+      const newValue = e.target.value;
+      // If the value contains invalid characters, don't update
+      if (newValue !== '' && !/^-?\d*\.?\d*$/.test(newValue)) {
+        return;
+      }
+    }
+    onChange(e);
+  };
+
+  // Block invalid keys on keydown for number inputs
+  const handleKeyDown = (e) => {
+    if (type === 'number') {
+      // Allow: backspace, delete, tab, escape, enter, decimal point, minus
+      const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', '.', '-', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+
+      // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+      if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+        return;
+      }
+
+      // Allow the keys in our list
+      if (allowedKeys.includes(e.key)) {
+        return;
+      }
+
+      // Block anything that's not a digit
+      if (!/^\d$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+
+    // Call any existing onKeyDown handler
+    if (props.onKeyDown) {
+      props.onKeyDown(e);
+    }
+  };
+
   return (
     <div className="form-group">
       {label && (
@@ -30,7 +71,8 @@ const Input = ({
         id={name}
         name={name}
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}
         required={required}
