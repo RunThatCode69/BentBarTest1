@@ -29,7 +29,8 @@ const maxSchema = new mongoose.Schema({
   exerciseId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Exercise',
-    required: true
+    required: false,
+    default: null
   },
   exerciseName: {
     type: String,

@@ -90,23 +90,35 @@ const AthleteStats = () => {
 
   // Save a single max
   const handleSaveMax = async (exerciseName) => {
-    if (!editValue || isNaN(parseFloat(editValue))) {
+    // Validate input
+    if (!editValue || editValue.trim() === '') {
+      setError('Please enter a value');
       return;
     }
 
+    const maxValue = parseFloat(editValue);
+    if (isNaN(maxValue) || maxValue <= 0) {
+      setError('Please enter a valid number');
+      return;
+    }
+
+    setError(''); // Clear any previous errors
     setSavingMax(true);
+
     try {
-      await api.put('/athlete/stats/max', {
+      const response = await api.put('/athlete/stats/max', {
         exerciseName,
-        oneRepMax: parseFloat(editValue)
+        oneRepMax: maxValue
       });
+
+      console.log('Save max response:', response);
 
       // Update local state
       setStats(prev => ({
         ...prev,
         oneRepMaxes: {
           ...prev.oneRepMaxes,
-          [exerciseName]: parseFloat(editValue)
+          [exerciseName]: maxValue
         }
       }));
 
@@ -114,8 +126,8 @@ const AthleteStats = () => {
       setEditValue('');
       setSelectedExercise('');
     } catch (err) {
-      setError('Failed to save max');
-      console.error(err);
+      console.error('Save max error:', err);
+      setError(err.response?.data?.message || 'Failed to save max');
     } finally {
       setSavingMax(false);
     }
