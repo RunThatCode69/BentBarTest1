@@ -5,13 +5,25 @@ import Modal from '../common/Modal';
 import api from '../../services/api';
 import './CreateWorkoutPanel.css';
 
-const CreateWorkoutPanel = ({ workoutPrograms = [], teams = [], onCreateNew, onProgramDeleted }) => {
+const CreateWorkoutPanel = ({ workoutPrograms = [], teams = [], onCreateNew, onProgramDeleted, onProgramUpdated }) => {
   const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [programToDelete, setProgramToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Assignment popup state
+  const [showAssignPopup, setShowAssignPopup] = useState(false);
+  const [selectedProgram, setSelectedProgram] = useState(null);
+  const [savingAssignment, setSavingAssignment] = useState(false);
+
   const handleProgramClick = (program) => {
+    // Show assignment popup instead of navigating
+    setSelectedProgram(program);
+    setShowAssignPopup(true);
+  };
+
+  const handleViewProgram = (e, program) => {
+    e.stopPropagation();
     // Navigate to workouts page with team and program pre-selected
     const teamId = program.assignedTeams?.[0] || 'unassigned';
     navigate(`/coach/workouts?team=${teamId}&program=${program.id}`);
@@ -50,6 +62,51 @@ const CreateWorkoutPanel = ({ workoutPrograms = [], teams = [], onCreateNew, onP
     }
   };
 
+  // Check if program is assigned to a specific team
+  const isProgramAssignedToTeam = (program, teamId) => {
+    return program?.assignedTeams?.includes(teamId) || false;
+  };
+
+  // Handle team assignment toggle
+  const handleTeamAssignment = async (teamId) => {
+    if (!selectedProgram || savingAssignment) return;
+
+    setSavingAssignment(true);
+    try {
+      const isCurrentlyAssigned = isProgramAssignedToTeam(selectedProgram, teamId);
+
+      // If assigning, use this team; if unassigning, use null
+      const newProgramId = isCurrentlyAssigned ? null : selectedProgram.id;
+
+      await api.put(`/coach/teams/${teamId}/program`, {
+        programId: newProgramId
+      });
+
+      // Update local state - need to refresh programs
+      if (onProgramUpdated) {
+        onProgramUpdated();
+      }
+
+      // Update selectedProgram to reflect the change
+      if (isCurrentlyAssigned) {
+        setSelectedProgram(prev => ({
+          ...prev,
+          assignedTeams: prev.assignedTeams.filter(id => id !== teamId)
+        }));
+      } else {
+        setSelectedProgram(prev => ({
+          ...prev,
+          assignedTeams: [...(prev.assignedTeams || []), teamId]
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to update team assignment:', err);
+      alert('Failed to update assignment. Please try again.');
+    } finally {
+      setSavingAssignment(false);
+    }
+  };
+
   return (
     <div className="create-panel-container">
       <div className="panel-header">
@@ -73,6 +130,23 @@ const CreateWorkoutPanel = ({ workoutPrograms = [], teams = [], onCreateNew, onP
               </div>
               <div className="program-actions">
                 <button
+                  className="view-program-btn"
+                  onClick={(e) => handleViewProgram(e, program)}
+                  title="View program"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+                <button
                   className="delete-program-btn"
                   onClick={(e) => handleDeleteClick(e, program)}
                   title="Delete program"
@@ -89,17 +163,6 @@ const CreateWorkoutPanel = ({ workoutPrograms = [], teams = [], onCreateNew, onP
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                   </svg>
                 </button>
-                <svg
-                  className="program-arrow"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
               </div>
             </div>
           ))
@@ -133,6 +196,52 @@ const CreateWorkoutPanel = ({ workoutPrograms = [], teams = [], onCreateNew, onP
         <p style={{ marginTop: 'var(--spacing-2)', color: 'var(--color-text-secondary)', fontSize: '14px' }}>
           This will permanently remove the program and all its workouts. This action cannot be undone.
         </p>
+      </Modal>
+
+      {/* Team Assignment Popup */}
+      <Modal
+        isOpen={showAssignPopup}
+        onClose={() => {
+          setShowAssignPopup(false);
+          setSelectedProgram(null);
+        }}
+        title="Assign Program to Team"
+        footer={
+          <Button variant="ghost" onClick={() => {
+            setShowAssignPopup(false);
+            setSelectedProgram(null);
+          }}>
+            Done
+          </Button>
+        }
+      >
+        <div className="assignment-popup">
+          <p className="assignment-program-name">{selectedProgram?.programName}</p>
+          <p className="assignment-hint">Check a team to assign this program. Only one program per team.</p>
+
+          <div className="team-assignment-list">
+            {teams.map(team => {
+              const isAssigned = isProgramAssignedToTeam(selectedProgram, team.id);
+              return (
+                <label
+                  key={team.id}
+                  className={`team-assignment-item ${isAssigned ? 'assigned' : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isAssigned}
+                    onChange={() => handleTeamAssignment(team.id)}
+                    disabled={savingAssignment}
+                  />
+                  <span className="team-assignment-name">{team.teamName}</span>
+                  <span className={`team-assignment-status ${isAssigned ? 'assigned' : ''}`}>
+                    {isAssigned ? 'Assigned' : 'Not assigned'}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
       </Modal>
     </div>
   );

@@ -67,6 +67,7 @@
   gap: var(--spacing-2);
 }
 
+.view-program-btn,
 .delete-program-btn {
   width: 28px;
   height: 28px;
@@ -82,8 +83,14 @@
   opacity: 0;
 }
 
+.program-item:hover .view-program-btn,
 .program-item:hover .delete-program-btn {
   opacity: 1;
+}
+
+.view-program-btn:hover {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 .delete-program-btn:hover {
@@ -119,6 +126,78 @@
 .no-programs .hint {
   font-size: var(--font-size-sm);
   margin-top: var(--spacing-2);
+}
+
+/* Assignment Popup Styles */
+.assignment-popup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.assignment-program-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.assignment-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+  margin: 0;
+}
+
+.team-assignment-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-2);
+}
+
+.team-assignment-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-gray-200);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.team-assignment-item:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.team-assignment-item.assigned {
+  background-color: var(--color-success-light, #dcfce7);
+  border-color: var(--color-success, #22c55e);
+}
+
+.team-assignment-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-success, #22c55e);
+  cursor: pointer;
+}
+
+.team-assignment-name {
+  flex: 1;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-800);
+}
+
+.team-assignment-status {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}
+
+.team-assignment-status.assigned {
+  color: var(--color-success, #22c55e);
+  font-weight: var(--font-weight-medium);
 }
 
 @media (max-width: 768px) {

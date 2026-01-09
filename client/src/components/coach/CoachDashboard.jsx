@@ -17,25 +17,26 @@ const CoachDashboard = () => {
   const [editingTeamName, setEditingTeamName] = useState('');
   const [savingTeamName, setSavingTeamName] = useState(false);
 
-  // Program assignment state
-  const [assigningProgramTeamId, setAssigningProgramTeamId] = useState(null);
-  const [selectedProgramId, setSelectedProgramId] = useState('');
-  const [savingProgram, setSavingProgram] = useState(false);
+
+  const fetchDashboard = async () => {
+    try {
+      const response = await api.get('/coach/dashboard');
+      setDashboardData(response.data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const response = await api.get('/coach/dashboard');
-        setDashboardData(response.data);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to load dashboard');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboard();
   }, []);
+
+  // Refresh dashboard data (used after program assignment changes)
+  const handleProgramUpdated = () => {
+    fetchDashboard();
+  };
 
   // Start editing a team name
   const handleStartEditTeam = (team) => {
@@ -81,47 +82,6 @@ const CoachDashboard = () => {
       handleSaveTeamName(teamId);
     } else if (e.key === 'Escape') {
       handleCancelEditTeam();
-    }
-  };
-
-  // Start assigning a program
-  const handleStartAssignProgram = (team) => {
-    setAssigningProgramTeamId(team.id);
-    setSelectedProgramId(team.assignedProgram?.id || '');
-  };
-
-  // Cancel program assignment
-  const handleCancelAssignProgram = () => {
-    setAssigningProgramTeamId(null);
-    setSelectedProgramId('');
-  };
-
-  // Save program assignment
-  const handleSaveProgram = async (teamId) => {
-    setSavingProgram(true);
-    try {
-      await api.put(`/coach/teams/${teamId}/program`, {
-        programId: selectedProgramId || null
-      });
-
-      // Update local state
-      const selectedProgram = dashboardData.workoutPrograms.find(p => p.id === selectedProgramId);
-      setDashboardData(prev => ({
-        ...prev,
-        teams: prev.teams.map(t =>
-          t.id === teamId
-            ? { ...t, assignedProgram: selectedProgram ? { id: selectedProgram.id, name: selectedProgram.programName } : null }
-            : t
-        )
-      }));
-
-      setAssigningProgramTeamId(null);
-      setSelectedProgramId('');
-    } catch (err) {
-      console.error('Failed to assign program:', err);
-      alert('Failed to assign program. Please try again.');
-    } finally {
-      setSavingProgram(false);
     }
   };
 
@@ -197,52 +157,6 @@ const CoachDashboard = () => {
               </div>
               <span className="athlete-count">{team.athleteCount} athletes</span>
               <span className="access-code">Code: {team.accessCode}</span>
-              <div className="team-program-row">
-                {assigningProgramTeamId === team.id ? (
-                  <div className="team-program-edit">
-                    <select
-                      value={selectedProgramId}
-                      onChange={(e) => setSelectedProgramId(e.target.value)}
-                      className="program-select"
-                    >
-                      <option value="">No Program</option>
-                      {dashboardData.workoutPrograms.map(program => (
-                        <option key={program.id} value={program.id}>
-                          {program.programName}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      className="team-edit-btn save"
-                      onClick={() => handleSaveProgram(team.id)}
-                      disabled={savingProgram}
-                    >
-                      ✓
-                    </button>
-                    <button
-                      className="team-edit-btn cancel"
-                      onClick={handleCancelAssignProgram}
-                      disabled={savingProgram}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <div className="team-program-display">
-                    <span className="program-label">Program:</span>
-                    <span className={`program-name ${!team.assignedProgram ? 'no-program' : ''}`}>
-                      {team.assignedProgram?.name || 'None'}
-                    </span>
-                    <button
-                      className="team-edit-icon-btn"
-                      onClick={() => handleStartAssignProgram(team)}
-                      title="Change program"
-                    >
-                      ✎
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
           ))}
         </div>
@@ -255,6 +169,7 @@ const CoachDashboard = () => {
             workoutPrograms={dashboardData.workoutPrograms || []}
             teams={dashboardData.teams || []}
             onCreateNew={() => navigate('/coach/workouts/create')}
+            onProgramUpdated={handleProgramUpdated}
           />
         </div>
 
