@@ -406,9 +406,9 @@ const WorkoutDayViewer = ({
           <div className="modal-footer-with-add">
             <Button
               variant="outline"
-              onClick={() => setShowAddExerciseForm(!showAddExerciseForm)}
+              onClick={() => setShowAddExerciseForm(true)}
             >
-              {showAddExerciseForm ? 'Hide Form' : '+ Add Exercise'}
+              + Add Exercise
             </Button>
             <div className="modal-footer-right">
               <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel Edit</Button>
