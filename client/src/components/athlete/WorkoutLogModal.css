@@ -24,7 +24,7 @@
 .workout-log-exercises {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-5);
+  gap: var(--spacing-3);
 }
 
 .workout-log-exercise {
@@ -32,6 +32,12 @@
   border: 1px solid var(--color-gray-200);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  transition: all var(--transition-fast);
+}
+
+.workout-log-exercise.expanded {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .exercise-header {
@@ -40,7 +46,44 @@
   align-items: center;
   padding: var(--spacing-3) var(--spacing-4);
   background-color: var(--color-gray-50);
+}
+
+.exercise-header.clickable {
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.exercise-header.clickable:hover {
+  background-color: var(--color-gray-100);
+}
+
+.workout-log-exercise.expanded .exercise-header {
   border-bottom: 1px solid var(--color-gray-200);
+}
+
+.exercise-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.sets-completed {
+  font-size: var(--font-size-sm);
+  color: var(--color-success);
+  font-weight: var(--font-weight-medium);
+  background-color: var(--color-success-light);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-sm);
+}
+
+.expand-icon {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-400);
+  transition: transform var(--transition-fast);
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
 }
 
 .exercise-info {
@@ -225,12 +268,24 @@
   }
 
   .exercise-header {
-    flex-direction: column;
-    align-items: flex-start;
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  .exercise-header-right {
     gap: var(--spacing-2);
   }
 
   .exercise-video-link {
-    align-self: flex-end;
+    padding: var(--spacing-1);
+    font-size: var(--font-size-xs);
+  }
+
+  .expand-icon {
+    font-size: 10px;
+  }
+
+  .sets-completed {
+    font-size: var(--font-size-xs);
+    padding: 2px var(--spacing-1);
   }
 }

@@ -14,6 +14,7 @@ const WorkoutLogModal = ({
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saveMessage, setSaveMessage] = useState('');
+  const [expandedExercises, setExpandedExercises] = useState({});
 
   // Initialize log data when workout changes
   useEffect(() => {
@@ -21,7 +22,6 @@ const WorkoutLogModal = ({
       if (workout.exercises && workout.exercises.length > 0) {
         initializeLogData();
       } else {
-        console.log('WorkoutLogModal: Workout has no exercises');
         setLogData([]);
         setLoading(false);
       }
@@ -30,13 +30,10 @@ const WorkoutLogModal = ({
 
   const initializeLogData = async () => {
     if (!workout || !workout.exercises) {
-      console.log('WorkoutLogModal: No workout or exercises:', workout);
       setLoading(false);
       return;
     }
 
-    console.log('WorkoutLogModal: Initializing with workout:', workout);
-    console.log('WorkoutLogModal: Exercises count:', workout.exercises.length);
     setLoading(true);
 
     // Try to fetch existing log for this date
@@ -199,6 +196,13 @@ const WorkoutLogModal = ({
     setSaveMessage('');
   };
 
+  const toggleExercise = (index) => {
+    setExpandedExercises(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setSaveMessage('');
@@ -268,65 +272,86 @@ const WorkoutLogModal = ({
             )}
 
             <div className="workout-log-exercises">
-              {logData.map((exercise, exerciseIndex) => (
-                <div key={exerciseIndex} className="workout-log-exercise">
-                  <div className="exercise-header">
-                    <div className="exercise-info">
-                      <span className="exercise-number">{exerciseIndex + 1}</span>
-                      <div className="exercise-name-section">
-                        <span className="exercise-name">{exercise.exerciseName}</span>
-                        <span className="exercise-prescription">{exercise.prescription}</span>
+              {logData.map((exercise, exerciseIndex) => {
+                const isExpanded = expandedExercises[exerciseIndex];
+                const completedSets = exercise.sets.filter(s => s.completedWeight !== null || s.completedReps !== null).length;
+
+                return (
+                  <div key={exerciseIndex} className={`workout-log-exercise ${isExpanded ? 'expanded' : ''}`}>
+                    <div
+                      className="exercise-header clickable"
+                      onClick={() => toggleExercise(exerciseIndex)}
+                    >
+                      <div className="exercise-info">
+                        <span className="exercise-number">{exerciseIndex + 1}</span>
+                        <div className="exercise-name-section">
+                          <span className="exercise-name">{exercise.exerciseName}</span>
+                          <span className="exercise-prescription">{exercise.prescription}</span>
+                        </div>
+                      </div>
+                      <div className="exercise-header-right">
+                        {completedSets > 0 && (
+                          <span className="sets-completed">{completedSets}/{exercise.sets.length}</span>
+                        )}
+                        {exercise.youtubeUrl && (
+                          <a
+                            href={exercise.youtubeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="exercise-video-link"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Demo
+                          </a>
+                        )}
+                        <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
+                          ▼
+                        </span>
                       </div>
                     </div>
-                    {exercise.youtubeUrl && (
-                      <a
-                        href={exercise.youtubeUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="exercise-video-link"
-                      >
-                        Demo
-                      </a>
+
+                    {isExpanded && (
+                      <div className="sets-table">
+                        <div className="sets-header">
+                          <span className="set-col">Set</span>
+                          <span className="target-col">Target</span>
+                          <span className="input-col">Weight (lbs)</span>
+                          <span className="input-col">Reps</span>
+                        </div>
+
+                        {exercise.sets.map((set, setIndex) => (
+                          <div key={setIndex} className="set-row">
+                            <span className="set-col set-number">{set.setNumber}</span>
+                            <span className="target-col">
+                              {set.prescribedWeight ? `${set.prescribedWeight} lbs` : ''}
+                              {set.prescribedPercentage ? ` @${set.prescribedPercentage}%` : ''}
+                              {' x '}{set.prescribedReps}
+                            </span>
+                            <div className="input-col">
+                              <input
+                                type="number"
+                                className="log-input"
+                                placeholder={set.prescribedWeight || '—'}
+                                value={set.completedWeight ?? ''}
+                                onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'completedWeight', e.target.value)}
+                              />
+                            </div>
+                            <div className="input-col">
+                              <input
+                                type="number"
+                                className="log-input"
+                                placeholder={set.prescribedReps || '—'}
+                                value={set.completedReps ?? ''}
+                                onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'completedReps', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
-
-                  <div className="sets-table">
-                    <div className="sets-header">
-                      <span className="set-col">Set</span>
-                      <span className="target-col">Target</span>
-                      <span className="input-col">Weight (lbs)</span>
-                      <span className="input-col">Reps</span>
-                    </div>
-
-                    {exercise.sets.map((set, setIndex) => (
-                      <div key={setIndex} className="set-row">
-                        <span className="set-col set-number">{set.setNumber}</span>
-                        <span className="target-col">
-                          {set.prescribedWeight ? `${set.prescribedWeight} lbs` : ''} x {set.prescribedReps}
-                        </span>
-                        <div className="input-col">
-                          <input
-                            type="number"
-                            className="log-input"
-                            placeholder={set.prescribedWeight || '—'}
-                            value={set.completedWeight ?? ''}
-                            onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'completedWeight', e.target.value)}
-                          />
-                        </div>
-                        <div className="input-col">
-                          <input
-                            type="number"
-                            className="log-input"
-                            placeholder={set.prescribedReps || '—'}
-                            value={set.completedReps ?? ''}
-                            onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'completedReps', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
 
               {logData.length === 0 && (
                 <div className="no-exercises">
