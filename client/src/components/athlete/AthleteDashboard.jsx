@@ -52,20 +52,6 @@ const AthleteDashboard = () => {
     }
   };
 
-  const calculateWeight = (exercise) => {
-    if (exercise.weight) {
-      return exercise.weight;
-    }
-    if (exercise.percentage && stats?.oneRepMaxes) {
-      const oneRM = stats.oneRepMaxes[exercise.exerciseId];
-      if (oneRM) {
-        return Math.round(oneRM * (exercise.percentage / 100));
-      }
-    }
-    return null;
-  };
-
-
   if (loading) {
     return (
       <div className="athlete-dashboard">
@@ -184,7 +170,19 @@ const AthleteDashboard = () => {
                   <div className="exercises-grid">
                     {todayWorkout.exercises.map((exercise, index) => {
                       const isCompleted = completedExercises.includes(index);
-                      const calculatedWeight = calculateWeight(exercise);
+
+                      // Calculate weight for each set config or the main exercise
+                      const getWeightForPercentage = (percentage) => {
+                        if (!percentage || !stats?.oneRepMaxes) return null;
+                        const oneRM = stats.oneRepMaxes[exercise.exerciseName] || stats.oneRepMaxes[exercise.exerciseId];
+                        if (oneRM) {
+                          return Math.round(oneRM * (percentage / 100));
+                        }
+                        return null;
+                      };
+
+                      // Check if exercise has detailed set configs
+                      const hasSetConfigs = exercise.setConfigs && exercise.setConfigs.length > 0;
 
                       return (
                         <div
@@ -207,15 +205,38 @@ const AthleteDashboard = () => {
                             )}
                           </div>
                           <div className="exercise-card-body">
-                            <div className="exercise-prescription-large">
-                              <span className="sets-reps">{exercise.sets} x {exercise.reps}</span>
-                              {exercise.percentage && (
-                                <span className="percentage">@ {exercise.percentage}%</span>
-                              )}
-                              {calculatedWeight && (
-                                <span className="weight">{calculatedWeight} lbs</span>
-                              )}
-                            </div>
+                            {hasSetConfigs ? (
+                              // Show detailed set configurations
+                              <div className="set-configs-list">
+                                {exercise.setConfigs.map((config, configIndex) => {
+                                  const weight = config.weight || getWeightForPercentage(config.percentage);
+                                  return (
+                                    <div key={configIndex} className="set-config-row">
+                                      <span className="set-config-prescription">
+                                        {config.sets} x {config.reps}
+                                      </span>
+                                      {config.percentage && (
+                                        <span className="set-config-percentage">@ {config.percentage}%</span>
+                                      )}
+                                      {weight && (
+                                        <span className="set-config-weight">{weight} lbs</span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              // Show simple prescription
+                              <div className="exercise-prescription-large">
+                                <span className="sets-reps">{exercise.sets} x {exercise.reps}</span>
+                                {exercise.percentage && (
+                                  <span className="percentage">@ {exercise.percentage}%</span>
+                                )}
+                                {(exercise.weight || exercise.calculatedWeight) && (
+                                  <span className="weight">{exercise.weight || exercise.calculatedWeight} lbs</span>
+                                )}
+                              </div>
+                            )}
                             {exercise.notes && (
                               <p className="exercise-notes-small">{exercise.notes}</p>
                             )}
