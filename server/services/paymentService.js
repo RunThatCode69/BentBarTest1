@@ -1,42 +1,10 @@
 /**
- * Payment Service - Stripe Integration
+ * Payment Service - Stripe Integration Placeholder
  *
- * IMPORTANT: This service is DISABLED until Stripe is properly configured.
- * All payment operations will throw errors in production if STRIPE_SECRET_KEY is not set.
- *
- * To enable:
- * 1. npm install stripe
- * 2. Set STRIPE_SECRET_KEY in your .env file
- * 3. Set STRIPE_WEBHOOK_SECRET for webhook verification
+ * TODO: Replace with actual Stripe SDK integration
+ * npm install stripe
+ * const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
  */
-
-// Check if Stripe is configured
-const isStripeConfigured = () => {
-  return !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'your-stripe-secret-key');
-};
-
-// Initialize Stripe only if configured
-let stripe = null;
-if (isStripeConfigured()) {
-  try {
-    stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-    console.log('Stripe payment service initialized');
-  } catch (error) {
-    console.error('Failed to initialize Stripe:', error.message);
-  }
-}
-
-/**
- * Throws an error if payment service is not configured in production
- */
-const ensurePaymentEnabled = () => {
-  if (process.env.NODE_ENV === 'production' && !isStripeConfigured()) {
-    throw new Error('Payment service not configured. Set STRIPE_SECRET_KEY in environment variables.');
-  }
-  if (!isStripeConfigured()) {
-    console.warn('WARNING: Payment service running in placeholder mode (development only)');
-  }
-};
 
 /**
  * Create a Stripe customer
@@ -45,17 +13,17 @@ const ensurePaymentEnabled = () => {
  * @returns {Promise<object>} - Customer object with customerId
  */
 const createCustomer = async (email, name) => {
-  ensurePaymentEnabled();
+  console.log('Creating customer:', email);
 
-  if (stripe) {
-    const customer = await stripe.customers.create({ email, name });
-    return { customerId: customer.id, email, name };
-  }
+  // TODO: Replace with actual Stripe call
+  // const customer = await stripe.customers.create({
+  //   email,
+  //   name,
+  // });
+  // return { customerId: customer.id };
 
-  // Development placeholder
-  console.log('[DEV] Creating placeholder customer:', email);
   return {
-    customerId: 'cus_dev_' + Date.now(),
+    customerId: 'cus_placeholder_' + Date.now(),
     email,
     name
   };
@@ -68,28 +36,25 @@ const createCustomer = async (email, name) => {
  * @returns {Promise<object>} - Subscription object
  */
 const createSubscription = async (customerId, priceId) => {
-  ensurePaymentEnabled();
+  console.log('Creating subscription for:', customerId);
 
-  if (stripe) {
-    const subscription = await stripe.subscriptions.create({
-      customer: customerId,
-      items: [{ price: priceId }],
-      payment_behavior: 'default_incomplete',
-      expand: ['latest_invoice.payment_intent'],
-    });
-    return {
-      subscriptionId: subscription.id,
-      status: subscription.status,
-      clientSecret: subscription.latest_invoice?.payment_intent?.client_secret
-    };
-  }
+  // TODO: Replace with actual Stripe call
+  // const subscription = await stripe.subscriptions.create({
+  //   customer: customerId,
+  //   items: [{ price: priceId }],
+  //   payment_behavior: 'default_incomplete',
+  //   expand: ['latest_invoice.payment_intent'],
+  // });
+  // return {
+  //   subscriptionId: subscription.id,
+  //   status: subscription.status,
+  //   clientSecret: subscription.latest_invoice.payment_intent.client_secret
+  // };
 
-  // Development placeholder
-  console.log('[DEV] Creating placeholder subscription for:', customerId);
   return {
-    subscriptionId: 'sub_dev_' + Date.now(),
+    subscriptionId: 'sub_placeholder_' + Date.now(),
     status: 'active',
-    clientSecret: 'pi_dev_secret'
+    clientSecret: 'pi_placeholder_secret'
   };
 };
 
@@ -99,16 +64,16 @@ const createSubscription = async (customerId, priceId) => {
  * @returns {Promise<object>} - Cancellation result
  */
 const cancelSubscription = async (subscriptionId) => {
-  ensurePaymentEnabled();
+  console.log('Cancelling subscription:', subscriptionId);
 
-  if (stripe) {
-    const subscription = await stripe.subscriptions.cancel(subscriptionId);
-    return { subscriptionId, status: subscription.status };
-  }
+  // TODO: Replace with actual Stripe call
+  // const subscription = await stripe.subscriptions.del(subscriptionId);
+  // return { status: subscription.status };
 
-  // Development placeholder
-  console.log('[DEV] Cancelling placeholder subscription:', subscriptionId);
-  return { subscriptionId, status: 'cancelled' };
+  return {
+    subscriptionId,
+    status: 'cancelled'
+  };
 };
 
 /**
@@ -117,16 +82,16 @@ const cancelSubscription = async (subscriptionId) => {
  * @returns {Promise<object>} - Subscription status
  */
 const getSubscriptionStatus = async (subscriptionId) => {
-  ensurePaymentEnabled();
+  console.log('Getting subscription status:', subscriptionId);
 
-  if (stripe) {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    return { subscriptionId, status: subscription.status };
-  }
+  // TODO: Replace with actual Stripe call
+  // const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  // return { status: subscription.status };
 
-  // Development placeholder
-  console.log('[DEV] Getting placeholder subscription status:', subscriptionId);
-  return { subscriptionId, status: 'active' };
+  return {
+    subscriptionId,
+    status: 'active'
+  };
 };
 
 /**
@@ -137,25 +102,25 @@ const getSubscriptionStatus = async (subscriptionId) => {
 const handleWebhook = async (event) => {
   console.log('Handling webhook event:', event.type);
 
+  // TODO: Implement webhook handling
+  // Events to handle:
+  // - invoice.paid
+  // - invoice.payment_failed
+  // - customer.subscription.deleted
+  // - customer.subscription.updated
+
   switch (event.type) {
     case 'invoice.paid':
-      console.log('Invoice paid:', event.data.object.id);
-      // TODO: Update user's payment status to 'active'
+      // Update user's payment status to 'active'
       break;
     case 'invoice.payment_failed':
-      console.log('Payment failed:', event.data.object.id);
-      // TODO: Notify user of failed payment
+      // Notify user of failed payment
       break;
     case 'customer.subscription.deleted':
-      console.log('Subscription deleted:', event.data.object.id);
-      // TODO: Update user's payment status to 'cancelled'
-      break;
-    case 'customer.subscription.updated':
-      console.log('Subscription updated:', event.data.object.id);
-      // TODO: Update subscription status in database
+      // Update user's payment status to 'cancelled'
       break;
     default:
-      console.log('Unhandled webhook event type:', event.type);
+      console.log('Unhandled event type:', event.type);
   }
 
   return { received: true };
@@ -168,21 +133,21 @@ const handleWebhook = async (event) => {
  * @returns {Promise<object>} - Payment intent
  */
 const createPaymentIntent = async (amount, currency = 'usd') => {
-  ensurePaymentEnabled();
+  console.log('Creating payment intent:', amount, currency);
 
-  if (stripe) {
-    const paymentIntent = await stripe.paymentIntents.create({ amount, currency });
-    return {
-      clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id
-    };
-  }
+  // TODO: Replace with actual Stripe call
+  // const paymentIntent = await stripe.paymentIntents.create({
+  //   amount,
+  //   currency,
+  // });
+  // return {
+  //   clientSecret: paymentIntent.client_secret,
+  //   paymentIntentId: paymentIntent.id
+  // };
 
-  // Development placeholder
-  console.log('[DEV] Creating placeholder payment intent:', amount, currency);
   return {
-    clientSecret: 'pi_dev_secret_' + Date.now(),
-    paymentIntentId: 'pi_dev_' + Date.now()
+    clientSecret: 'pi_placeholder_secret_' + Date.now(),
+    paymentIntentId: 'pi_placeholder_' + Date.now()
   };
 };
 

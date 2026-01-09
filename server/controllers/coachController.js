@@ -188,10 +188,8 @@ const createTeam = async (req, res) => {
     }
 
     // Check if coach has paid for enough teams
-    // Development bypass - DISABLED IN PRODUCTION
-    const bypassEmails = process.env.NODE_ENV === 'development'
-      ? (process.env.BYPASS_EMAILS || '').split(',').filter(Boolean)
-      : [];
+    // Bypass for testing/troubleshooting
+    const bypassEmails = ['bpoulter2019@gmail.com'];
     const isBypassed = bypassEmails.includes(req.user.email);
 
     if (!isBypassed) {

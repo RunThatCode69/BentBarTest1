@@ -397,10 +397,18 @@ const WorkoutDayViewer = ({
       size="lg"
       footer={
         isEditing ? (
-          <>
-            <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel Edit</Button>
-            <Button variant="primary" onClick={handleSave}>Save Changes</Button>
-          </>
+          <div className="modal-footer-with-add">
+            <Button
+              variant="outline"
+              onClick={() => document.getElementById('add-exercise-section')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              + Add Exercise
+            </Button>
+            <div className="modal-footer-right">
+              <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel Edit</Button>
+              <Button variant="primary" onClick={handleSave}>Save Changes</Button>
+            </div>
+          </div>
         ) : hasChanges ? (
           <>
             <Button variant="ghost" onClick={onClose}>Cancel</Button>
@@ -614,7 +622,7 @@ const WorkoutDayViewer = ({
               </div>
             )}
 
-            <div className="add-exercise-form">
+            <div id="add-exercise-section" className="add-exercise-form">
               <div className="add-exercise-header">
                 <h5>Add Exercise</h5>
                 <button
