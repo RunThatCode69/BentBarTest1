@@ -23,6 +23,13 @@ const WorkoutDayViewer = ({
     exercises: []
   });
 
+  // Track if changes were made (for showing save button)
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Editing individual exercise state
+  const [editingExerciseIndex, setEditingExerciseIndex] = useState(null);
+  const [editingExercise, setEditingExercise] = useState(null);
+
   // Drag and drop state
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
@@ -55,6 +62,9 @@ const WorkoutDayViewer = ({
   useEffect(() => {
     if (!isOpen) {
       setIsEditing(false);
+      setHasChanges(false);
+      setEditingExerciseIndex(null);
+      setEditingExercise(null);
     }
   }, [isOpen]);
 
@@ -151,6 +161,97 @@ const WorkoutDayViewer = ({
     setDayWorkout(prev => ({
       ...prev,
       exercises: prev.exercises.filter((_, i) => i !== index)
+    }));
+    setHasChanges(true);
+  };
+
+  // Start editing an individual exercise
+  const handleStartEditExercise = (index) => {
+    const exercise = dayWorkout.exercises[index];
+    setEditingExerciseIndex(index);
+    setEditingExercise({
+      ...exercise,
+      setConfigs: exercise.setConfigs && exercise.setConfigs.length > 0
+        ? exercise.setConfigs.map(c => ({
+            sets: c.sets?.toString() || '',
+            reps: c.reps || '',
+            percentage: c.percentage?.toString() || '',
+            weight: c.weight?.toString() || ''
+          }))
+        : [{
+            sets: exercise.sets?.toString() || '',
+            reps: exercise.reps || '',
+            percentage: exercise.percentage?.toString() || '',
+            weight: exercise.weight?.toString() || ''
+          }]
+    });
+  };
+
+  // Cancel editing an exercise
+  const handleCancelEditExercise = () => {
+    setEditingExerciseIndex(null);
+    setEditingExercise(null);
+  };
+
+  // Save edited exercise
+  const handleSaveEditExercise = () => {
+    if (!editingExercise) return;
+
+    const validConfigs = editingExercise.setConfigs.filter(c => c.sets && c.reps).map(c => ({
+      sets: parseInt(c.sets),
+      reps: c.reps,
+      percentage: c.percentage ? parseFloat(c.percentage) : null,
+      weight: c.weight ? parseFloat(c.weight) : null
+    }));
+
+    if (validConfigs.length === 0) return;
+
+    const totalSets = validConfigs.reduce((sum, c) => sum + c.sets, 0);
+
+    const updatedExercise = {
+      ...editingExercise,
+      setConfigs: validConfigs,
+      sets: totalSets,
+      reps: validConfigs[0].reps,
+      percentage: validConfigs[0].percentage,
+      weight: validConfigs[0].weight
+    };
+
+    setDayWorkout(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) =>
+        i === editingExerciseIndex ? updatedExercise : ex
+      )
+    }));
+
+    setEditingExerciseIndex(null);
+    setEditingExercise(null);
+    setHasChanges(true);
+  };
+
+  // Handle editing exercise set config changes
+  const handleEditSetConfigChange = (index, field, value) => {
+    setEditingExercise(prev => {
+      const newConfigs = [...prev.setConfigs];
+      newConfigs[index] = { ...newConfigs[index], [field]: value };
+      return { ...prev, setConfigs: newConfigs };
+    });
+  };
+
+  // Add set config to editing exercise
+  const handleEditAddSetConfig = () => {
+    setEditingExercise(prev => ({
+      ...prev,
+      setConfigs: [...prev.setConfigs, { sets: '', reps: '', percentage: '', weight: '' }]
+    }));
+  };
+
+  // Remove set config from editing exercise
+  const handleEditRemoveSetConfig = (index) => {
+    if (editingExercise.setConfigs.length <= 1) return;
+    setEditingExercise(prev => ({
+      ...prev,
+      setConfigs: prev.setConfigs.filter((_, i) => i !== index)
     }));
   };
 
@@ -300,6 +401,11 @@ const WorkoutDayViewer = ({
             <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel Edit</Button>
             <Button variant="primary" onClick={handleSave}>Save Changes</Button>
           </>
+        ) : hasChanges ? (
+          <>
+            <Button variant="ghost" onClick={onClose}>Cancel</Button>
+            <Button variant="primary" onClick={handleSave}>Save Changes</Button>
+          </>
         ) : (
           <Button variant="ghost" onClick={onClose}>Close</Button>
         )
@@ -316,34 +422,127 @@ const WorkoutDayViewer = ({
         )}
 
 
-        {/* View Mode - Show exercises as read-only list */}
+        {/* View Mode - Show exercises with edit/delete options for coaches */}
         {!isEditing && (
           <div className="viewer-exercises">
             {dayWorkout.exercises && dayWorkout.exercises.length > 0 ? (
               dayWorkout.exercises.map((exercise, index) => (
                 <div key={index} className="viewer-exercise-item">
-                  <div className="viewer-exercise-number">{index + 1}</div>
-                  <div className="viewer-exercise-content">
-                    <div className="viewer-exercise-header">
-                      <span className="viewer-exercise-name">{exercise.exerciseName}</span>
-                      {exercise.youtubeUrl && (
-                        <a
-                          href={exercise.youtubeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="viewer-video-link"
+                  {editingExerciseIndex === index && editingExercise ? (
+                    // Inline edit form for this exercise
+                    <div className="viewer-exercise-edit-form">
+                      <div className="edit-form-header">
+                        <span className="edit-form-title">Editing: {editingExercise.exerciseName}</span>
+                      </div>
+                      <div className="edit-set-configs">
+                        {editingExercise.setConfigs.map((config, configIndex) => (
+                          <div key={configIndex} className="edit-set-config-row">
+                            <Input
+                              label={configIndex === 0 ? "Sets" : ""}
+                              type="number"
+                              value={config.sets}
+                              onChange={(e) => handleEditSetConfigChange(configIndex, 'sets', e.target.value)}
+                              placeholder="3"
+                            />
+                            <Input
+                              label={configIndex === 0 ? "Reps" : ""}
+                              value={config.reps}
+                              onChange={(e) => handleEditSetConfigChange(configIndex, 'reps', e.target.value)}
+                              placeholder="5"
+                            />
+                            <Input
+                              label={configIndex === 0 ? "%" : ""}
+                              type="number"
+                              value={config.percentage}
+                              onChange={(e) => handleEditSetConfigChange(configIndex, 'percentage', e.target.value)}
+                              placeholder="75"
+                            />
+                            <Input
+                              label={configIndex === 0 ? "lbs" : ""}
+                              type="number"
+                              value={config.weight}
+                              onChange={(e) => handleEditSetConfigChange(configIndex, 'weight', e.target.value)}
+                              placeholder="135"
+                            />
+                            {editingExercise.setConfigs.length > 1 && (
+                              <button
+                                type="button"
+                                className="edit-remove-config-btn"
+                                onClick={() => handleEditRemoveSetConfig(configIndex)}
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          className="edit-add-config-btn"
+                          onClick={handleEditAddSetConfig}
                         >
-                          Watch Demo
-                        </a>
+                          + Add Set Row
+                        </button>
+                      </div>
+                      <Input
+                        label="Notes"
+                        value={editingExercise.notes || ''}
+                        onChange={(e) => setEditingExercise(prev => ({ ...prev, notes: e.target.value }))}
+                        placeholder="Optional notes"
+                      />
+                      <div className="edit-form-actions">
+                        <Button variant="ghost" size="sm" onClick={handleCancelEditExercise}>
+                          Cancel
+                        </Button>
+                        <Button variant="primary" size="sm" onClick={handleSaveEditExercise}>
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    // Normal display
+                    <>
+                      <div className="viewer-exercise-number">{index + 1}</div>
+                      <div className="viewer-exercise-content">
+                        <div className="viewer-exercise-header">
+                          <span className="viewer-exercise-name">{exercise.exerciseName}</span>
+                          {exercise.youtubeUrl && (
+                            <a
+                              href={exercise.youtubeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="viewer-video-link"
+                            >
+                              Watch Demo
+                            </a>
+                          )}
+                        </div>
+                        <div className="viewer-exercise-prescription">
+                          {getExercisePrescription(exercise)}
+                        </div>
+                        {exercise.notes && (
+                          <p className="viewer-exercise-notes">{exercise.notes}</p>
+                        )}
+                      </div>
+                      {canEdit && (
+                        <div className="viewer-exercise-actions">
+                          <button
+                            className="viewer-action-btn edit"
+                            onClick={() => handleStartEditExercise(index)}
+                            title="Edit exercise"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            className="viewer-action-btn delete"
+                            onClick={() => handleRemoveExercise(index)}
+                            title="Remove exercise"
+                          >
+                            ×
+                          </button>
+                        </div>
                       )}
-                    </div>
-                    <div className="viewer-exercise-prescription">
-                      {getExercisePrescription(exercise)}
-                    </div>
-                    {exercise.notes && (
-                      <p className="viewer-exercise-notes">{exercise.notes}</p>
-                    )}
-                  </div>
+                    </>
+                  )}
                 </div>
               ))
             ) : (
