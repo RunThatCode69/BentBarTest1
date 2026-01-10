@@ -132,12 +132,14 @@ const getStats = async (req, res) => {
     // Count completed workouts (either isCompleted flag or has actual logged sets)
     const workoutsCompleted = workoutLogs.filter(log => log.isCompleted || hasCompletedSets(log)).length;
 
-    // Calculate total sets and volume from all workout logs
+    // Calculate total sets, exercises, and volume from all workout logs
     let totalSets = 0;
     let totalVolume = 0;
+    let exercisesLogged = 0;
 
     workoutLogs.forEach(log => {
       if (log.exercises && Array.isArray(log.exercises)) {
+        exercisesLogged += log.exercises.length;
         log.exercises.forEach(exercise => {
           if (exercise.sets && Array.isArray(exercise.sets)) {
             exercise.sets.forEach(set => {
@@ -222,6 +224,7 @@ const getStats = async (req, res) => {
       workoutsCompleted,
       totalSets,
       totalVolume: Math.round(totalVolume),
+      exercisesLogged,
       currentStreak,
       recentActivity,
       athlete: {
