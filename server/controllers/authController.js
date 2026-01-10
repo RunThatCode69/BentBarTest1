@@ -86,7 +86,7 @@ const registerCoach = async (req, res) => {
       teamName: `${schoolName} ${sport.charAt(0).toUpperCase() + sport.slice(1)}`,
       sport: sport.toLowerCase(),
       schoolName,
-      coachId: coach._id,
+      coaches: [{ coachId: coach._id, role: 'owner', addedAt: new Date() }],
       accessCode
     });
 
