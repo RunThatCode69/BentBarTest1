@@ -121,16 +121,11 @@ const getStats = async (req, res) => {
     const workoutLogs = await WorkoutLog.find({ athleteId: athlete._id })
       .sort({ date: -1 });
 
-    // Helper function to check if a workout log has any completed sets
+    // Helper function to check if a workout log has any sets
     const hasCompletedSets = (log) => {
       if (!log.exercises || !Array.isArray(log.exercises)) return false;
       return log.exercises.some(exercise => {
-        if (!exercise.sets || !Array.isArray(exercise.sets)) return false;
-        return exercise.sets.some(set => {
-          const hasWeight = typeof set.completedWeight === 'number' && set.completedWeight > 0;
-          const hasReps = typeof set.completedReps === 'number' && set.completedReps > 0;
-          return hasWeight || hasReps;
-        });
+        return exercise.sets && exercise.sets.length > 0;
       });
     };
 
@@ -146,16 +141,11 @@ const getStats = async (req, res) => {
         log.exercises.forEach(exercise => {
           if (exercise.sets && Array.isArray(exercise.sets)) {
             exercise.sets.forEach(set => {
-              // Check if set has actual completed data (not null, not undefined, and is a number)
-              const hasWeight = typeof set.completedWeight === 'number' && set.completedWeight > 0;
-              const hasReps = typeof set.completedReps === 'number' && set.completedReps > 0;
-
-              if (hasWeight || hasReps) {
-                totalSets++;
-                const weight = set.completedWeight || 0;
-                const reps = set.completedReps || 0;
-                totalVolume += weight * reps;
-              }
+              // Count all sets
+              totalSets++;
+              const weight = set.completedWeight || set.prescribedWeight || 0;
+              const reps = set.completedReps || parseInt(set.prescribedReps) || 0;
+              totalVolume += weight * reps;
             });
           }
         });
@@ -209,17 +199,9 @@ const getStats = async (req, res) => {
         let setCount = 0;
 
         log.exercises.forEach(exercise => {
-          if (exercise.sets && Array.isArray(exercise.sets)) {
-            const completedSetsInExercise = exercise.sets.filter(set => {
-              const hasWeight = typeof set.completedWeight === 'number' && set.completedWeight > 0;
-              const hasReps = typeof set.completedReps === 'number' && set.completedReps > 0;
-              return hasWeight || hasReps;
-            }).length;
-
-            if (completedSetsInExercise > 0) {
-              exerciseCount++;
-              setCount += completedSetsInExercise;
-            }
+          if (exercise.sets && Array.isArray(exercise.sets) && exercise.sets.length > 0) {
+            exerciseCount++;
+            setCount += exercise.sets.length;
           }
         });
 
