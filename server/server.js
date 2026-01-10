@@ -71,8 +71,8 @@ app.use(cors({
       return callback(null, true);
     }
 
-    // Allow only YOUR Vercel deployments (update 'barbend' to your project name)
-    const vercelPattern = /^https:\/\/barbend[a-z0-9-]*\.vercel\.app$/;
+    // Allow only YOUR Vercel deployments
+    const vercelPattern = /^https:\/\/bent-bar-test1[a-z0-9-]*\.vercel\.app$/;
     if (vercelPattern.test(origin)) {
       return callback(null, true);
     }
