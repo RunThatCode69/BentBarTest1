@@ -93,6 +93,14 @@ const createExercise = async (req, res) => {
       return res.status(400).json({ message: 'Name and category are required' });
     }
 
+    // Validate YouTube URL if provided
+    if (youtubeUrl) {
+      const youtubePattern = /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[a-zA-Z0-9_-]+$/;
+      if (!youtubePattern.test(youtubeUrl)) {
+        return res.status(400).json({ message: 'Invalid YouTube URL format' });
+      }
+    }
+
     let creatorId = null;
     let creatorModel = null;
 
@@ -183,6 +191,14 @@ const updateExercise = async (req, res) => {
 
     if (exercise.createdBy?.toString() !== creatorId?.toString()) {
       return res.status(403).json({ message: 'Not authorized to edit this exercise' });
+    }
+
+    // Validate YouTube URL if provided
+    if (youtubeUrl) {
+      const youtubePattern = /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[a-zA-Z0-9_-]+$/;
+      if (!youtubePattern.test(youtubeUrl)) {
+        return res.status(400).json({ message: 'Invalid YouTube URL format' });
+      }
     }
 
     // Update fields

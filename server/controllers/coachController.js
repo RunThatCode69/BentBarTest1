@@ -199,7 +199,7 @@ const createTeam = async (req, res) => {
 
     // Check if coach has paid for enough teams
     // Admin/test accounts get elevated limits (not infinite to avoid system issues)
-    const adminEmails = ['bpoulter2019@gmail.com', 'brucebarbell@gmail.com'];
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
     const isAdmin = adminEmails.includes(req.user.email);
     const ADMIN_TEAM_LIMIT = 100;
 

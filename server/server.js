@@ -66,8 +66,14 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
 
-    // Check if origin is allowed or matches Vercel preview deployments
-    if (allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Allow only YOUR Vercel deployments (update 'barbend' to your project name)
+    const vercelPattern = /^https:\/\/barbend[a-z0-9-]*\.vercel\.app$/;
+    if (vercelPattern.test(origin)) {
       return callback(null, true);
     }
 

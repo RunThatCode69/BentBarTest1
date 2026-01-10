@@ -361,7 +361,7 @@ const assignToTeam = async (req, res) => {
     }
 
     // Verify team belongs to coach
-    const team = await Team.findOne({ _id: teamId, coachId: coach._id });
+    const team = await Team.findOne({ _id: teamId, 'coaches.coachId': coach._id });
 
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });

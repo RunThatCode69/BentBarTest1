@@ -20,7 +20,7 @@ const getTeamStats = async (req, res) => {
       return res.status(404).json({ message: 'Coach profile not found' });
     }
 
-    const team = await Team.findOne({ _id: teamId, coachId: coach._id });
+    const team = await Team.findOne({ _id: teamId, 'coaches.coachId': coach._id });
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
@@ -91,7 +91,7 @@ const getAthleteStats = async (req, res) => {
     // Verify access - coach must own athlete's team, or athlete is themselves
     if (req.user.role === 'coach') {
       const coach = await Coach.findOne({ userId: req.user._id });
-      const team = await Team.findOne({ _id: athlete.teamId, coachId: coach?._id });
+      const team = await Team.findOne({ _id: athlete.teamId, 'coaches.coachId': coach?._id });
       if (!team) {
         return res.status(403).json({ message: 'Not authorized to view this athlete' });
       }
@@ -136,7 +136,7 @@ const getExerciseLeaderboard = async (req, res) => {
       return res.status(404).json({ message: 'Coach profile not found' });
     }
 
-    const team = await Team.findOne({ _id: teamId, coachId: coach._id });
+    const team = await Team.findOne({ _id: teamId, 'coaches.coachId': coach._id });
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
@@ -274,7 +274,7 @@ const getAvailableExercises = async (req, res) => {
       return res.status(404).json({ message: 'Coach profile not found' });
     }
 
-    const team = await Team.findOne({ _id: teamId, coachId: coach._id });
+    const team = await Team.findOne({ _id: teamId, 'coaches.coachId': coach._id });
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }

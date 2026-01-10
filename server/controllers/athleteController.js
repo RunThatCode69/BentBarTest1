@@ -618,12 +618,13 @@ const getExercises = async (req, res) => {
       return res.status(404).json({ message: 'Athlete profile not found' });
     }
 
-    // Get custom exercises created by the team's coach
+    // Get custom exercises created by the team's coaches
     const team = await Team.findById(athlete.teamId);
     let customExercises = [];
 
-    if (team && team.coachId) {
-      customExercises = await Exercise.find({ coachId: team.coachId })
+    if (team && team.coaches && team.coaches.length > 0) {
+      const coachIds = team.coaches.map(c => c.coachId);
+      customExercises = await Exercise.find({ createdBy: { $in: coachIds } })
         .select('_id name category youtubeUrl')
         .lean();
     }

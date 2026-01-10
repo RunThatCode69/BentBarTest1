@@ -39,6 +39,17 @@ const registerCoach = async (req, res) => {
       return res.status(400).json({ message: `Missing required fields: ${missingFields.join(', ')}` });
     }
 
+    // Validate input lengths
+    if (firstName.length > 50 || lastName.length > 50) {
+      return res.status(400).json({ message: 'Name cannot exceed 50 characters' });
+    }
+    if (schoolName.length > 100) {
+      return res.status(400).json({ message: 'School name cannot exceed 100 characters' });
+    }
+    if (email.length > 255) {
+      return res.status(400).json({ message: 'Email cannot exceed 255 characters' });
+    }
+
     // Validate email
     if (!validateEmail(email)) {
       return res.status(400).json({ message: 'Invalid email format' });
@@ -227,6 +238,17 @@ const registerAthlete = async (req, res) => {
     const { isValid, missingFields } = validateRequiredFields(req.body, requiredFields);
     if (!isValid) {
       return res.status(400).json({ message: `Missing required fields: ${missingFields.join(', ')}` });
+    }
+
+    // Validate input lengths
+    if (firstName.length > 50 || lastName.length > 50) {
+      return res.status(400).json({ message: 'Name cannot exceed 50 characters' });
+    }
+    if (schoolName.length > 100) {
+      return res.status(400).json({ message: 'School name cannot exceed 100 characters' });
+    }
+    if (email.length > 255) {
+      return res.status(400).json({ message: 'Email cannot exceed 255 characters' });
     }
 
     // Validate email
