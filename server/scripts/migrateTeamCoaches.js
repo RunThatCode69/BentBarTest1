@@ -13,10 +13,13 @@
 require('dotenv').config({ path: require('path').join(__dirname, '..', '..', '.env') });
 const mongoose = require('mongoose');
 
+// IMPORTANT: Set MONGODB_URI in your .env file or as an environment variable
+// DO NOT hardcode credentials here
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
   console.error('MONGODB_URI not found in environment variables');
+  console.error('Set it in .env or run with: MONGODB_URI="your-connection-string" node server/scripts/migrateTeamCoaches.js');
   process.exit(1);
 }
 
