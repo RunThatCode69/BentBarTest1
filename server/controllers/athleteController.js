@@ -53,17 +53,20 @@ const getDashboard = async (req, res) => {
     // Process exercises with calculated weights
     if (todayWorkout && todayWorkout.exercises) {
       todayWorkout.exercises = todayWorkout.exercises.map(exercise => {
+        // Convert to plain object if it's a Mongoose document
+        const exerciseObj = exercise.toObject ? exercise.toObject() : exercise;
+
         const athleteMax = athlete.maxes.find(
-          m => m.exerciseId?.toString() === exercise.exerciseId?.toString()
+          m => m.exerciseId?.toString() === exerciseObj.exerciseId?.toString()
         );
 
         const weightDisplay = displayWeight(
           athleteMax?.oneRepMax,
-          exercise.percentage
+          exerciseObj.percentage
         );
 
         return {
-          ...exercise,
+          ...exerciseObj,
           calculatedWeight: weightDisplay.calculatedWeight,
           displayText: weightDisplay.displayText,
           hasOneRepMax: !!athleteMax
